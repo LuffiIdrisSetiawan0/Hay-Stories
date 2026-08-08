@@ -1,0 +1,235 @@
+/*
+ * Nav transparan mengambang di atas foto hero, memadat jadi krem saat scroll —
+ * pola Ludmila Borosova.
+ *
+ * Saat transparan, nav berada di atas foto gelap, jadi warna teksnya harus
+ * TERANG. Token `--color-text-*` bernilai gelap dan hanya benar setelah latar
+ * krem muncul. Karena itu keadaan transparan memakai warna eksplisit, bukan
+ * token, dan token baru dipakai kembali pada `.scrolled`.
+ */
+/*
+ * Default aman: teks gelap, benar di atas latar krem. Halaman seperti /harga
+ * yang tidak punya hero foto memakai keadaan ini apa adanya.
+ */
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  border-bottom: 1px solid transparent;
+  background: transparent;
+  transition: background var(--transition-slow), border-color var(--transition-slow),
+    color var(--transition-slow);
+
+  --nav-fg: var(--color-text-primary);
+  --nav-fg-muted: var(--color-text-muted);
+  --nav-rule: var(--color-border);
+  --nav-accent: var(--color-accent);
+}
+
+/*
+ * Hanya saat nav mengambang di atas foto hero gelap DAN belum di-scroll.
+ * Warnanya eksplisit, bukan token: token `--color-text-*` bernilai gelap dan
+ * baru benar setelah latar krem muncul di belakang bar.
+ */
+.overHero:not(.scrolled) {
+  --nav-fg: #f7f4ee;
+  --nav-fg-muted: rgba(247, 244, 238, 0.72);
+  --nav-rule: rgba(247, 244, 238, 0.35);
+  --nav-accent: #e8c99a;
+}
+
+.scrolled {
+  background: rgba(253, 251, 247, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom-color: var(--color-border);
+}
+
+.container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+@media (min-width: 640px) {
+  .container {
+    padding: 2rem 1.5rem;
+  }
+}
+
+/* Logo */
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+}
+
+.logoIcon {
+  color: var(--nav-accent);
+  font-size: 1.125rem;
+}
+
+.logoText {
+  font-family: var(--font-serif);
+  font-weight: 500;
+  font-size: 1.25rem;
+  letter-spacing: 0.05em;
+  color: var(--nav-fg);
+  text-transform: uppercase;
+}
+
+/* Desktop Links */
+.navLinks {
+  display: none;
+  align-items: center;
+  gap: 3rem;
+}
+
+@media (min-width: 768px) {
+  .navLinks {
+    display: flex;
+  }
+}
+
+.link {
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--nav-fg-muted);
+  text-decoration: none;
+  transition: color 0.3s ease;
+  position: relative;
+}
+
+.link:hover {
+  color: var(--nav-fg);
+}
+
+.link::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 0;
+  height: 1px;
+  background-color: var(--nav-accent);
+  transition: width 0.3s ease;
+}
+
+.link:hover::after {
+  width: 100%;
+}
+
+/* Actions */
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.loginBtn {
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--nav-fg);
+  text-decoration: none;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--nav-rule);
+  transition: border-color 0.3s ease, color 0.3s ease;
+  display: none;
+}
+
+@media (min-width: 640px) {
+  .loginBtn {
+    display: inline-block;
+  }
+}
+
+.loginBtn:hover {
+  border-color: var(--nav-accent);
+  color: var(--nav-accent);
+}
+
+.mobileMenuBtn {
+  background: none;
+  border: none;
+  color: var(--nav-fg);
+  cursor: pointer;
+  padding: 0.5rem;
+  margin-right: -0.5rem;
+}
+
+/*
+ * Menu mobile adalah lapisan krem penuh layar, bukan bagian dari bar
+ * transparan — di sini token `--color-*` yang gelap justru benar.
+ */
+
+@media (min-width: 768px) {
+  .mobileMenuBtn {
+    display: none;
+  }
+}
+
+/* Mobile Menu */
+.mobileMenu {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  background: var(--color-bg-primary);
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease, transform 0.4s ease;
+  transform: translateY(-20px);
+}
+
+.mobileMenuOpen {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.mobileNavLinks {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+}
+
+.mobileLink {
+  font-family: var(--font-serif);
+  font-size: 2rem;
+  color: var(--color-text-primary);
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.mobileLink:hover {
+  color: var(--color-accent);
+}
+
+.mobileLoginBtn {
+  margin-top: 2rem;
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #fff;
+  background: var(--color-accent);
+  padding: 1rem 2rem;
+  text-decoration: none;
+}

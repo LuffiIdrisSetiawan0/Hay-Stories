@@ -1,0 +1,105 @@
+/*
+ * Pembungkus seksi, judul, dan animasi masuk kini ditangani
+ * <Section> / <SectionHeading> / <Reveal> di src/components/ui/.
+ */
+
+/* Masonry Grid */
+.grid {
+  columns: 2;
+  column-gap: 1.5rem;
+  margin-top: 4rem;
+}
+
+@media (max-width: 768px) {
+  .grid {
+    columns: 1;
+  }
+}
+
+/* Card */
+.card {
+  break-inside: avoid;
+  margin-bottom: 1.5rem;
+  padding: 2rem;
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  position: relative;
+}
+
+.card:hover {
+  border-color: var(--color-accent);
+}
+
+.cardFeatured {
+  padding: 2.5rem;
+}
+
+.cardFeatured .quote {
+  font-size: 1.125rem;
+}
+
+/* Quote */
+.quoteIcon {
+  color: var(--color-accent);
+  opacity: 0.4;
+  margin-bottom: 1rem;
+}
+
+.quote {
+  font-family: var(--font-serif);
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--color-text-secondary);
+  margin-bottom: 1.5rem;
+  font-style: italic;
+}
+
+/* Footer */
+.cardFooter {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(181, 136, 99, 0.2), rgba(181, 136, 99, 0.08));
+  border: 1px solid rgba(181, 136, 99, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-serif);
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--color-accent);
+  flex-shrink: 0;
+}
+
+.name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.detail {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  color: var(--color-text-muted);
+}
+
+/* Event Tag */
+.eventTag {
+  position: absolute;
+  top: 1.25rem;
+  right: 1.25rem;
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+  background: rgba(181, 136, 99, 0.08);
+  border: 1px solid rgba(181, 136, 99, 0.12);
+  padding: 0.25rem 0.625rem;
+}

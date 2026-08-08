@@ -1,0 +1,72 @@
+/*
+ * Pembungkus seksi, judul, dan animasi masuk kini ditangani
+ * <Section> / <SectionHeading> / <Reveal> di src/components/ui/.
+ */
+
+/* FAQ List */
+.faqList {
+  text-align: left;
+  max-width: 46rem;
+  margin: 4rem auto 0;
+}
+
+.faqItem {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.faqItem:first-child {
+  border-top: 1px solid var(--color-border);
+}
+
+.faqQuestion {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem 0;
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  text-align: left;
+  cursor: pointer;
+  transition: color 0.3s ease;
+  background: none;
+  border: none;
+}
+
+.faqQuestion:hover {
+  color: var(--color-accent);
+}
+
+.faqChevron {
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+  transition: transform 0.3s ease, color 0.3s ease;
+  margin-left: 1rem;
+}
+
+.faqChevronOpen {
+  transform: rotate(180deg);
+  color: var(--color-accent);
+}
+
+.faqAnswer {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s ease, padding 0.4s ease;
+  padding: 0;
+}
+
+.faqAnswerOpen {
+  max-height: 250px;
+  padding: 0 0 1.5rem;
+}
+
+.faqAnswer p {
+  font-family: var(--font-sans);
+  font-size: 0.9375rem;
+  color: var(--color-text-secondary);
+  line-height: 1.8;
+  font-weight: 300;
+}

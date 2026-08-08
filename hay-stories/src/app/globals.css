@@ -1,0 +1,498 @@
+/* ================================================
+   HAY Stories — Global Design System
+
+   Dua permukaan, satu set token:
+
+   :root         permukaan PRODUK  — krem hangat. Marketing & dashboard.
+   .surface-dark permukaan FOTO    — hitam hangat. Kamera, galeri, band
+                                     showcase, live slideshow.
+
+   `.surface-dark` menimpa nama token yang sama, jadi komponen apa pun yang
+   memakai token (bukan warna hardcoded) otomatis beradaptasi tanpa CSS ganda.
+
+   Hitamnya sengaja HANGAT (R > B), bukan #000. Preset film kita punya hitam
+   terangkat berwarna; di atas hitam murni, hitam itu terbaca abu-abu kotor.
+   ================================================ */
+
+/* === CSS Custom Properties (Design Tokens) === */
+:root {
+  /* Colors */
+  --color-bg-primary: #fdfbf7; /* Off-white / Cream */
+  --color-bg-secondary: #f4f0e6;
+  --color-bg-elevated: #ffffff;
+  --color-bg-card: #ffffff;
+  --color-bg-hover: rgba(0, 0, 0, 0.03);
+
+  --color-text-primary: #1a1a1a;
+  --color-text-secondary: rgba(26, 26, 26, 0.7);
+  --color-text-muted: rgba(26, 26, 26, 0.5);
+  --color-text-faint: rgba(26, 26, 26, 0.2);
+
+  --color-accent: #b38b59; /* Elegant Bronze/Gold */
+  --color-accent-hover: #9c774a;
+  --color-accent-glow: rgba(179, 139, 89, 0.15);
+  --color-accent-soft: rgba(179, 139, 89, 0.1);
+  --color-halation: #c99b64;
+
+  --color-border: rgba(0, 0, 0, 0.1);
+  --color-border-hover: rgba(0, 0, 0, 0.2);
+
+  --color-success: #059669;
+  --color-error: #dc2626;
+  --color-warning: #d97706;
+
+  /* Typography */
+  --font-serif: var(--font-serif), 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+  --font-sans: var(--font-sans), 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: var(--font-mono), 'Share Tech Mono', 'Courier New', monospace;
+
+  /* Spacing */
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+  --space-2xl: 3rem;
+  --space-3xl: 4rem;
+  --space-4xl: 6rem;
+
+  /* Radius */
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.25rem;
+  --radius-2xl: 1.5rem;
+  --radius-full: 9999px;
+
+  /*
+   * Shadows — bernuansa cokelat hangat, bukan hitam netral.
+   * Bayangan hitam murni di atas krem terbaca sebagai kotoran abu-abu.
+   */
+  --shadow-sm: 0 1px 2px rgba(60, 46, 28, 0.05), 0 1px 3px rgba(60, 46, 28, 0.04);
+  --shadow-md: 0 8px 24px rgba(60, 46, 28, 0.08);
+  --shadow-lg: 0 24px 60px rgba(60, 46, 28, 0.12);
+  --shadow-glow: 0 0 40px var(--color-accent-glow);
+
+  /* Transitions */
+  --transition-fast: 150ms ease;
+  --transition-base: 250ms ease;
+  --transition-slow: 400ms ease;
+
+  /* Easing — pelan di akhir, terasa mahal daripada linear */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Layout */
+  --max-width: 72rem;
+  --nav-height: 4rem;
+
+  /* Ritme vertikal seksi (ruang longgar ala ketiga referensi) */
+  --section-py: clamp(4.5rem, 10vw, 9rem);
+}
+
+/*
+ * Permukaan foto. Pasang pada elemen mana pun (biasanya <section>) dan seluruh
+ * subtree ikut gelap.
+ */
+.surface-dark {
+  --color-bg-primary: #0c0b09;
+  --color-bg-secondary: #14120f;
+  --color-bg-elevated: #1a1714;
+  --color-bg-card: #16130f;
+  --color-bg-hover: rgba(255, 255, 255, 0.06);
+
+  --color-text-primary: #f5f2ec;
+  --color-text-secondary: rgba(245, 242, 236, 0.72);
+  --color-text-muted: rgba(245, 242, 236, 0.5);
+  --color-text-faint: rgba(245, 242, 236, 0.22);
+
+  /* Bronze dinaikkan agar rasio kontrasnya cukup di atas hitam hangat */
+  --color-accent: #c99b64;
+  --color-accent-hover: #dcb07a;
+  --color-accent-glow: rgba(201, 155, 100, 0.22);
+  --color-accent-soft: rgba(201, 155, 100, 0.14);
+
+  --color-border: rgba(255, 255, 255, 0.12);
+  --color-border-hover: rgba(255, 255, 255, 0.24);
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 24px 60px rgba(0, 0, 0, 0.6);
+
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+}
+
+/* === Reset & Base === */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* Nav melayang di atas konten; tanpa ini anchor mendarat tertutup navbar. */
+  scroll-padding-top: calc(var(--nav-height) + 1.5rem);
+}
+
+/* Scroll beranimasi juga termasuk gerakan yang bisa memicu mabuk gerak. */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  min-height: 100vh;
+  overflow-x: hidden;
+  line-height: 1.6;
+}
+
+::selection {
+  background: var(--color-accent);
+  color: #ffffff;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  background: none;
+  font: inherit;
+  color: inherit;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+ul, ol {
+  list-style: none;
+}
+
+/* === Typography === */
+.text-halation {
+  color: var(--color-halation);
+}
+
+.font-serif {
+  font-family: var(--font-serif);
+}
+
+.font-mono {
+  font-family: var(--font-mono);
+}
+
+/* === Utility Classes === */
+.container {
+  width: 100%;
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+@media (min-width: 640px) {
+  .container {
+    padding: 0 2rem;
+  }
+}
+
+/* === Glass Card === */
+.glass-card {
+  background: var(--color-bg-card);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-2xl);
+}
+
+/* === Button Styles === */
+/*
+ * Semua tombol berbentuk pill — pola yang dipakai ketiga referensi
+ * (Ludmila pill krem, SNXP pill peach, OMS tautan berpanah).
+ */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  border-radius: var(--radius-full);
+  transition: transform var(--transition-fast), background-color var(--transition-base),
+    box-shadow var(--transition-base), border-color var(--transition-base);
+  white-space: nowrap;
+}
+
+.btn:active {
+  transform: scale(0.97);
+}
+
+.btn-primary {
+  background-color: var(--color-accent);
+  color: #ffffff;
+  padding: 0.8rem 1.9rem;
+  font-size: 0.9375rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-primary:hover {
+  background-color: var(--color-accent-hover);
+  box-shadow: var(--shadow-md);
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border);
+  padding: 0.75rem 1.6rem;
+  font-size: 0.875rem;
+}
+
+.btn-secondary:hover {
+  background: var(--color-bg-hover);
+  border-color: var(--color-border-hover);
+}
+
+/*
+ * Pill krem lembut ala Ludmila — untuk dipakai DI ATAS foto, di mana tombol
+ * berwarna akan bertabrakan dengan isi fotonya.
+ */
+.btn-accent {
+  background: rgba(253, 251, 247, 0.92);
+  color: #1a1a1a;
+  padding: 0.85rem 2rem;
+  font-size: 0.9375rem;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.btn-accent:hover {
+  background: #ffffff;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.18);
+}
+
+.btn-lg {
+  padding: 1rem 2.25rem;
+  font-size: 1rem;
+}
+
+/* === Section Label === */
+.section-label {
+  color: var(--color-halation);
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  margin-bottom: 1.25rem;
+}
+
+/* === Section Title === */
+.section-title {
+  font-family: var(--font-serif);
+  font-weight: 700;
+  line-height: 0.98;
+  letter-spacing: -0.02em;
+}
+
+/* === Gradient Glow Background === */
+.glow-bg {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  height: 16rem;
+  width: min(90vw, 720px);
+  transform: translateX(-50%);
+  border-radius: 9999px;
+  background: radial-gradient(ellipse, var(--color-accent-glow), transparent 68%);
+  filter: blur(40px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* === Sprocket Row (Film strip decoration) === */
+.sprocket-row {
+  height: 1px;
+  width: 100%;
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.06) 0px,
+    rgba(255, 255, 255, 0.06) 8px,
+    transparent 8px,
+    transparent 16px
+  );
+}
+
+/* === Animations === */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideInFromRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px var(--color-accent-glow); }
+  50% { box-shadow: 0 0 40px var(--color-accent-hover); }
+}
+
+@keyframes film-grain {
+  0%, 100% { transform: translate(0, 0); }
+  10% { transform: translate(-1%, -1%); }
+  20% { transform: translate(1%, 0%); }
+  30% { transform: translate(-2%, 1%); }
+  40% { transform: translate(1%, -1%); }
+  50% { transform: translate(-1%, 2%); }
+  60% { transform: translate(2%, 1%); }
+  70% { transform: translate(0%, -2%); }
+  80% { transform: translate(-2%, 0%); }
+  90% { transform: translate(1%, 1%); }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s ease forwards;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease forwards;
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+.text-accent {
+  color: var(--color-accent);
+}
+
+/* ================================================
+   Reveal — animasi masuk saat scroll
+
+   Sengaja kelas GLOBAL, bukan CSS module: blok <noscript> di app/layout.tsx
+   harus bisa menargetkannya, dan nama kelas hasil hash tidak bisa ditulis
+   di sana. Dipakai oleh <Reveal> di src/components/ui/Reveal.tsx.
+   ================================================ */
+
+.reveal {
+  opacity: 0;
+  transition:
+    opacity 0.9s var(--ease-out-expo),
+    transform 0.9s var(--ease-out-expo);
+  will-change: opacity, transform;
+}
+
+.reveal-up { transform: translateY(28px); }
+.reveal-left { transform: translateX(-28px); }
+.reveal-right { transform: translateX(28px); }
+.reveal-scale { transform: scale(0.96); }
+.reveal-none { transform: none; }
+
+.reveal-visible {
+  opacity: 1;
+  transform: none;
+  will-change: auto;
+}
+
+/*
+ * Hormati permintaan pengurangan animasi. Bukan sekadar kesopanan: konten yang
+ * dimulai dari opacity 0 akan hilang sepenuhnya bagi siapa pun yang animasinya
+ * tidak pernah berjalan.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+/* === Stagger Animation Delays === */
+.stagger-1 { animation-delay: 0.1s; }
+.stagger-2 { animation-delay: 0.2s; }
+.stagger-3 { animation-delay: 0.3s; }
+.stagger-4 { animation-delay: 0.4s; }
+.stagger-5 { animation-delay: 0.5s; }
+
+/* === Responsive Helpers === */
+.hide-mobile {
+  display: none;
+}
+
+@media (min-width: 640px) {
+  .hide-mobile {
+    display: block;
+  }
+}
+
+.hide-desktop {
+  display: block;
+}
+
+@media (min-width: 768px) {
+  .hide-desktop {
+    display: none;
+  }
+}
+
+/* === Scrollbar === */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-bg-primary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.18);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
+}

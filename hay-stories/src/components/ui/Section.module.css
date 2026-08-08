@@ -1,0 +1,118 @@
+/* ===== Pembungkus seksi ===== */
+
+.section {
+  position: relative;
+  padding-block: var(--section-py);
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+}
+
+/* Varian tenang untuk memberi jeda tanpa berpindah ke gelap. */
+.tinted {
+  background-color: var(--color-bg-secondary);
+}
+
+/* Foto menempel tepi layar — pola OMS. */
+.flush {
+  padding-inline: 0;
+}
+
+/* ===== Eyebrow (titik + label huruf besar) — pola SNXP ===== */
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+  margin-bottom: 1.25rem;
+}
+
+.eyebrowDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: currentColor;
+  flex-shrink: 0;
+}
+
+/* Varian garis, bukan titik — pola OMS. */
+.eyebrowRule::before {
+  content: '';
+  width: 2rem;
+  height: 1px;
+  background-color: currentColor;
+  flex-shrink: 0;
+}
+
+/* ===== Judul seksi ===== */
+
+.heading {
+  max-width: 42rem;
+}
+
+.headingCentered {
+  margin-inline: auto;
+  text-align: center;
+}
+
+.title {
+  font-family: var(--font-serif);
+  font-weight: 600;
+  font-size: clamp(2rem, 4.5vw, 3.4rem);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  color: var(--color-text-primary);
+}
+
+.titleItalic {
+  font-style: italic;
+  color: var(--color-accent);
+}
+
+.subtitle {
+  margin-top: 1.15rem;
+  font-size: 1.0625rem;
+  line-height: 1.65;
+  color: var(--color-text-secondary);
+  max-width: 36rem;
+}
+
+.headingCentered .subtitle {
+  margin-inline: auto;
+}
+
+/* ===== Baris angka bukti — pola bersama OMS & SNXP ===== */
+
+.statRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: clamp(1.75rem, 5vw, 4rem);
+  padding-top: 1.75rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.statValue {
+  font-size: clamp(1.5rem, 2.5vw, 2rem);
+  font-weight: 600;
+  line-height: 1;
+  color: var(--color-text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.statLabel {
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}

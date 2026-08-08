@@ -1,0 +1,96 @@
+.inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding-inline: 1.5rem;
+}
+
+@media (min-width: 640px) {
+  .inner {
+    padding-inline: 2rem;
+  }
+}
+
+/*
+ * Grid foto mepet tanpa jarak — pola OMS Photo. Jarak antar-foto memutus
+ * ilusi "satu lembar kontak film"; menempelkannya membuat keenam preset
+ * terbaca sebagai satu roll.
+ */
+.grid {
+  margin-top: 3.5rem;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1px;
+  background-color: var(--color-border);
+  border: 1px solid var(--color-border);
+}
+
+@media (min-width: 900px) {
+  .grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.cell {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  background-color: var(--color-bg-secondary);
+}
+
+@media (min-width: 900px) {
+  .cell {
+    aspect-ratio: 3 / 2;
+  }
+}
+
+.canvas {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.caption {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 2.5rem 1.1rem 1rem;
+  background: linear-gradient(to top, rgba(8, 7, 6, 0.85), transparent);
+  pointer-events: none;
+}
+
+.presetName {
+  font-family: var(--font-serif);
+  font-size: 1.0625rem;
+  font-weight: 500;
+  color: #f5f2ec;
+  letter-spacing: 0.01em;
+}
+
+.presetCharacter {
+  margin-top: 0.15rem;
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: rgba(245, 242, 236, 0.62);
+}
+
+/* Keadaan sebelum WebGL siap / bila perangkat tidak mendukung. */
+.fallback {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  text-align: center;
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+}
+
+.footnote {
+  margin-top: 1.75rem;
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+  text-align: center;
+}
