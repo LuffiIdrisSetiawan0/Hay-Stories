@@ -9,7 +9,7 @@ import styles from "./FAQ.module.css";
 const faqs = [
   {
     q: "Apa itu HAY Stories?",
-    a: "HAY Stories adalah pengalaman kamera sekali pakai digital untuk acara. Buat acara, pilih preset film, dan bagikan kode QR. Tamu mengambil foto di browser mereka dengan tampilan film tersebut, dan semua foto terungkap bersama setelah acara.",
+    a: "HAY Stories adalah pengalaman kamera sekali pakai digital untuk acara. Buat acara dan bagikan kode QR-nya. Tamu memotret langsung di browser, memilih sendiri roll film yang dipakai, dan semua foto terungkap bersama setelah acara.",
   },
   {
     q: "Apakah tamu perlu install aplikasi?",

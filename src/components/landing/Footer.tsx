@@ -7,7 +7,7 @@ export default function Footer() {
     <footer className={styles.footer}>
       {/* Final CTA */}
       <section className={styles.finalCta}>
-        <p className={styles.frameLabel}>HAY Stories 400 · frame 08 · fin → Satu roll · terungkap bersama</p>
+        <p className={styles.frameLabel}>HAY Stories 400 · frame 08 · fin → Enam roll · terungkap bersama</p>
         <h2 className={styles.finalTitle}>
           Satu acara. Satu album.
           <br />

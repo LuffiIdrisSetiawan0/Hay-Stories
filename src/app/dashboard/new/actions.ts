@@ -2,7 +2,7 @@
 
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { EVENT_TYPES, FILM_PRESETS, REVEAL_MODES, type PresetId, type RevealMode } from '@/lib/catalog'
+import { EVENT_TYPES, REVEAL_MODES, type RevealMode } from '@/lib/catalog'
 import { generateAccessCode, resolveLimits, slugify } from '@/lib/events'
 
 export interface CreateEventResult {
@@ -34,7 +34,6 @@ export async function createEvent(
 
   const title = String(formData.get('title') ?? '').trim()
   const eventType = String(formData.get('eventType') ?? 'other')
-  const preset = String(formData.get('preset') ?? '') as PresetId
   const revealMode = String(formData.get('revealMode') ?? 'manual') as RevealMode
   const eventDateRaw = String(formData.get('eventDate') ?? '').trim()
   const revealAtRaw = String(formData.get('revealAt') ?? '').trim()
@@ -46,9 +45,6 @@ export async function createEvent(
 
   if (!EVENT_TYPES.some((t) => t.id === eventType)) {
     return { error: 'Jenis acara tidak dikenal.' }
-  }
-  if (!FILM_PRESETS.some((p) => p.id === preset)) {
-    return { error: 'Preset film tidak dikenal.' }
   }
   if (!REVEAL_MODES.some((m) => m.id === revealMode)) {
     return { error: 'Mode reveal tidak dikenal.' }
@@ -100,7 +96,6 @@ export async function createEvent(
         slug,
         access_code: generateAccessCode(),
         event_type: eventType,
-        preset,
         reveal_mode: revealMode,
         reveal_at: revealAt,
         event_date: eventDate,

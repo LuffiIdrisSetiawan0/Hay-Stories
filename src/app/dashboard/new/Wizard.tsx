@@ -3,20 +3,21 @@
 import { useActionState, useState } from 'react'
 import { ArrowLeft, ArrowRight, Check, Loader2 } from 'lucide-react'
 import {
-  DEFAULT_PRESET,
   EVENT_TYPES,
   REVEAL_MODES,
-  getPreset,
   getTier,
   type EventTypeId,
-  type PresetId,
   type RevealMode,
 } from '@/lib/catalog'
 import { createEvent } from './actions'
-import PresetPicker from './PresetPicker'
 import styles from './Wizard.module.css'
 
-const STEPS = ['Acara', 'Preset film', 'Reveal', 'Tinjau'] as const
+/*
+ * Preset film sengaja tidak ada di sini. Roll dipilih tamu saat memotret dan
+ * bisa diganti tiap jepretan, jadi tidak ada satu pun keputusan soal film yang
+ * perlu diambil host di muka.
+ */
+const STEPS = ['Acara', 'Reveal', 'Tinjau'] as const
 
 const STARTER = getTier('starter')!
 
@@ -27,7 +28,6 @@ export default function Wizard() {
   const [title, setTitle] = useState('')
   const [eventType, setEventType] = useState<EventTypeId>('wedding')
   const [eventDate, setEventDate] = useState('')
-  const [preset, setPreset] = useState<PresetId>(DEFAULT_PRESET)
   const [revealMode, setRevealMode] = useState<RevealMode>('manual')
   const [revealAt, setRevealAt] = useState('')
 
@@ -45,14 +45,31 @@ export default function Wizard() {
 
   // Validasi per langkah — tombol lanjut tetap mati sampai langkahnya sah.
   // Server Action memvalidasi ulang semuanya; ini hanya demi kenyamanan.
+  //
+  // Tiap langkah memberi alasan, bukan sekadar `false`. Tombol yang mati tanpa
+  // penjelasan tidak bisa dibedakan dari tombol yang rusak: orang mengetik satu
+  // huruf, menekan "Lanjut", tidak terjadi apa-apa, dan menyimpulkan aplikasinya
+  // error. `null` berarti langkahnya sah.
+  const stepBlocker = [
+    title.trim().length === 0
+      ? null // Belum diisi sama sekali — biarkan bersih, jangan langsung menegur.
+      : title.trim().length < 3
+        ? 'Nama acara minimal 3 karakter.'
+        : null,
+    revealMode === 'scheduled' && !revealAtInFuture
+      ? revealAt
+        ? 'Waktu reveal harus di masa depan.'
+        : 'Tentukan dulu kapan foto boleh dilihat.'
+      : null,
+    null,
+  ][step]
+
   const stepValid = [
     title.trim().length >= 3 && title.trim().length <= 80,
-    true,
     revealMode !== 'scheduled' || revealAtInFuture,
     true,
   ][step]
 
-  const presetMeta = getPreset(preset)
   const revealMeta = REVEAL_MODES.find((m) => m.id === revealMode)
   const typeLabel = EVENT_TYPES.find((t) => t.id === eventType)?.label ?? '—'
 
@@ -82,7 +99,6 @@ export default function Wizard() {
         <input type="hidden" name="title" value={title.trim()} />
         <input type="hidden" name="eventType" value={eventType} />
         <input type="hidden" name="eventDate" value={eventDate} />
-        <input type="hidden" name="preset" value={preset} />
         <input type="hidden" name="revealMode" value={revealMode} />
         <input type="hidden" name="revealAt" value={revealMode === 'scheduled' ? revealAt : ''} />
 
@@ -146,19 +162,6 @@ export default function Wizard() {
 
           {step === 1 && (
             <>
-              <h2 className={styles.panelTitle}>Pilih roll filmnya</h2>
-              <p className={styles.panelHint}>
-                Semua tamu memotret dengan roll yang sama, jadi albumnya terasa seperti satu cerita
-                utuh.
-              </p>
-              <div className={styles.fields}>
-                <PresetPicker value={preset} onChange={setPreset} />
-              </div>
-            </>
-          )}
-
-          {step === 2 && (
-            <>
               <h2 className={styles.panelTitle}>Kapan foto boleh dilihat?</h2>
               <p className={styles.panelHint}>
                 Menahan foto sampai acara usai adalah bagian yang paling disukai tamu — semua
@@ -209,11 +212,11 @@ export default function Wizard() {
             </>
           )}
 
-          {step === 3 && (
+          {step === 2 && (
             <>
               <h2 className={styles.panelTitle}>Tinjau sebelum dibuat</h2>
               <p className={styles.panelHint}>
-                Nama dan waktu reveal masih bisa diubah nanti. Preset film tidak.
+                Nama dan waktu reveal masih bisa diubah nanti.
               </p>
 
               <div className={styles.fields}>
@@ -237,8 +240,8 @@ export default function Wizard() {
                     </span>
                   </div>
                   <div className={styles.summaryRow}>
-                    <span className={styles.summaryKey}>Preset film</span>
-                    <span className={styles.summaryValue}>{presetMeta?.name ?? '—'}</span>
+                    <span className={styles.summaryKey}>Roll film</span>
+                    <span className={styles.summaryValue}>Dipilih tamu saat memotret</span>
                   </div>
                   <div className={styles.summaryRow}>
                     <span className={styles.summaryKey}>Reveal</span>
@@ -272,6 +275,12 @@ export default function Wizard() {
           {state?.error && (
             <p className={styles.error} role="alert">
               {state.error}
+            </p>
+          )}
+
+          {stepBlocker && (
+            <p className={styles.blocker} role="status">
+              {stepBlocker}
             </p>
           )}
 

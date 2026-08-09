@@ -1,8 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Plus, Image as ImageIcon, Users, Clock, ArrowRight } from "lucide-react";
+import { Plus, Image as ImageIcon, Users, Camera, ArrowRight } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import { getPreset } from "@/lib/catalog";
 import { resolveReveal } from "@/lib/events";
 import styles from "./Dashboard.module.css";
 
@@ -28,7 +27,9 @@ export default async function DashboardPage() {
   // query tetap benar seandainya policy berubah.
   const { data: events, error } = await supabase
     .from("events")
-    .select("id, title, slug, event_date, preset, status, reveal_mode, reveal_at, is_revealed")
+    .select(
+      "id, title, slug, event_date, shots_per_guest, status, reveal_mode, reveal_at, is_revealed"
+    )
     .eq("host_id", user.id)
     .order("created_at", { ascending: false });
 
@@ -128,8 +129,8 @@ export default async function DashboardPage() {
                     <span>{guestCounts[event.id] ?? 0} tamu</span>
                   </div>
                   <div className={styles.statItem}>
-                    <Clock size={14} className={styles.statIcon} />
-                    <span>{getPreset(event.preset)?.name ?? event.preset}</span>
+                    <Camera size={14} className={styles.statIcon} />
+                    <span>{event.shots_per_guest} jepretan/tamu</span>
                   </div>
                 </div>
 

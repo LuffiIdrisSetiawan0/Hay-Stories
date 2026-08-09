@@ -26,7 +26,7 @@ export default function NewEventPage() {
             fontSize: '0.9375rem',
           }}
         >
-          Empat langkah, sekitar dua menit.
+          Tiga langkah, sekitar semenit.
         </p>
       </header>
 

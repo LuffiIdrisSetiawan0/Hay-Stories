@@ -1,8 +1,9 @@
 # HAY Stories
 
 Kamera sekali pakai digital untuk acara. Host membuat album, tamu memindai satu
-QR code lalu memotret langsung dari browser dengan preset film pilihan host, dan
-semua foto tetap tersembunyi sampai acara usai — lalu terungkap bersamaan.
+QR code lalu memotret langsung dari browser dengan roll film pilihan mereka
+sendiri, dan semua foto tetap tersembunyi sampai acara usai — lalu terungkap
+bersamaan.
 
 Produksi: **https://hay-stories.vercel.app**
 

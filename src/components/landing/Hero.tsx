@@ -42,8 +42,8 @@ export default function Hero() {
         </h1>
 
         <p className={styles.subheadline}>
-          Tamu memotret lewat satu QR code, dengan preset film pilihanmu. Semua foto tersembunyi
-          sampai acaramu usai — lalu terungkap bersamaan.
+          Tamu memotret lewat satu QR code, dengan roll film pilihan mereka sendiri. Semua foto
+          tersembunyi sampai acaramu usai — lalu terungkap bersamaan.
         </p>
 
         <div className={styles.actions}>

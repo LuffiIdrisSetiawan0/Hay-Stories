@@ -196,6 +196,14 @@ export const FILM_PRESETS: readonly FilmPreset[] = [
   },
 ] as const
 
+/**
+ * Roll yang sudah terpasang saat kamera tamu pertama kali terbuka.
+ *
+ * Bukan pilihan host — host tidak menentukan film sama sekali. Ini semata titik
+ * awal supaya tamu bisa langsung menjepret tanpa harus memutuskan apa pun
+ * lebih dulu; menggantinya cukup satu ketukan, kapan saja, bahkan di tengah
+ * roll.
+ */
 export const DEFAULT_PRESET: PresetId = 'golden-hour-400'
 
 export function getPreset(id: string): FilmPreset | undefined {

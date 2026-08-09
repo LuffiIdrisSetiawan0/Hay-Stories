@@ -239,85 +239,6 @@
   line-height: 1.55;
 }
 
-/* ===== Pemilih preset film ===== */
-
-.presetGrid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 0.75rem;
-}
-
-@media (min-width: 700px) {
-  .presetGrid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-.presetCard {
-  position: relative;
-  padding: 0;
-  overflow: hidden;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--color-border);
-  background: var(--color-bg-secondary);
-  text-align: left;
-  transition: border-color var(--transition-base), transform var(--transition-base);
-}
-
-.presetCard:hover {
-  border-color: var(--color-border-hover);
-}
-
-.presetCardActive {
-  border-color: var(--color-accent);
-  box-shadow: 0 0 0 2px var(--color-accent-soft);
-}
-
-.presetCanvas {
-  width: 100%;
-  aspect-ratio: 3 / 2;
-  display: block;
-  object-fit: cover;
-  background: var(--color-bg-secondary);
-}
-
-.presetMeta {
-  padding: 0.65rem 0.8rem 0.75rem;
-}
-
-.presetName {
-  font-family: var(--font-serif);
-  font-size: 0.9375rem;
-  font-weight: 600;
-  color: var(--color-text-primary);
-}
-
-.presetCharacter {
-  margin-top: 0.15rem;
-  font-size: 0.7188rem;
-  line-height: 1.45;
-  color: var(--color-text-muted);
-}
-
-.presetCheck {
-  position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
-  width: 1.4rem;
-  height: 1.4rem;
-  border-radius: 50%;
-  background: var(--color-accent);
-  color: #fff;
-  display: grid;
-  place-items: center;
-}
-
-.presetNote {
-  margin-top: 0.9rem;
-  font-size: 0.8125rem;
-  color: var(--color-text-muted);
-}
-
 /* ===== Ringkasan ===== */
 
 .summary {
@@ -370,6 +291,20 @@
   display: flex;
   justify-content: space-between;
   gap: 1rem;
+}
+
+/*
+ * Penjelasan kenapa "Lanjut" masih mati. Sengaja lebih tenang dari `.error`:
+ * ini bukan kegagalan, hanya langkah yang belum lengkap.
+ */
+.blocker {
+  margin-top: 1.25rem;
+  padding: 0.7rem 0.9rem;
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-hover);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
+  font-size: 0.8125rem;
 }
 
 .error {

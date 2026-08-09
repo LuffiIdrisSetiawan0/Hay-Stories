@@ -16,7 +16,7 @@ const steps = [
     number: "02",
     title: "Jepret Otentik",
     description:
-      "Mereka mendapatkan akses ke kamera web khusus dengan preset film pilihan Anda. Satu roll = jatah jepretan per tamu, persis seperti kamera analog sungguhan.",
+      "Mereka mendapatkan kamera web khusus dan memilih sendiri roll filmnya — bisa diganti kapan saja. Jatah jepretan tetap terbatas, persis seperti kamera analog sungguhan.",
   },
   {
     icon: ImageIcon,

@@ -98,7 +98,7 @@ export default function FilmShowcase() {
               Enam roll, enam <TitleAccent>karakter</TitleAccent>
             </>
           }
-          subtitle="Pilih satu untuk acaramu. Semua tamu memotret dengan roll yang sama, jadi albumnya terasa seperti satu cerita utuh — bukan kumpulan foto acak."
+          subtitle="Setiap tamu memilih sendiri roll yang dipakainya, dan bebas berganti di tengah acara. Enam karakter film yang berbeda, satu album yang sama."
           centered
         />
 
