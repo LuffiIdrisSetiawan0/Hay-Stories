@@ -1,0 +1,295 @@
+/* ===========================================================================
+   Kamera tamu
+
+   Permukaan gelap (`.surface-dark`) karena seluruh layar diisi foto. Tata
+   letaknya kolom setinggi layar: bar, viewfinder yang memakan sisa ruang, lalu
+   kontrol yang selalu berada dalam jangkauan jempol.
+   =========================================================================== */
+
+.page {
+  /* 100dvh, bukan 100vh: bilah alamat Safari iOS menyusut saat digulir dan
+     100vh mengukur layar seolah bilah itu tidak ada, sehingga tombol rana
+     terpotong di bawah layar. */
+  min-height: 100dvh;
+  max-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  overflow: hidden;
+}
+
+/* ===== Bar atas ===== */
+
+.bar {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+}
+
+.back,
+.galleryLink {
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  flex-shrink: 0;
+  border-radius: var(--radius-full);
+  color: var(--color-text-primary);
+  background: var(--color-bg-hover);
+}
+
+.barTitle {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.eventName {
+  font-family: var(--font-serif);
+  font-size: 1rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.guestName {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.counter {
+  flex-shrink: 0;
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.counter strong {
+  font-size: 1.125rem;
+  color: var(--color-text-primary);
+}
+
+/* ===== Viewfinder ===== */
+
+.stage {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  margin: 0 1rem;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: #000;
+  display: grid;
+  place-items: center;
+}
+
+/*
+ * Video sumber tetap dirender browser (dibutuhkan agar frame-nya mengalir ke
+ * WebGL) tapi tidak boleh terlihat. `display: none` akan membuat sebagian
+ * browser berhenti mendekode frame-nya sama sekali, jadi ia disembunyikan
+ * dengan ukuran satu piksel di luar jangkauan mata.
+ */
+.video {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.canvas {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.flash {
+  position: absolute;
+  inset: 0;
+  background: #fff;
+  animation: flash 180ms ease-out forwards;
+}
+
+@keyframes flash {
+  from {
+    opacity: 0.85;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 2rem 1.5rem;
+  text-align: center;
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  color: #f5f2ec;
+}
+
+.overlayTitle {
+  font-family: var(--font-serif);
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.overlayBody {
+  font-size: 0.875rem;
+  line-height: 1.6;
+  max-width: 22rem;
+  color: rgba(245, 242, 236, 0.75);
+}
+
+/* ===== Pemilih roll ===== */
+
+.rolls {
+  flex-shrink: 0;
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.875rem 1rem;
+  overflow-x: auto;
+  /* Sembunyikan scrollbar; pada ponsel gulirannya lewat sentuhan. */
+  scrollbar-width: none;
+  scroll-snap-type: x proximity;
+}
+
+.rolls::-webkit-scrollbar {
+  display: none;
+}
+
+.roll {
+  flex-shrink: 0;
+  scroll-snap-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  padding: 0.5rem 0.85rem;
+  text-align: left;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-elevated);
+  transition: border-color var(--transition-base), background-color var(--transition-base);
+}
+
+.roll:disabled {
+  opacity: 0.5;
+}
+
+.rollActive {
+  border-color: var(--color-accent);
+  background: var(--color-accent-soft);
+}
+
+.rollName {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+}
+
+.rollCharacter {
+  font-size: 0.6875rem;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+/* ===== Kontrol ===== */
+
+.controls {
+  flex-shrink: 0;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  padding: 0.5rem 1.5rem 0;
+}
+
+.thumbSlot {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: var(--color-bg-hover);
+  justify-self: start;
+}
+
+.thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.shutter {
+  width: 4.5rem;
+  height: 4.5rem;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  border: 3px solid var(--color-text-primary);
+  background: transparent;
+  color: var(--color-text-primary);
+  transition: transform var(--transition-fast), opacity var(--transition-base);
+}
+
+.shutter:active:not(:disabled) {
+  transform: scale(0.92);
+}
+
+.shutter:disabled {
+  opacity: 0.35;
+}
+
+.shutterDot {
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 50%;
+  background: var(--color-text-primary);
+}
+
+.flip {
+  width: 2.75rem;
+  height: 2.75rem;
+  justify-self: end;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-full);
+  background: var(--color-bg-hover);
+  color: var(--color-text-primary);
+}
+
+.flip:disabled {
+  opacity: 0.35;
+}
+
+/*
+ * Tinggi dikunci walau pesannya kosong. Kalau baris ini boleh menghilang,
+ * setiap notifikasi akan menggeser tombol rana tepat saat jempol mengarah ke
+ * sana.
+ */
+.notice {
+  flex-shrink: 0;
+  min-height: 2.5rem;
+  padding: 0.6rem 1rem;
+  text-align: center;
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+}
