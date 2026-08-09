@@ -1,0 +1,233 @@
+/* ===========================================================================
+   Pintu masuk tamu — /a dan /a/[slug]
+
+   Ditulis mobile-first tanpa pengecualian. Halaman ini nyaris selalu dibuka
+   dari kamera ponsel yang baru memindai QR di atas meja; tampilan desktopnya
+   hanya kartu yang sama dipusatkan.
+   =========================================================================== */
+
+.page {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.25rem;
+  padding: 1.5rem 1.25rem 2.5rem;
+  background: var(--color-bg-primary);
+}
+
+.card {
+  width: 100%;
+  max-width: 26rem;
+  padding: 1.75rem 1.5rem 2rem;
+  border-radius: var(--radius-xl);
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
+}
+
+.brand {
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--color-halation);
+  margin-bottom: 1rem;
+}
+
+.title {
+  font-family: var(--font-serif);
+  font-size: clamp(1.75rem, 7vw, 2.25rem);
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--color-text-primary);
+  /* Nama acara diketik host dan bisa berupa satu kata sangat panjang. */
+  overflow-wrap: anywhere;
+}
+
+.lede {
+  margin-top: 0.5rem;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+}
+
+/* ===== Ringkasan aturan album ===== */
+
+.facts {
+  margin: 1.25rem 0;
+  padding: 0.875rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  border-radius: var(--radius-md);
+  background: var(--color-bg-secondary);
+}
+
+.fact {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: var(--color-text-secondary);
+}
+
+.factIcon {
+  flex-shrink: 0;
+  color: var(--color-accent);
+}
+
+/* ===== Form ===== */
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+}
+
+.label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.input {
+  width: 100%;
+  padding: 0.8rem 0.95rem;
+  font: inherit;
+  /*
+   * Wajib >= 16px. Safari iOS memperbesar seluruh halaman saat memfokuskan
+   * input yang fontnya lebih kecil dari itu, dan tata letaknya tidak pernah
+   * kembali seperti semula setelah keyboard tertutup.
+   */
+  font-size: 1rem;
+  color: var(--color-text-primary);
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  transition: border-color var(--transition-base), box-shadow var(--transition-base);
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px var(--color-accent-soft);
+}
+
+.codeInput {
+  font-family: var(--font-mono);
+  font-size: 1.5rem;
+  letter-spacing: 0.3em;
+  text-align: center;
+  /* Spasi antarhuruf menggeser teks ke kiri; imbangi agar tetap di tengah. */
+  text-indent: 0.3em;
+}
+
+.hint {
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--color-text-muted);
+}
+
+.error {
+  margin-top: 0.25rem;
+  padding: 0.7rem 0.9rem;
+  border-radius: var(--radius-sm);
+  background: rgba(220, 38, 38, 0.08);
+  border: 1px solid rgba(220, 38, 38, 0.25);
+  color: var(--color-error);
+  font-size: 0.8125rem;
+}
+
+/* Sebabnya tombol masih mati — bukan kegagalan, jadi lebih tenang dari .error */
+.blocker {
+  margin-top: 0.25rem;
+  padding: 0.7rem 0.9rem;
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-hover);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
+  font-size: 0.8125rem;
+}
+
+/* ===== Album tertutup ===== */
+
+.notice {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  border-radius: var(--radius-md);
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+}
+
+.noticeTitle {
+  font-weight: 600;
+  font-size: 0.9375rem;
+  color: var(--color-text-primary);
+  margin-bottom: 0.35rem;
+}
+
+.noticeBody {
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+}
+
+/* ===== Sudah bergabung ===== */
+
+.ready {
+  margin-top: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+}
+
+.readyBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  align-self: flex-start;
+  padding: 0.5rem 0.9rem;
+  border-radius: var(--radius-full);
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+  font-size: 0.875rem;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.readyActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.quietLink {
+  align-self: flex-start;
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.quietLink:hover {
+  color: var(--color-text-primary);
+}
+
+/* ===== Kaki halaman ===== */
+
+.footer {
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+.footerLink {
+  color: var(--color-accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}

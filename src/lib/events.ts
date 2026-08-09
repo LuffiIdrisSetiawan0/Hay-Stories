@@ -58,7 +58,7 @@ export function slugify(input: string): string {
  * Tamu mengetik kode ini manual kalau kameranya gagal memindai QR, sering
  * dalam kondisi ruangan gelap.
  */
-const CODE_ALPHABET = '34679ACDEFGHJKMNPQRTUVWXY'
+export const CODE_ALPHABET = '34679ACDEFGHJKMNPQRTUVWXY'
 
 export function generateAccessCode(length = 6): string {
   const bytes = new Uint8Array(length)
@@ -104,6 +104,21 @@ export async function buildUniqueSlug(
 
   throw new Error('Gagal membuat slug unik. Coba ganti judul acara.')
 }
+
+// ---------------------------------------------------------------------------
+// Nama tamu
+// ---------------------------------------------------------------------------
+
+/**
+ * Batas nama yang diketik tamu saat memperkenalkan diri.
+ *
+ * Nama ini muncul di bawah setiap fotonya di galeri, jadi batas atasnya
+ * ditentukan tata letak, bukan database. Ada di sini — bukan di berkas Server
+ * Action — karena form di browser memakai angka yang sama untuk `maxLength`,
+ * dan modul `'use server'` hanya boleh mengekspor fungsi async.
+ */
+export const GUEST_NAME_MIN = 2
+export const GUEST_NAME_MAX = 40
 
 // ---------------------------------------------------------------------------
 // Status reveal
