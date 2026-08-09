@@ -5,10 +5,12 @@ import { createClient } from "@/lib/supabase/client";
 import { Mail, Loader2 } from "lucide-react";
 import styles from "./Login.module.css";
 
-export default function AuthForm() {
+export default function AuthForm({ initialError }: { initialError?: string }) {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(
+    initialError ? { type: "error", text: initialError } : null
+  );
 
   const supabase = createClient();
 
@@ -34,12 +36,27 @@ export default function AuthForm() {
   };
 
   const handleGoogleLogin = async () => {
-    await supabase.auth.signInWithOAuth({
+    setMessage(null);
+
+    const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
         redirectTo: `${window.location.origin}/auth/callback`,
       },
     });
+
+    // Kalau provider Google belum diaktifkan di dashboard Supabase, panggilan
+    // ini gagal tanpa berpindah halaman. Tanpa menampilkan errornya, tombol
+    // terasa rusak begitu saja — diklik, tidak terjadi apa-apa.
+    if (error) {
+      setMessage({
+        type: "error",
+        text:
+          error.message === "Unsupported provider: provider is not enabled"
+            ? "Login Google belum diaktifkan. Pakai email saja untuk sekarang."
+            : error.message,
+      });
+    }
   };
 
   return (

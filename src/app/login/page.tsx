@@ -8,7 +8,13 @@ export const metadata: Metadata = {
   description: "Masuk ke HAY Stories untuk mulai membuat album.",
 };
 
-export default function LoginPage() {
+export default async function LoginPage(props: PageProps<'/login'>) {
+  // Callback auth mengalihkan ke sini dengan ?error=... saat pertukaran kode
+  // gagal. Tanpa menampilkannya, pengguna hanya kembali ke form kosong dan
+  // tidak punya petunjuk apa pun tentang apa yang salah.
+  const { error } = await props.searchParams;
+  const errorMessage = Array.isArray(error) ? error[0] : error;
+
   return (
     <main className={styles.main}>
       <div className={styles.container}>
@@ -25,7 +31,7 @@ export default function LoginPage() {
             Mulai buat album dan biarkan tamumu yang bercerita.
           </p>
 
-          <AuthForm />
+          <AuthForm initialError={errorMessage} />
         </div>
       </div>
     </main>

@@ -5,6 +5,7 @@ import { ArrowLeft, Users, Image as ImageIcon, Clock } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { getPreset } from '@/lib/catalog'
 import { guestUrl, resolveReveal } from '@/lib/events'
+import { requestOrigin } from '@/lib/origin'
 import { qrSvg } from '@/lib/qr'
 import SharePanel from './SharePanel'
 import RevealControl from './RevealControl'
@@ -52,7 +53,7 @@ export default async function ManageEventPage(props: PageProps<'/dashboard/event
 
   const reveal = resolveReveal(event)
   const preset = getPreset(event.preset)
-  const url = guestUrl(event.slug)
+  const url = guestUrl(event.slug, await requestOrigin())
   const svg = await qrSvg(url)
 
   return (
