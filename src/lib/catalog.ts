@@ -111,18 +111,25 @@ export function formatGuestLimit(maxGuests: number | null): string {
 // ---------------------------------------------------------------------------
 // Preset film
 //
+// Tabel warnanya diturunkan dari stok film sungguhan lewat RawTherapee Film
+// Simulation Collection (CC BY-SA 4.0) — lihat CREDITS.md dan
+// scripts/build-luts.mjs. Grade buatan tangan sebelumnya menggeser abu-abu
+// tengah hanya 6 level dari 255, di bawah ambang yang bisa dilihat mata; yang
+// sekarang bergeser rata-rata 15 dan sampai 67 level.
+//
 // Nama sengaja orisinal. Menamai preset dengan merek film asli (Kodak Portra,
 // Fujifilm, CineStill, Ilford) adalah penggunaan merek dagang terdaftar dan
-// berisiko secara hukum — sekalipun kompetitor melakukannya.
+// berisiko secara hukum — sekalipun arsip sumbernya memakai nama itu untuk
+// keperluan informatif, dan sekalipun kompetitor melakukannya.
 // ---------------------------------------------------------------------------
 
 export type PresetId =
   | 'golden-hour-400'
+  | 'pastel-400'
   | 'sunday-chrome'
   | 'noir-400'
-  | 'neon-night-800'
-  | 'everyday-200'
-  | 'bright-sun-100'
+  | 'neon-night-1600'
+  | 'everyday-100'
 
 export interface FilmPreset {
   id: PresetId
@@ -139,60 +146,66 @@ export interface FilmPreset {
   halation: number
 }
 
+/*
+ * Urutannya adalah urutan tampil di kamera, dan yang pertama jadi roll bawaan.
+ * Tiga teratas menjawab kondisi paling sering di acara pernikahan Indonesia:
+ * kulit di bawah lampu gedung, dekorasi terang di luar ruang, dan resepsi
+ * malam berlampu warna.
+ */
 export const FILM_PRESETS: readonly FilmPreset[] = [
   {
     id: 'golden-hour-400',
     name: 'Golden Hour 400',
-    character: 'Hangat, kontras lembut, kulit kemerahan alami',
+    character: 'Kulit hangat natural, kontras lembut',
     lut: '/luts/golden-hour-400.png',
-    grain: 0.35,
-    vignette: 0.25,
-    halation: 0.2,
+    grain: 0.3,
+    vignette: 0.2,
+    halation: 0.15,
+  },
+  {
+    id: 'pastel-400',
+    name: 'Pastel 400',
+    character: 'Terang lapang, hijau lembut, nada pastel',
+    lut: '/luts/pastel-400.png',
+    grain: 0.22,
+    vignette: 0.12,
+    halation: 0.1,
+  },
+  {
+    id: 'neon-night-1600',
+    name: 'Neon Night 1600',
+    character: 'Untuk resepsi berlampu, grain kasar, pendar merah',
+    lut: '/luts/neon-night-1600.png',
+    grain: 0.55,
+    vignette: 0.3,
+    halation: 0.5,
+  },
+  {
+    id: 'everyday-100',
+    name: 'Everyday 100',
+    character: 'Netral dan jernih, aman untuk segala kondisi',
+    lut: '/luts/everyday-100.png',
+    grain: 0.18,
+    vignette: 0.15,
+    halation: 0.1,
   },
   {
     id: 'sunday-chrome',
     name: 'Sunday Chrome',
     character: 'Warna jenuh, kontras tinggi, biru pekat',
     lut: '/luts/sunday-chrome.png',
-    grain: 0.2,
-    vignette: 0.3,
-    halation: 0.1,
+    grain: 0.12,
+    vignette: 0.25,
+    halation: 0.08,
   },
   {
     id: 'noir-400',
     name: 'Noir 400',
     character: 'Hitam putih, grain kasar, kontras dramatis',
     lut: '/luts/noir-400.png',
-    grain: 0.6,
-    vignette: 0.4,
-    halation: 0,
-  },
-  {
-    id: 'neon-night-800',
-    name: 'Neon Night 800',
-    character: 'Untuk cahaya lampu, halation merah, biru dingin',
-    lut: '/luts/neon-night-800.png',
-    grain: 0.5,
+    grain: 0.55,
     vignette: 0.35,
-    halation: 0.6,
-  },
-  {
-    id: 'everyday-200',
-    name: 'Everyday 200',
-    character: 'Netral sedikit hangat, aman untuk segala kondisi',
-    lut: '/luts/everyday-200.png',
-    grain: 0.25,
-    vignette: 0.15,
-    halation: 0.15,
-  },
-  {
-    id: 'bright-sun-100',
-    name: 'Bright Sun 100',
-    character: 'Jernih, grain sangat halus, untuk acara luar ruang',
-    lut: '/luts/bright-sun-100.png',
-    grain: 0.12,
-    vignette: 0.2,
-    halation: 0.1,
+    halation: 0,
   },
 ] as const
 

@@ -10,7 +10,7 @@ export const metadata = {
 /**
  * Halaman uji visual preset film. Hanya tersedia saat `next dev`.
  *
- * Dipakai untuk menilai LUT setelah menjalankan `node scripts/generate-luts.mjs`
+ * Dipakai untuk menilai LUT setelah menjalankan `node scripts/build-luts.mjs`
  * dan untuk memverifikasi shader benar-benar bekerja di browser sungguhan —
  * bukan hanya lolos type-check.
  *

@@ -114,6 +114,9 @@ export default function Footer() {
           <div className={styles.legalLinks}>
             <Link href="/privacy">Privasi</Link>
             <Link href="/terms">Syarat</Link>
+            {/* Wajib, bukan hiasan: LUT film kami turunan karya CC BY-SA yang
+                mensyaratkan atribusi terlihat publik. Jangan dihapus. */}
+            <Link href="/kredit">Kredit</Link>
           </div>
         </div>
       </div>

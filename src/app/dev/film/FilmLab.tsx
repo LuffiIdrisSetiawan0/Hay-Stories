@@ -112,7 +112,7 @@ export default function FilmLab() {
         </h1>
         <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.9rem' }}>
           Pratinjau semua preset melalui pipeline WebGL yang sama dengan yang dipakai kamera tamu.
-          Jalankan <code>node scripts/generate-luts.mjs</code> lalu muat ulang untuk melihat
+          Jalankan <code>node scripts/build-luts.mjs</code> lalu muat ulang untuk melihat
           perubahan grading.
         </p>
       </header>

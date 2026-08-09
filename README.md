@@ -37,12 +37,19 @@ dashboard Supabase. Semuanya idempoten, aman dijalankan ulang. Rinciannya ada di
 
 ## Mesin film
 
-Estetika film dibangun sendiri, bukan memakai API pihak ketiga — inilah
-diferensiasi produknya, dan layanan transformasi gambar akan jauh lebih mahal
-daripada harga jual paketnya pada volume foto satu acara.
+Filter dijalankan **di perangkat tamu** lewat WebGL, bukan lewat API pihak
+ketiga. Bukan terutama soal biaya: tidak ada layanan transformasi gambar yang
+bisa memberi viewfinder terfilter secara live, dan tanpa itu tamu membidik
+dengan pratinjau polos lalu filternya menempel setelah unggah — yang membunuh
+inti produknya. Biayanya juga tidak masuk: satu acara tier Pesta berisi 5.400
+foto.
+
+Tabel warnanya diturunkan dari stok film sungguhan (RawTherapee Film Simulation
+Collection, CC BY-SA 4.0). Atribusinya **wajib** — lihat
+[`CREDITS.md`](CREDITS.md) dan halaman `/kredit`.
 
 ```bash
-node scripts/generate-luts.mjs          # bangkitkan ulang tekstur LUT preset
+node scripts/build-luts.mjs             # bangun ulang tekstur LUT preset
 node scripts/generate-test-chart.mjs    # gambar uji untuk menilai grading
 node scripts/generate-hero-placeholder.mjs
 ```
@@ -50,9 +57,13 @@ node scripts/generate-hero-placeholder.mjs
 Buka `/dev/film` saat `next dev` untuk melihat keenam preset dirender melalui
 pipeline WebGL yang sama dengan kamera tamu. Halaman ini 404 di produksi.
 
-Grading tiap preset ada di objek `GRADES` dalam `scripts/generate-luts.mjs` dan
-sengaja terbuka untuk di-tune: ubah angkanya, jalankan ulang script, muat ulang
-halaman.
+Pemetaan preset ke stok film sumbernya ada di `PRESETS` dalam
+`scripts/build-luts.mjs`. Skrip itu mengunduh potongan yang diperlukan dari
+arsip resmi lewat HTTP range request (~12 MB dari arsip 402 MB), jadi berkas
+sumbernya tidak perlu disimpan di repo.
+
+Kekuatan grain, vignette, dan halation tiap preset disetel terpisah di
+`FILM_PRESETS` (`src/lib/catalog.ts`) — itu efek shader, bukan bagian dari LUT.
 
 ## Struktur
 
