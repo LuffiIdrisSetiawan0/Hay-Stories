@@ -1,0 +1,136 @@
+/* ===========================================================================
+   Galeri tamu — /a/[slug]/galeri
+   =========================================================================== */
+
+.page {
+  min-height: 100dvh;
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
+}
+
+/* ===== Bar atas ===== */
+
+.bar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: var(--color-bg-primary);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.back,
+.cameraLink {
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  flex-shrink: 0;
+  border-radius: var(--radius-full);
+  color: var(--color-text-primary);
+  background: var(--color-bg-hover);
+}
+
+.back:hover,
+.cameraLink:hover {
+  background: var(--color-bg-secondary);
+}
+
+.barTitle {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.eventName {
+  font-family: var(--font-serif);
+  font-size: 1rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sub {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+/* ===== Keadaan terkunci / kosong ===== */
+
+.locked {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 4rem 1.5rem;
+  text-align: center;
+}
+
+.lockIcon {
+  display: grid;
+  place-items: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  margin-bottom: 0.25rem;
+  border-radius: var(--radius-full);
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+}
+
+.lockedTitle {
+  font-family: var(--font-serif);
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.lockedBody {
+  max-width: 24rem;
+  font-size: 0.9375rem;
+  line-height: 1.65;
+  color: var(--color-text-secondary);
+}
+
+.contribution {
+  margin-top: 0.25rem;
+  padding: 0.6rem 1rem;
+  border-radius: var(--radius-full);
+  background: var(--color-bg-secondary);
+  font-size: 0.8125rem;
+  color: var(--color-text-secondary);
+}
+
+.contribution strong {
+  color: var(--color-text-primary);
+}
+
+/* ===== Grid ===== */
+
+.gridWrap {
+  padding: 1rem 1rem 1.5rem;
+}
+
+/* ===== Paginasi ===== */
+
+.more {
+  display: flex;
+  justify-content: center;
+  padding: 0 1rem 1.5rem;
+}
+
+.quietLink {
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.quietLink:hover {
+  color: var(--color-text-primary);
+}

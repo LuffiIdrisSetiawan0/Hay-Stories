@@ -1,0 +1,181 @@
+/* ===========================================================================
+   Grid foto + penampil layar penuh
+   =========================================================================== */
+
+/* Tanpa padding sendiri — komponen ini dipakai di halaman tamu yang penuh layar
+   maupun di dalam kartu dashboard, dan masing-masing punya jarak tepinya. */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.5rem;
+}
+
+@media (min-width: 560px) {
+  .grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+  }
+}
+
+@media (min-width: 900px) {
+  .grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.cell {
+  position: relative;
+}
+
+.cellHidden .thumb {
+  opacity: 0.3;
+  filter: grayscale(1);
+}
+
+.tile {
+  position: relative;
+  display: block;
+  width: 100%;
+  padding: 0;
+  /* Rasio dikunci supaya grid tidak melompat-lompat saat thumbnail berdatangan
+     satu per satu — foto potret dan lanskap bercampur di album yang sama. */
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: var(--radius-md);
+  background: var(--color-bg-secondary);
+}
+
+.thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform var(--transition-base);
+}
+
+.tile:hover .thumb {
+  transform: scale(1.03);
+}
+
+.credit {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 1.25rem 0.6rem 0.45rem;
+  font-size: 0.6875rem;
+  color: #fff;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  /* Gradien, bukan blok solid: nama harus terbaca di atas foto terang maupun
+     gelap tanpa memotong bagian bawah gambarnya. */
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.6), transparent);
+}
+
+/* ===== Moderasi host ===== */
+
+.moderate {
+  position: absolute;
+  top: 0.4rem;
+  right: 0.4rem;
+}
+
+.moderateBtn {
+  display: grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: var(--radius-full);
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.moderateBtn:hover {
+  background: rgba(0, 0, 0, 0.75);
+}
+
+/* ===== Penampil ===== */
+
+.viewer {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: rgba(10, 9, 8, 0.96);
+}
+
+.viewerBar {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.viewerMeta {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+}
+
+.viewerName {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #f5f2ec;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.viewerSub {
+  font-size: 0.75rem;
+  color: rgba(245, 242, 236, 0.6);
+}
+
+.viewerBtn {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.1);
+  color: #f5f2ec;
+}
+
+.viewerBtn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.viewerImage {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.viewerNav {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.viewerCount {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  color: rgba(245, 242, 236, 0.6);
+  font-variant-numeric: tabular-nums;
+  min-width: 4rem;
+  text-align: center;
+}

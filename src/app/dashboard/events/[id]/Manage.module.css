@@ -260,12 +260,21 @@
 
 /* ===== Catatan sementara ===== */
 
-.pending {
+/* ===== Foto masuk ===== */
+
+.photos {
   margin-top: 1.5rem;
-  padding: 0.9rem 1.1rem;
-  border-radius: var(--radius-md);
-  border: 1px dashed var(--color-border-hover);
-  font-size: 0.8438rem;
-  line-height: 1.6;
-  color: var(--color-text-muted);
+}
+
+/*
+ * Grid dibiarkan melebar penuh di dalam kartu; jarak tepinya sudah dari
+ * padding kartu itu sendiri. Margin bawah `.cardHint` yang mendahuluinya
+ * sudah cukup, jadi di sini hanya perlu jarak ke catatan di bawahnya.
+ */
+.gridWrap {
+  margin-bottom: 1.25rem;
+}
+
+.gridWrap:last-child {
+  margin-bottom: 0;
 }

@@ -3,12 +3,14 @@ import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
 import { ArrowLeft, Users, Image as ImageIcon, Clock } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
-import { getPreset } from '@/lib/catalog'
 import { guestUrl, resolveReveal } from '@/lib/events'
+import { listPhotos } from '@/lib/photos'
 import { requestOrigin } from '@/lib/origin'
 import { qrSvg } from '@/lib/qr'
+import PhotoGrid from '@/components/photos/PhotoGrid'
 import SharePanel from './SharePanel'
 import RevealControl from './RevealControl'
+import { togglePhotoHidden } from './actions'
 import styles from './Manage.module.css'
 
 export const metadata: Metadata = {
@@ -42,17 +44,27 @@ export default async function ManageEventPage(props: PageProps<'/dashboard/event
 
   if (!event) notFound()
 
-  const [{ count: photoCount }, { count: guestCount }] = await Promise.all([
-    supabase
-      .from('photos')
-      .select('id', { count: 'exact', head: true })
-      .eq('event_id', event.id)
-      .eq('status', 'ready'),
+  /*
+   * Foto dibaca lewat service role, bukan lewat sesi host.
+   *
+   * RLS memang sudah mengizinkan host membaca baris fotonya sendiri, tapi
+   * bucket `photos` sengaja dibuat tanpa satu pun storage policy — jadi tanpa
+   * service role, barisnya terbaca sementara gambarnya tetap tidak bisa
+   * ditandatangani. Kepemilikannya sudah terbukti di kueri `event` di atas:
+   * baris yang bukan miliknya berakhir di `notFound()` sebelum sampai sini.
+   */
+  const [{ count: guestCount }, photoPage] = await Promise.all([
     supabase.from('guests').select('id', { count: 'exact', head: true }).eq('event_id', event.id),
+    listPhotos(event.id, { includeHidden: true }),
   ])
 
+  const photoCount = photoPage.total
+  const hasMorePhotos = photoPage.hasMore
+  const photoTotal = photoPage.total
+
+  const photos = photoPage.photos
+
   const reveal = resolveReveal(event)
-  const preset = getPreset(event.preset)
   const url = guestUrl(event.slug, await requestOrigin())
   const svg = await qrSvg(url)
 
@@ -66,10 +78,7 @@ export default async function ManageEventPage(props: PageProps<'/dashboard/event
       <header className={styles.header}>
         <div>
           <h1 className={styles.title}>{event.title}</h1>
-          <p className={styles.subtitle}>
-            {[formatDate(event.event_date), preset?.name].filter(Boolean).join(' · ') ||
-              'Belum ada tanggal'}
-          </p>
+          <p className={styles.subtitle}>{formatDate(event.event_date) ?? 'Belum ada tanggal'}</p>
         </div>
         <span className={`${styles.badge} ${reveal.revealed ? styles.badgeRevealed : ''}`}>
           {reveal.revealed ? 'Foto terbuka' : 'Foto tersembunyi'}
@@ -119,10 +128,26 @@ export default async function ManageEventPage(props: PageProps<'/dashboard/event
         </section>
       </div>
 
-      <p className={styles.pending}>
-        Halaman kamera tamu dan galeri sedang dikerjakan. Tautan di atas sudah final — QR yang kamu
-        cetak sekarang tetap berlaku nanti.
-      </p>
+      <section className={`${styles.card} ${styles.photos}`}>
+        <h2 className={styles.cardTitle}>Foto masuk</h2>
+        <p className={styles.cardHint}>
+          {photos.length === 0
+            ? 'Belum ada foto. Begitu tamu mulai menjepret, fotonya muncul di sini — kamu bisa melihatnya lebih dulu, sebelum album dibuka.'
+            : 'Kamu melihat ini lebih dulu. Ketuk ikon mata untuk menyembunyikan sebuah foto dari galeri tamu; foto tersembunyi tampak pudar dan bisa dikembalikan kapan saja.'}
+        </p>
+
+        {photos.length > 0 && (
+          <div className={styles.gridWrap}>
+            <PhotoGrid photos={photos} eventTitle={event.title} moderation={togglePhotoHidden} />
+          </div>
+        )}
+
+        {hasMorePhotos && (
+          <p className={styles.cardHint}>
+            Menampilkan {photos.length} dari {photoTotal} foto terbaru.
+          </p>
+        )}
+      </section>
     </div>
   )
 }

@@ -48,3 +48,43 @@ export async function revealNow(
   revalidatePath(`/dashboard/events/${eventId}`)
   return { ok: true }
 }
+
+/**
+ * Sembunyikan atau tampilkan lagi satu foto.
+ *
+ * Sama seperti `revealNow`, kepemilikannya ditegakkan RLS: policy
+ * `photos: host memoderasi` membatasi UPDATE ke foto pada acara milik host ini,
+ * jadi id foto orang lain tidak menyentuh baris apa pun. `.select()` yang
+ * mengembalikan nol baris adalah cara mengetahuinya.
+ *
+ * Foto yang disembunyikan tidak dihapus — tamu berhenti melihatnya di galeri,
+ * tapi host masih bisa mengembalikannya. Untuk momen canggung yang tidak perlu
+ * berakhir di album, ini hampir selalu yang diinginkan, dan tidak ada tombol
+ * yang bisa membatalkan penghapusan sungguhan.
+ */
+export async function togglePhotoHidden(formData: FormData): Promise<void> {
+  const photoId = String(formData.get('photoId') ?? '')
+  const hidden = String(formData.get('hidden') ?? '') === '1'
+  if (!photoId) return
+
+  const supabase = await createClient()
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return
+
+  const { data, error } = await supabase
+    .from('photos')
+    .update({ is_hidden: hidden })
+    .eq('id', photoId)
+    .select('event_id')
+    .maybeSingle<{ event_id: string }>()
+
+  if (error) {
+    console.error('togglePhotoHidden gagal:', error)
+    return
+  }
+
+  if (data) revalidatePath(`/dashboard/events/${data.event_id}`)
+}
