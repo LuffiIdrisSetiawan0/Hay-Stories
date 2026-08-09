@@ -1,8 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { notFound } from 'next/navigation'
-import { ArrowRight, Camera, Check, Clock, Film, Images, Lock } from 'lucide-react'
-import { FILM_PRESETS } from '@/lib/catalog'
+import { notFound, redirect } from 'next/navigation'
 import { resolveReveal } from '@/lib/events'
 import { findActiveGuest, findEventBySlug, isEventOpen } from '@/lib/guest/event'
 import { readGuestSession } from '@/lib/guest/session'
@@ -47,6 +45,20 @@ export default async function GuestEntryPage(props: PageProps<'/a/[slug]'>) {
 
   const renaming = 'ganti' in (await props.searchParams)
 
+  /*
+   * Tamu yang sudah terdaftar tidak punya urusan di halaman ini.
+   *
+   * Kartu perkenalan ini hanya berguna sekali seumur acara. Menahannya di sini
+   * setiap kali tautan dibuka berarti satu ketukan tambahan menuju kamera,
+   * setiap kali. Yang butuh halaman ini cuma orang yang belum punya sesi, atau
+   * yang sengaja datang untuk membetulkan namanya.
+   *
+   * Tidak ada risiko putaran: halaman kamera memantulkan balik ke sini hanya
+   * ketika sesinya tidak ada atau albumnya tertutup — syarat yang justru
+   * membuat cabang ini tidak jalan.
+   */
+  if (open && guest && !renaming) redirect(`/a/${event.slug}/kamera`)
+
   return (
     <main className={styles.page}>
       <div className={styles.card}>
@@ -54,38 +66,7 @@ export default async function GuestEntryPage(props: PageProps<'/a/[slug]'>) {
 
         <h1 className={styles.title}>{event.title}</h1>
 
-        <p className={styles.lede}>
-          Kamera sekali pakai untuk acara ini. Pilih roll filmmu sendiri, ganti kapan saja.
-        </p>
-
-        <ul className={styles.facts}>
-          <li className={styles.fact}>
-            <Camera size={15} className={styles.factIcon} />
-            <span>{event.shots_per_guest} jepretan untukmu</span>
-          </li>
-          <li className={styles.fact}>
-            <Film size={15} className={styles.factIcon} />
-            <span>{FILM_PRESETS.length} roll film untuk dipilih</span>
-          </li>
-          <li className={styles.fact}>
-            {reveal.revealed ? (
-              <>
-                <Check size={15} className={styles.factIcon} />
-                <span>Foto langsung terlihat di galeri</span>
-              </>
-            ) : reveal.revealAt ? (
-              <>
-                <Clock size={15} className={styles.factIcon} />
-                <span>Semua foto terbuka {formatDateTime(event.reveal_at)}</span>
-              </>
-            ) : (
-              <>
-                <Lock size={15} className={styles.factIcon} />
-                <span>Foto tersembunyi sampai host membukanya</span>
-              </>
-            )}
-          </li>
-        </ul>
+        <p className={styles.lede}>Kamera sekali pakai untuk acara ini.</p>
 
         {!open ? (
           <div className={styles.notice}>
@@ -95,37 +76,24 @@ export default async function GuestEntryPage(props: PageProps<'/a/[slug]'>) {
               ke yang punya acara.
             </p>
           </div>
-        ) : guest && !renaming ? (
-          <div className={styles.ready}>
-            <div className={styles.readyBadge}>
-              <Check size={15} strokeWidth={3} />
-              Kameramu siap, {guest.display_name}
-            </div>
-
-            <div className={styles.readyActions}>
-              <Link href={`/a/${event.slug}/kamera`} className="btn btn-primary">
-                Mulai memotret
-                <ArrowRight size={16} />
-              </Link>
-              <Link href={`/a/${event.slug}/galeri`} className="btn btn-secondary">
-                <Images size={16} />
-                Galeri
-              </Link>
-            </div>
+        ) : (
+          <>
+            <JoinForm slug={event.slug} defaultName={guest?.display_name ?? ''} />
 
             {/*
-              Sengaja tautan, bukan tombol yang menghapus sesi. Membuang cookie
-              akan membuat pengiriman berikutnya dianggap perangkat baru dan
-              memakan satu slot kuota lagi — mahal untuk sekadar salah ketik
-              nama. Dengan sesi yang utuh, `join_event` hanya memperbarui nama
-              pada baris tamu yang sudah ada.
+              Satu baris, di bawah tombol, bukan daftar di atasnya. Jatah
+              jepretan sudah terpampang di penghitung kamera begitu masuk;
+              yang tidak terlihat di mana pun sampai terlambat adalah kapan
+              fotonya boleh dilihat — itu saja yang perlu disampaikan di sini.
             */}
-            <Link href={`/a/${event.slug}?ganti=1`} className={styles.quietLink}>
-              Salah nama? Betulkan
-            </Link>
-          </div>
-        ) : (
-          <JoinForm slug={event.slug} defaultName={guest?.display_name ?? ''} />
+            <p className={styles.fine}>
+              {reveal.revealed
+                ? 'Fotomu langsung muncul di galeri.'
+                : reveal.revealAt
+                  ? `Semua foto terbuka bersamaan ${formatDateTime(event.reveal_at)}.`
+                  : 'Semua foto tersembunyi sampai host membukanya.'}
+            </p>
+          </>
         )}
       </div>
 

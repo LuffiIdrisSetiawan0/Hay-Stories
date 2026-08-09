@@ -1,5 +1,6 @@
 'use server'
 
+import { redirect } from 'next/navigation'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { GUEST_NAME_MAX, GUEST_NAME_MIN } from '@/lib/events'
 import { findEventBySlug } from '@/lib/guest/event'
@@ -72,12 +73,6 @@ export async function joinEvent(
     return { error: REJECTION[data.status] ?? 'Gagal masuk ke album.' }
   }
 
-  /*
-   * Menulis cookie sudah membuat Next merender ulang rute ini dalam respons
-   * yang sama, dan halaman itu menampilkan keadaan "sudah bergabung" begitu
-   * cookienya terbaca. Jadi tidak ada `redirect()` di sini — tujuannya memang
-   * URL yang sedang dibuka.
-   */
   await issueGuestSession({
     guestId: data.guest_id,
     eventId: event.id,
@@ -85,5 +80,17 @@ export async function joinEvent(
     displayName,
   })
 
-  return null
+  /*
+   * Langsung ke kamera.
+   *
+   * Sebelumnya di sini tidak ada redirect: menulis cookie sudah membuat Next
+   * merender ulang rute ini, dan halaman itu menampilkan keadaan "sudah
+   * bergabung". Secara mekanis lebih hemat, tapi hasilnya satu layar mati yang
+   * tugasnya cuma menampung tombol lain — padahal tombol yang baru saja ditekan
+   * tamu sudah berbunyi "Ambil kamera". Tiga layar sebelum bisa menjepret,
+   * untuk orang yang sedang berdiri di tengah pesta.
+   *
+   * redirect() bekerja dengan melempar, jadi harus di luar try/catch mana pun.
+   */
+  redirect(`/a/${event.slug}/kamera`)
 }

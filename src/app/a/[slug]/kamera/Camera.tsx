@@ -66,8 +66,22 @@ export default function Camera({
   const [shotsUsed, setShotsUsed] = useState(initialShotsUsed)
   const [busy, setBusy] = useState(false)
   const [flash, setFlash] = useState(false)
-  const [notice, setNotice] = useState<string | null>(null)
   const [lastShot, setLastShot] = useState<string | null>(null)
+
+  /*
+   * Pesan mengambang di atas viewfinder, bukan baris tetap di bawah layar.
+   *
+   * Kabar baik ("Tersimpan.") menghilang sendiri — membiarkannya menetap berarti
+   * tamu membaca ulang hal yang sama sepanjang acara. Kegagalan bertahan sampai
+   * jepretan berikutnya, karena itu yang perlu ditindaklanjuti.
+   */
+  const [notice, setNotice] = useState<{ text: string; kind: 'ok' | 'error' } | null>(null)
+
+  useEffect(() => {
+    if (notice?.kind !== 'ok') return
+    const timer = setTimeout(() => setNotice(null), 2200)
+    return () => clearTimeout(timer)
+  }, [notice])
 
   const remaining = Math.max(0, shotsLimit - shotsUsed)
   const rollEmpty = remaining === 0
@@ -219,7 +233,7 @@ export default function Camera({
         // LUT gagal dimuat. Kembalikan pilihannya supaya tombol yang menyala
         // cocok dengan roll yang benar-benar sedang dirender.
         setPreset(presetRef.current)
-        setNotice('Roll itu gagal dimuat. Coba lagi.')
+        setNotice({ text: 'Roll itu gagal dimuat. Coba lagi.', kind: 'error' })
       }
     },
     [busy, preset.id]
@@ -279,7 +293,7 @@ export default function Camera({
 
       if (!claim.ok) {
         if (typeof claimBody.shotsUsed === 'number') setShotsUsed(claimBody.shotsUsed)
-        setNotice(claimBody.error ?? 'Gagal menyiapkan jepretan.')
+        setNotice({ text: claimBody.error ?? 'Gagal menyiapkan jepretan.', kind: 'error' })
         return
       }
 
@@ -313,9 +327,12 @@ export default function Camera({
 
       photoId = null // sudah aman — jangan dibatalkan di blok finally
       setLastShot(URL.createObjectURL(shot.thumb))
-      setNotice('Tersimpan.')
+      setNotice({ text: 'Tersimpan.', kind: 'ok' })
     } catch (err) {
-      setNotice(err instanceof Error ? err.message : 'Jepretan gagal disimpan.')
+      setNotice({
+        text: err instanceof Error ? err.message : 'Jepretan gagal disimpan.',
+        kind: 'error',
+      })
     } finally {
       /*
        * Kembalikan jepretan yang sudah diklaim tapi tidak jadi foto. Tanpa ini,
@@ -344,32 +361,28 @@ export default function Camera({
 
   // --- Tampilan ------------------------------------------------------------
 
+  const controlsLocked = busy || phase.kind !== 'live'
+
   return (
     <main className={`${styles.page} surface-dark`}>
-      <header className={styles.bar}>
-        <Link href={`/a/${slug}`} className={styles.back} aria-label="Kembali">
-          <ArrowLeft size={18} />
-        </Link>
-
-        <div className={styles.barTitle}>
-          <span className={styles.eventName}>{title}</span>
-          <span className={styles.guestName}>{guestName}</span>
-        </div>
-
-        <span className={styles.counter} aria-label={`${remaining} jepretan tersisa`}>
-          <strong>{remaining}</strong>/{shotsLimit}
-        </span>
-
-        <Link href={`/a/${slug}/galeri`} className={styles.galleryLink} aria-label="Galeri">
-          <Images size={18} />
-        </Link>
-      </header>
-
+      {/*
+        Viewfinder mengisi seluruh layar dan semua kontrol mengambang di atasnya.
+        Sebelumnya lima jalur bertumpuk saling berebut tinggi layar, dan yang
+        paling dikorbankan justru fotonya — padahal menilai roll film adalah
+        satu-satunya alasan layar ini ada.
+      */}
       <div className={styles.stage}>
         {/* Video sumber tidak pernah ditampilkan. Yang terlihat hanya canvas
             yang sudah melewati LUT, supaya tamu tidak sempat melihat versi
             mentahnya sedetik pun. */}
         <video ref={videoRef} playsInline muted className={styles.video} />
+
+        {/*
+          `contain`, bukan `cover`. Memenuhi layar akan memangkas tepi yang tetap
+          ikut tersimpan — tamu membingkai satu hal dan mendapat hal lain. Pita
+          hitam di atas-bawah justru berguna: di situlah kontrolnya duduk, tanpa
+          menutupi foto.
+        */}
         <canvas ref={canvasRef} className={styles.canvas} />
 
         {flash && <div className={styles.flash} />}
@@ -392,69 +405,106 @@ export default function Camera({
           <div className={styles.overlay}>
             <p className={styles.overlayTitle}>Roll filmmu habis</p>
             <p className={styles.overlayBody}>
-              Semua {shotsLimit} jepretan sudah terpakai. Fotonya muncul di galeri saat host
-              membukanya.
+              Semua {shotsLimit} jepretan sudah terpakai.
             </p>
+            <Link href={`/a/${slug}/galeri`} className="btn btn-accent">
+              <Images size={16} />
+              Lihat galeri
+            </Link>
           </div>
         )}
       </div>
 
-      <div className={styles.rolls} role="group" aria-label="Pilih roll film">
-        {FILM_PRESETS.map((p) => (
-          <button
-            key={p.id}
-            type="button"
-            onClick={() => changePreset(p)}
-            aria-pressed={p.id === preset.id}
-            disabled={busy}
-            className={`${styles.roll} ${p.id === preset.id ? styles.rollActive : ''}`}
-          >
-            <span className={styles.rollName}>{p.name}</span>
-            <span className={styles.rollCharacter}>{p.character}</span>
-          </button>
-        ))}
-      </div>
+      <header className={styles.bar}>
+        <Link href={`/a/${slug}`} className={styles.iconBtn} aria-label="Kembali">
+          <ArrowLeft size={18} />
+        </Link>
 
-      <div className={styles.controls}>
-        <span className={styles.thumbSlot}>
-          {lastShot && (
-            // Blob URL sementara di memori — next/image tidak bisa mengoptimasi
-            // apa pun di sini dan hanya menambah lapisan.
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={lastShot} alt="Jepretan terakhirmu" className={styles.thumb} />
-          )}
+        {/*
+          Nama tamu merangkap jalan masuk ke pembetulan nama. Halaman perkenalan
+          sudah tidak dilewati lagi setelah terdaftar, jadi tautannya harus ada
+          di sini — dan menempelkannya pada nama itu sendiri jauh lebih mudah
+          ditebak daripada menu tersendiri.
+        */}
+        <Link href={`/a/${slug}?ganti=1`} className={styles.barTitle}>
+          <span className={styles.eventName}>{title}</span>
+          <span className={styles.guestName}>{guestName}</span>
+        </Link>
+
+        <span className={styles.counter} aria-label={`${remaining} jepretan tersisa`}>
+          <strong>{remaining}</strong>
+          <span className={styles.counterMax}>/{shotsLimit}</span>
         </span>
+      </header>
 
-        <button
-          type="button"
-          onClick={capture}
-          disabled={busy || rollEmpty || phase.kind !== 'live'}
-          className={styles.shutter}
-          aria-label="Jepret"
+      {notice && (
+        <p
+          className={`${styles.toast} ${notice.kind === 'error' ? styles.toastError : ''}`}
+          role="status"
         >
-          {busy ? (
-            <Loader2 size={22} className="animate-spin" />
-          ) : (
-            <span className={styles.shutterDot} />
-          )}
-        </button>
+          {notice.text}
+        </p>
+      )}
 
-        <button
-          type="button"
-          onClick={() => setFacing((f) => (f === 'user' ? 'environment' : 'user'))}
-          disabled={busy || phase.kind !== 'live'}
-          className={styles.flip}
-          aria-label="Balik kamera"
-        >
-          <SwitchCamera size={20} />
-        </button>
+      <div className={styles.dock}>
+        {/* Nama saja. Deskripsi karakter tiap roll ada tempatnya di landing page,
+            bukan di atas jempol orang yang sedang membidik. */}
+        <div className={styles.rolls} role="group" aria-label="Pilih roll film">
+          {FILM_PRESETS.map((p) => (
+            <button
+              key={p.id}
+              type="button"
+              onClick={() => changePreset(p)}
+              aria-pressed={p.id === preset.id}
+              disabled={busy}
+              className={`${styles.roll} ${p.id === preset.id ? styles.rollActive : ''}`}
+            >
+              {p.name}
+            </button>
+          ))}
+        </div>
+
+        <div className={styles.controls}>
+          <Link
+            href={`/a/${slug}/galeri`}
+            className={styles.thumbSlot}
+            aria-label="Buka galeri"
+          >
+            {lastShot ? (
+              // Blob URL sementara di memori — next/image tidak bisa
+              // mengoptimasi apa pun di sini dan hanya menambah lapisan.
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={lastShot} alt="" className={styles.thumb} />
+            ) : (
+              <Images size={18} />
+            )}
+          </Link>
+
+          <button
+            type="button"
+            onClick={capture}
+            disabled={controlsLocked || rollEmpty}
+            className={styles.shutter}
+            aria-label="Jepret"
+          >
+            {busy ? (
+              <Loader2 size={22} className="animate-spin" />
+            ) : (
+              <span className={styles.shutterDot} />
+            )}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setFacing((f) => (f === 'user' ? 'environment' : 'user'))}
+            disabled={controlsLocked}
+            className={styles.iconBtn}
+            aria-label="Balik kamera"
+          >
+            <SwitchCamera size={20} />
+          </button>
+        </div>
       </div>
-
-      {/* Tinggi dikunci di CSS supaya munculnya pesan tidak menggeser tombol
-          rana yang sedang diarahkan jempol. */}
-      <p className={styles.notice} role="status">
-        {notice ?? ' '}
-      </p>
     </main>
   )
 }

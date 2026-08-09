@@ -54,30 +54,13 @@
   color: var(--color-text-secondary);
 }
 
-/* ===== Ringkasan aturan album ===== */
-
-.facts {
-  margin: 1.25rem 0;
-  padding: 0.875rem 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.625rem;
-  border-radius: var(--radius-md);
-  background: var(--color-bg-secondary);
-}
-
-.fact {
-  display: flex;
-  align-items: center;
-  gap: 0.625rem;
-  font-size: 0.875rem;
-  line-height: 1.45;
-  color: var(--color-text-secondary);
-}
-
-.factIcon {
-  flex-shrink: 0;
-  color: var(--color-accent);
+/* Keterangan halus di bawah tombol — konteks, bukan penghalang. */
+.fine {
+  margin-top: 0.9rem;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--color-text-muted);
+  text-align: center;
 }
 
 /* ===== Form ===== */
@@ -175,47 +158,6 @@
   font-size: 0.875rem;
   line-height: 1.6;
   color: var(--color-text-secondary);
-}
-
-/* ===== Sudah bergabung ===== */
-
-.ready {
-  margin-top: 1.5rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.875rem;
-}
-
-.readyBadge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  align-self: flex-start;
-  padding: 0.5rem 0.9rem;
-  border-radius: var(--radius-full);
-  background: var(--color-accent-soft);
-  color: var(--color-accent);
-  font-size: 0.875rem;
-  font-weight: 600;
-  overflow-wrap: anywhere;
-}
-
-.readyActions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.6rem;
-}
-
-.quietLink {
-  align-self: flex-start;
-  font-size: 0.8125rem;
-  color: var(--color-text-muted);
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-
-.quietLink:hover {
-  color: var(--color-text-primary);
 }
 
 /* ===== Kaki halaman ===== */
