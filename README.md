@@ -1,36 +1,78 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# HAY Stories
 
-## Getting Started
+Kamera sekali pakai digital untuk acara. Host membuat album, tamu memindai satu
+QR code lalu memotret langsung dari browser dengan preset film pilihan host, dan
+semua foto tetap tersembunyi sampai acara usai — lalu terungkap bersamaan.
 
-First, run the development server:
+Produksi: **https://hay-stories.vercel.app**
+
+## Menjalankan secara lokal
 
 ```bash
+npm install
+cp .env.local.example .env.local   # lalu isi nilainya
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Buka http://localhost:3000.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Menyiapkan database
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Jalankan berkas di `supabase/migrations/` **berurutan** lewat SQL Editor di
+dashboard Supabase. Semuanya idempoten, aman dijalankan ulang. Rinciannya ada di
+[`supabase/README.md`](supabase/README.md).
 
-## Learn More
+## Variabel lingkungan
 
-To learn more about Next.js, take a look at the following resources:
+| Variabel | Wajib | Keterangan |
+|---|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | ya | Project Settings → API |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | ya | Project Settings → API |
+| `SUPABASE_SERVICE_ROLE_KEY` | ya | **Rahasia.** Hanya untuk route handler jalur tamu anonim |
+| `GUEST_TOKEN_SECRET` | ya | `openssl rand -base64 32` |
+| `NEXT_PUBLIC_APP_URL` | ya | URL publik aplikasi |
+| `MIDTRANS_SERVER_KEY` | belum | Pembayaran, dipakai pasca-MVP |
+| `NEXT_PUBLIC_MIDTRANS_CLIENT_KEY` | belum | Pembayaran, dipakai pasca-MVP |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Mesin film
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Estetika film dibangun sendiri, bukan memakai API pihak ketiga — inilah
+diferensiasi produknya, dan layanan transformasi gambar akan jauh lebih mahal
+daripada harga jual paketnya pada volume foto satu acara.
 
-## Deploy on Vercel
+```bash
+node scripts/generate-luts.mjs          # bangkitkan ulang tekstur LUT preset
+node scripts/generate-test-chart.mjs    # gambar uji untuk menilai grading
+node scripts/generate-hero-placeholder.mjs
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Buka `/dev/film` saat `next dev` untuk melihat keenam preset dirender melalui
+pipeline WebGL yang sama dengan kamera tamu. Halaman ini 404 di produksi.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Grading tiap preset ada di objek `GRADES` dalam `scripts/generate-luts.mjs` dan
+sengaja terbuka untuk di-tune: ubah angkanya, jalankan ulang script, muat ulang
+halaman.
+
+## Struktur
+
+| Path | Isi |
+|---|---|
+| `src/lib/film/` | Shader, renderer, pipeline capture |
+| `src/lib/catalog.ts` | Sumber tunggal tier harga, preset, jenis acara |
+| `src/lib/supabase/` | Klien browser, server, dan service role |
+| `src/components/ui/` | Primitif seksi: `Section`, `Reveal`, `SectionHeading` |
+| `src/proxy.ts` | Proteksi rute (konvensi Next.js 16, bukan `middleware.ts`) |
+| `supabase/migrations/` | Skema, RLS, bucket storage |
+
+## Catatan
+
+- **Preset film memakai nama orisinal.** Menamai preset dengan merek film asli
+  (Kodak, Fujifilm, CineStill, Ilford) adalah penggunaan merek dagang terdaftar
+  dan berisiko secara hukum.
+- **Tamu anonim tidak punya akses database sama sekali.** Semua jalurnya melalui
+  route handler sisi server yang memverifikasi JWT tamu di cookie httpOnly.
+  Bucket `photos` privat dan sengaja tanpa policy apa pun.
+- **Foto hero dan showcase masih placeholder** yang dibangkitkan script. Ganti
+  dengan foto acara asli sebelum rilis ke klien.
+- **Testimoni di landing masih contoh.** Ganti dengan testimoni asli atau hapus
+  seksinya sebelum dipromosikan.
