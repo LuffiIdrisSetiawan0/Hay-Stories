@@ -88,7 +88,9 @@ export default async function ManageEventPage(props: PageProps<'/dashboard/event
       <div className={styles.stats}>
         <div className={styles.stat}>
           <ImageIcon size={15} className={styles.statIcon} />
-          <span className={styles.statValue}>{photoCount ?? 0}</span>
+          {/* Nol yang keliru lebih buruk dari tanda tanya: host akan mengira
+              fotonya hilang, padahal yang gagal cuma pembacaannya. */}
+          <span className={styles.statValue}>{photoPage.failed ? '—' : photoCount}</span>
           <span className={styles.statLabel}>Foto masuk</span>
         </div>
         <div className={styles.stat}>
@@ -131,9 +133,11 @@ export default async function ManageEventPage(props: PageProps<'/dashboard/event
       <section className={`${styles.card} ${styles.photos}`}>
         <h2 className={styles.cardTitle}>Foto masuk</h2>
         <p className={styles.cardHint}>
-          {photos.length === 0
-            ? 'Belum ada foto. Begitu tamu mulai menjepret, fotonya muncul di sini — kamu bisa melihatnya lebih dulu, sebelum album dibuka.'
-            : 'Kamu melihat ini lebih dulu. Ketuk ikon mata untuk menyembunyikan sebuah foto dari galeri tamu; foto tersembunyi tampak pudar dan bisa dikembalikan kapan saja.'}
+          {photoPage.failed
+            ? 'Foto tidak bisa dimuat saat ini. Ini gangguan pada penyimpanan, bukan tanda fotonya hilang — muat ulang sebentar lagi.'
+            : photos.length === 0
+              ? 'Belum ada foto. Begitu tamu mulai menjepret, fotonya muncul di sini — kamu bisa melihatnya lebih dulu, sebelum album dibuka.'
+              : 'Kamu melihat ini lebih dulu. Ketuk ikon mata untuk menyembunyikan sebuah foto dari galeri tamu; foto tersembunyi tampak pudar dan bisa dikembalikan kapan saja.'}
         </p>
 
         {photos.length > 0 && (

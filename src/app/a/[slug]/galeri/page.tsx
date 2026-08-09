@@ -42,9 +42,9 @@ export default async function GalleryPage(props: PageProps<'/a/[slug]/galeri'>) 
 
   const page = Math.max(1, Number(search.hal ?? 1) || 1)
   const visible = reveal.revealed && !hostOnly
-  const { photos, total, hasMore } = visible
+  const { photos, total, hasMore, failed } = visible
     ? await listPhotos(event.id, { page })
-    : { photos: [], total: 0, hasMore: false }
+    : { photos: [], total: 0, hasMore: false, failed: false }
 
   return (
     <main className={styles.page}>
@@ -56,7 +56,7 @@ export default async function GalleryPage(props: PageProps<'/a/[slug]/galeri'>) 
         <div className={styles.barTitle}>
           <span className={styles.eventName}>{event.title}</span>
           <span className={styles.sub}>
-            {visible ? `${total} foto` : 'Belum terbuka'}
+            {!visible ? 'Belum terbuka' : failed ? 'Gagal dimuat' : `${total} foto`}
           </span>
         </div>
 
@@ -102,6 +102,19 @@ export default async function GalleryPage(props: PageProps<'/a/[slug]/galeri'>) 
               Lanjut memotret
             </Link>
           )}
+        </section>
+      ) : failed ? (
+        /*
+         * Dibedakan dari album kosong dengan sengaja. Mengatakan "belum ada
+         * foto" pada tamu yang baru saja menjepret dua belas kali akan membuat
+         * mereka yakin jepretannya hilang.
+         */
+        <section className={styles.locked}>
+          <h1 className={styles.lockedTitle}>Foto gagal dimuat</h1>
+          <p className={styles.lockedBody}>
+            Ini gangguan sementara di sisi kami, bukan tanda fotonya hilang. Coba muat ulang
+            sebentar lagi.
+          </p>
         </section>
       ) : photos.length === 0 ? (
         <section className={styles.locked}>

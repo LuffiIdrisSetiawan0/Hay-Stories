@@ -59,7 +59,17 @@ export interface PhotoPage {
   photos: SignedPhoto[]
   total: number
   hasMore: boolean
+  /**
+   * Foto tidak bisa dimuat sama sekali — beda dari album yang memang kosong.
+   *
+   * Pemanggil WAJIB membedakan keduanya. "Belum ada foto" pada album yang
+   * sebenarnya berisi ratusan foto adalah kebohongan yang membuat host
+   * menyangka karyanya hilang.
+   */
+  failed: boolean
 }
+
+const EMPTY_PAGE: PhotoPage = { photos: [], total: 0, hasMore: false, failed: true }
 
 /**
  * Ambil satu halaman foto beserta tautan bertanda tangannya.
@@ -68,6 +78,11 @@ export interface PhotoPage {
  * antaranya melekat pada tiap foto. Album besar yang dikirim sekaligus akan
  * menambah ratusan kilobyte pada muatan halaman — di jaringan seluler dalam
  * gedung resepsi, itu selisih antara galeri yang terbuka dan yang tidak.
+ *
+ * TIDAK PERNAH melempar. Fungsi ini dipanggil dari halaman kelola album yang
+ * juga memuat QR, panel berbagi, dan kontrol reveal — hal-hal yang tidak ada
+ * hubungannya dengan foto. Satu env var yang belum diisi tidak boleh
+ * menjatuhkan seluruh halaman; kegagalannya dilaporkan lewat `failed`.
  */
 export async function listPhotos(
   eventId: string,
@@ -77,38 +92,46 @@ export async function listPhotos(
   const page = Math.max(1, options.page ?? 1)
   const from = (page - 1) * pageSize
 
-  const supabase = createAdminClient()
+  try {
+    // Melempar bila SUPABASE_SERVICE_ROLE_KEY belum diisi. Ditangkap di sini,
+    // bukan dibiarkan naik ke React.
+    const supabase = createAdminClient()
 
-  let query = supabase
-    .from('photos')
-    .select(
-      'id, guest_name, taken_at, preset, width, height, storage_path, thumb_path, is_hidden',
-      { count: 'exact' }
-    )
-    .eq('event_id', eventId)
-    .eq('status', 'ready')
+    let query = supabase
+      .from('photos')
+      .select(
+        'id, guest_name, taken_at, preset, width, height, storage_path, thumb_path, is_hidden',
+        { count: 'exact' }
+      )
+      .eq('event_id', eventId)
+      .eq('status', 'ready')
 
-  // Tamu tidak pernah melihat foto yang disembunyikan host. Host melihatnya,
-  // ditandai, supaya bisa mengembalikannya.
-  if (!options.includeHidden) query = query.eq('is_hidden', false)
+    // Tamu tidak pernah melihat foto yang disembunyikan host. Host melihatnya,
+    // ditandai, supaya bisa mengembalikannya.
+    if (!options.includeHidden) query = query.eq('is_hidden', false)
 
-  const { data, count, error } = await query
-    .order('taken_at', { ascending: false })
-    .range(from, from + pageSize - 1)
-    .returns<PhotoRow[]>()
+    const { data, count, error } = await query
+      .order('taken_at', { ascending: false })
+      .range(from, from + pageSize - 1)
+      .returns<PhotoRow[]>()
 
-  if (error) {
-    console.error('listPhotos gagal:', error)
-    return { photos: [], total: 0, hasMore: false }
-  }
+    if (error) {
+      console.error('listPhotos gagal:', error)
+      return EMPTY_PAGE
+    }
 
-  const rows = data ?? []
-  const total = count ?? 0
+    const rows = data ?? []
+    const total = count ?? 0
 
-  return {
-    photos: await signPhotos(rows),
-    total,
-    hasMore: from + rows.length < total,
+    return {
+      photos: await signPhotos(supabase, rows),
+      total,
+      hasMore: from + rows.length < total,
+      failed: false,
+    }
+  } catch (err) {
+    console.error('listPhotos gagal:', err)
+    return EMPTY_PAGE
   }
 }
 
@@ -119,11 +142,13 @@ export async function listPhotos(
  * delapan foto jadi sembilan puluh enam perjalanan bolak-balik sebelum satu
  * piksel pun sampai ke layar.
  */
-async function signPhotos(rows: PhotoRow[]): Promise<SignedPhoto[]> {
+async function signPhotos(
+  supabase: ReturnType<typeof createAdminClient>,
+  rows: PhotoRow[]
+): Promise<SignedPhoto[]> {
   const usable = rows.filter((r) => r.storage_path && r.thumb_path)
   if (usable.length === 0) return []
 
-  const supabase = createAdminClient()
   const storage = supabase.storage.from(PHOTO_BUCKET)
 
   const [thumbs, fulls] = await Promise.all([
