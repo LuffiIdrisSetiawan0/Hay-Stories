@@ -1,0 +1,271 @@
+.page {
+  max-width: 64rem;
+}
+
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+  transition: color var(--transition-base);
+}
+
+.back:hover {
+  color: var(--color-accent);
+}
+
+.header {
+  margin-top: 1.1rem;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.title {
+  font-family: var(--font-serif);
+  font-size: clamp(1.75rem, 3vw, 2.25rem);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+.subtitle {
+  margin-top: 0.35rem;
+  font-size: 0.9rem;
+  color: var(--color-text-secondary);
+}
+
+.badge {
+  padding: 0.35rem 0.85rem;
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  border: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
+  background: var(--color-bg-secondary);
+  white-space: nowrap;
+}
+
+.badgeRevealed {
+  border-color: var(--color-accent);
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+}
+
+/* ===== Statistik ===== */
+
+.stats {
+  margin-top: 2rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1px;
+  background: var(--color-border);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 1.1rem 1.25rem;
+  background: var(--color-bg-elevated);
+}
+
+.statIcon {
+  color: var(--color-accent);
+}
+
+.statValue {
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.statMax {
+  font-size: 0.9rem;
+  font-weight: 400;
+  color: var(--color-text-faint);
+}
+
+.statLabel {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+/* ===== Kolom ===== */
+
+.columns {
+  margin-top: 1.5rem;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+@media (min-width: 860px) {
+  .columns {
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  }
+}
+
+.card {
+  padding: 1.5rem;
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.cardTitle {
+  font-family: var(--font-serif);
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.cardHint {
+  margin-top: 0.3rem;
+  margin-bottom: 1.25rem;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+}
+
+/* ===== QR ===== */
+
+.qrBox {
+  display: grid;
+  place-items: center;
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.qr {
+  width: 100%;
+  max-width: 230px;
+}
+
+.qr :global(svg) {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* ===== Kolom berbagi ===== */
+
+.shareField {
+  margin-top: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.shareLabel {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.shareRow {
+  display: flex;
+  align-items: stretch;
+  gap: 0.5rem;
+}
+
+.shareValue {
+  flex: 1;
+  min-width: 0;
+  padding: 0.6rem 0.75rem;
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  color: var(--color-text-primary);
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.code {
+  font-size: 1.05rem;
+  letter-spacing: 0.28em;
+  text-align: center;
+}
+
+.iconBtn {
+  display: grid;
+  place-items: center;
+  width: 2.4rem;
+  flex-shrink: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-primary);
+  color: var(--color-text-secondary);
+  transition: all var(--transition-base);
+}
+
+.iconBtn:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.shareHint {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+/* ===== Reveal ===== */
+
+.revealForm {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.revealWarn {
+  font-size: 0.85rem;
+  line-height: 1.55;
+  color: var(--color-text-primary);
+}
+
+.revealActions {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.revealDone {
+  font-size: 0.875rem;
+  color: var(--color-accent);
+  font-weight: 500;
+}
+
+.revealError {
+  font-size: 0.8125rem;
+  color: var(--color-error);
+}
+
+/* ===== Catatan sementara ===== */
+
+.pending {
+  margin-top: 1.5rem;
+  padding: 0.9rem 1.1rem;
+  border-radius: var(--radius-md);
+  border: 1px dashed var(--color-border-hover);
+  font-size: 0.8438rem;
+  line-height: 1.6;
+  color: var(--color-text-muted);
+}

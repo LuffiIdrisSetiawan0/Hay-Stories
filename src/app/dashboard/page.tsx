@@ -1,41 +1,75 @@
-"use client";
-
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { Plus, Image as ImageIcon, Users, Clock, ArrowRight } from "lucide-react";
+import { createClient } from "@/lib/supabase/server";
+import { getPreset } from "@/lib/catalog";
+import { resolveReveal } from "@/lib/events";
 import styles from "./Dashboard.module.css";
 
-// Mock data for initial UI build
-const mockEvents = [
-  {
-    id: "1",
-    title: "Pernikahan Andi & Lina",
-    date: "2026-09-15T00:00:00Z",
-    status: "active",
-    photoCount: 142,
-    guestCount: 68,
-    preset: "Portra 400",
-  },
-  {
-    id: "2",
-    title: "Ulang Tahun ke-25 Sarah",
-    date: "2026-08-20T00:00:00Z",
-    status: "revealed",
-    photoCount: 89,
-    guestCount: 24,
-    preset: "FunSaver",
-  },
-];
-
-function formatDate(isoString: string) {
-  const date = new Date(isoString);
+function formatDate(iso: string | null) {
+  if (!iso) return "Tanggal belum diisi";
   return new Intl.DateTimeFormat("id-ID", {
     day: "numeric",
     month: "long",
     year: "numeric",
-  }).format(date);
+  }).format(new Date(iso));
 }
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  // RLS membatasi ke acara milik host ini, jadi tidak perlu filter host_id
+  // secara eksplisit — tapi tetap ditulis agar maksudnya terbaca jelas dan
+  // query tetap benar seandainya policy berubah.
+  const { data: events, error } = await supabase
+    .from("events")
+    .select("id, title, slug, event_date, preset, status, reveal_mode, reveal_at, is_revealed")
+    .eq("host_id", user.id)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    return (
+      <div className={styles.dashboardHome}>
+        <div className={styles.header}>
+          <div>
+            <h1 className={styles.pageTitle}>Dashboard</h1>
+          </div>
+        </div>
+        <div className={styles.emptyState}>
+          <h2 className={styles.emptyTitle}>Tidak bisa memuat album</h2>
+          <p className={styles.emptyDesc}>
+            Database belum siap. Jalankan berkas di <code>supabase/migrations/</code> lewat SQL
+            Editor di dashboard Supabase, lalu muat ulang halaman ini.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  const eventIds = (events ?? []).map((e) => e.id);
+
+  // Hitungan diambil sekali untuk semua album, bukan satu query per kartu.
+  const [photoRows, guestRows] = eventIds.length
+    ? await Promise.all([
+        supabase.from("photos").select("event_id").in("event_id", eventIds).eq("status", "ready"),
+        supabase.from("guests").select("event_id").in("event_id", eventIds),
+      ])
+    : [{ data: [] }, { data: [] }];
+
+  const tally = (rows: { event_id: string }[] | null) =>
+    (rows ?? []).reduce<Record<string, number>>((acc, row) => {
+      acc[row.event_id] = (acc[row.event_id] ?? 0) + 1;
+      return acc;
+    }, {});
+
+  const photoCounts = tally(photoRows.data);
+  const guestCounts = tally(guestRows.data);
+
   return (
     <div className={styles.dashboardHome}>
       <div className={styles.header}>
@@ -49,7 +83,7 @@ export default function DashboardPage() {
         </Link>
       </div>
 
-      {mockEvents.length === 0 ? (
+      {!events || events.length === 0 ? (
         <div className={styles.emptyState}>
           <div className={styles.emptyIcon}>📷</div>
           <h2 className={styles.emptyTitle}>Belum ada album</h2>
@@ -62,43 +96,50 @@ export default function DashboardPage() {
         </div>
       ) : (
         <div className={styles.eventGrid}>
-          {mockEvents.map((event) => (
-            <Link key={event.id} href={`/dashboard/events/${event.id}`} className={styles.eventCard}>
-              <div className={styles.eventCardHeader}>
-                <div>
-                  <h3 className={styles.eventTitle}>{event.title}</h3>
-                  <p className={styles.eventDate}>{formatDate(event.date)}</p>
+          {events.map((event) => {
+            const reveal = resolveReveal(event);
+            return (
+              <Link
+                key={event.id}
+                href={`/dashboard/events/${event.id}`}
+                className={styles.eventCard}
+              >
+                <div className={styles.eventCardHeader}>
+                  <div>
+                    <h3 className={styles.eventTitle}>{event.title}</h3>
+                    <p className={styles.eventDate}>{formatDate(event.event_date)}</p>
+                  </div>
+                  <span
+                    className={`${styles.statusBadge} ${
+                      reveal.revealed ? styles.statusRevealed : styles.statusActive
+                    }`}
+                  >
+                    {reveal.revealed ? "Terungkap" : "Aktif"}
+                  </span>
                 </div>
-                <span
-                  className={`${styles.statusBadge} ${
-                    event.status === "active" ? styles.statusActive : styles.statusRevealed
-                  }`}
-                >
-                  {event.status === "active" ? "Aktif" : "Terungkap"}
-                </span>
-              </div>
 
-              <div className={styles.eventStats}>
-                <div className={styles.statItem}>
-                  <ImageIcon size={14} className={styles.statIcon} />
-                  <span>{event.photoCount} foto</span>
+                <div className={styles.eventStats}>
+                  <div className={styles.statItem}>
+                    <ImageIcon size={14} className={styles.statIcon} />
+                    <span>{photoCounts[event.id] ?? 0} foto</span>
+                  </div>
+                  <div className={styles.statItem}>
+                    <Users size={14} className={styles.statIcon} />
+                    <span>{guestCounts[event.id] ?? 0} tamu</span>
+                  </div>
+                  <div className={styles.statItem}>
+                    <Clock size={14} className={styles.statIcon} />
+                    <span>{getPreset(event.preset)?.name ?? event.preset}</span>
+                  </div>
                 </div>
-                <div className={styles.statItem}>
-                  <Users size={14} className={styles.statIcon} />
-                  <span>{event.guestCount} tamu</span>
-                </div>
-                <div className={styles.statItem}>
-                  <Clock size={14} className={styles.statIcon} />
-                  <span>{event.preset}</span>
-                </div>
-              </div>
 
-              <div className={styles.eventCardFooter}>
-                <span>Kelola album</span>
-                <ArrowRight size={16} />
-              </div>
-            </Link>
-          ))}
+                <div className={styles.eventCardFooter}>
+                  <span>Kelola album</span>
+                  <ArrowRight size={16} />
+                </div>
+              </Link>
+            );
+          })}
         </div>
       )}
     </div>
