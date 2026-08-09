@@ -236,8 +236,21 @@ ul, ol {
   white-space: nowrap;
 }
 
-.btn:active {
+.btn:active:not(:disabled) {
   transform: scale(0.97);
+}
+
+/*
+ * Tombol mati harus *terlihat* mati. Tanpa aturan ini tombol yang disabled
+ * tampil persis seperti tombol aktif — masih penuh warna, masih menyala saat
+ * disentuh kursor — sehingga orang mengira aplikasinya rusak padahal formnya
+ * memang belum sah. `:hover` tetap menyala di elemen disabled, jadi setiap
+ * aturan hover di bawah wajib dikunci dengan `:not(:disabled)`.
+ */
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  box-shadow: none;
 }
 
 .btn-primary {
@@ -248,7 +261,7 @@ ul, ol {
   box-shadow: var(--shadow-sm);
 }
 
-.btn-primary:hover {
+.btn-primary:hover:not(:disabled) {
   background-color: var(--color-accent-hover);
   box-shadow: var(--shadow-md);
 }
@@ -261,7 +274,7 @@ ul, ol {
   font-size: 0.875rem;
 }
 
-.btn-secondary:hover {
+.btn-secondary:hover:not(:disabled) {
   background: var(--color-bg-hover);
   border-color: var(--color-border-hover);
 }
@@ -279,7 +292,7 @@ ul, ol {
   -webkit-backdrop-filter: blur(8px);
 }
 
-.btn-accent:hover {
+.btn-accent:hover:not(:disabled) {
   background: #ffffff;
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.18);
 }
