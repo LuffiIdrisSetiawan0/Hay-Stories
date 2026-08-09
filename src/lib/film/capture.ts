@@ -4,11 +4,18 @@ import type { FilmPreset } from '@/lib/catalog'
 /**
  * Sisi terpanjang maksimum untuk foto tersimpan.
  *
- * 3000 px masih jauh di atas kebutuhan cetak 10R, tapi memangkas berkas 12 MP
- * dari ~5 MB menjadi ~1,5 MB. Dengan 2.400 foto per acara, selisih itu berarti
- * beberapa GB storage dan egress per acara.
+ * 4096 dipilih supaya frame 4K (3840 px) lewat tanpa dikecilkan — kamera memang
+ * diminta setinggi itu, dan memangkasnya di sini akan membuang resolusi yang
+ * sudah terlanjur ditangkap.
+ *
+ * Batas ini tetap ada sebagai pagar: sebagian perangkat sanggup memberi frame
+ * jauh lebih besar, dan foto 12 MP dikali ribuan jepretan per acara berarti
+ * puluhan GB storage yang, pada tier berbayar, disimpan permanen.
+ *
+ * `fitWithin` tidak pernah memperbesar, jadi perangkat yang hanya sanggup
+ * 1080p tetap menyimpan 1080p apa adanya.
  */
-const MAX_LONG_EDGE = 3000
+const MAX_LONG_EDGE = 4096
 
 /** Sisi terpanjang thumbnail galeri. Galeri TIDAK BOLEH memuat foto penuh. */
 const THUMB_LONG_EDGE = 480

@@ -132,11 +132,23 @@ export default function Camera({
       }
 
       try {
+        /*
+         * Minta setinggi mungkin, bukan 1080p.
+         *
+         * `ideal` bukan `exact`: perangkat yang tidak sanggup 4K akan memberi
+         * yang terdekat, bukan menolak. Jadi HP lama tetap jalan, HP baru
+         * memberi 8,3 MP alih-alih 2,1 MP — dan resolusi jepretan memang
+         * sepenuhnya ditentukan angka ini, karena frame diambil langsung dari
+         * stream.
+         *
+         * Rasio dibiarkan 16:9. Ini memotong sensor 4:3 di atas-bawah, tapi itu
+         * pilihan bingkai, bukan batas resolusi.
+         */
         const stream = await navigator.mediaDevices.getUserMedia({
           video: {
             facingMode: { ideal: facing },
-            width: { ideal: 1920 },
-            height: { ideal: 1080 },
+            width: { ideal: 3840 },
+            height: { ideal: 2160 },
           },
           audio: false,
         })
