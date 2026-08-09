@@ -11,13 +11,32 @@ import styles from './Camera.module.css'
 /**
  * Sisi terpanjang viewfinder.
  *
- * Sengaja jauh di bawah resolusi kamera: shader ini berjalan tiap frame di GPU
- * ponsel, dan merender 1080p enam puluh kali sedetik hanya untuk ditampilkan di
- * layar selebar 400 px membuat perangkat panas lalu frame rate-nya jatuh.
- * Jepretan yang tersimpan tetap resolusi penuh — itu dirender sekali saja,
- * bukan tiap frame.
+ * Ini ukuran KELUARAN render, bukan ukuran masukannya. Yang mahal justru
+ * masukannya: tekstur video seukuran stream diunggah ke GPU tiap frame, berapa
+ * pun kecilnya hasil yang digambar. Karena itu menurunkan angka ini saja tidak
+ * menyembuhkan viewfinder yang tersendat — yang menentukan adalah resolusi
+ * stream dan seberapa sering frame diunggah.
+ *
+ * Jepretan yang tersimpan tetap resolusi penuh; itu dirender sekali, bukan
+ * tiap frame.
  */
 const PREVIEW_LONG_EDGE = 900
+
+/**
+ * Resolusi yang diminta ke kamera. Ini yang menentukan resolusi foto tersimpan,
+ * karena jepretan diambil langsung dari frame stream.
+ *
+ * 1440p, turun dari 4K. Bukan karena 4K tidak muat disimpan, tapi karena setiap
+ * frame pratinjau harus mengunggah tekstur video seukuran itu ke GPU — dan di
+ * HP kelas menengah viewfinder-nya patah-patah. 1440p menurunkan beban unggah
+ * jadi sekitar 44% dari 4K, sambil tetap menyimpan 3,7 MP (cetak nyaman sampai
+ * A4) alih-alih 2,1 MP seperti versi paling awal.
+ *
+ * Satu angka ini adalah tombol utamanya. Kalau masih tersendat, 1920x1080
+ * berikutnya; kalau ternyata lapang, 4K bisa dicoba lagi.
+ */
+const STREAM_WIDTH = 2560
+const STREAM_HEIGHT = 1440
 
 /** Roll yang sudah terpasang saat kamera dibuka. Tamu bebas menggantinya. */
 const INITIAL_PRESET = getPreset(DEFAULT_PRESET)!
@@ -48,7 +67,7 @@ export default function Camera({
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const rendererRef = useRef<FilmRenderer | null>(null)
   const streamRef = useRef<MediaStream | null>(null)
-  const rafRef = useRef(0)
+  const loopRef = useRef<{ kind: 'raf' | 'rvfc'; id: number } | null>(null)
 
   /*
    * Preset yang dipegang loop render, terpisah dari yang dipegang React.
@@ -101,14 +120,44 @@ export default function Camera({
     renderer.render(video, presetRef.current, width, height, { mirror })
   }, [mirror])
 
+  const stopLoop = useCallback(() => {
+    const loop = loopRef.current
+    if (!loop) return
+    if (loop.kind === 'raf') cancelAnimationFrame(loop.id)
+    else videoRef.current?.cancelVideoFrameCallback(loop.id)
+    loopRef.current = null
+  }, [])
+
+  /*
+   * Menggambar mengikuti frame KAMERA, bukan refresh layar.
+   *
+   * Kamera ponsel umumnya mengirim 30 fps sementara layarnya menyegarkan 60–120
+   * kali sedetik. Dengan requestAnimationFrame, setiap frame kamera diunggah ke
+   * GPU dua sampai empat kali — pekerjaan yang hasilnya identik dan langsung
+   * dibuang. Pada tekstur 4K itulah yang membuat viewfinder patah-patah.
+   *
+   * requestVideoFrameCallback hanya menyala saat benar-benar ada frame baru.
+   * Belum ada di semua browser lama, jadi rAF tetap disiapkan sebagai cadangan.
+   */
   const startLoop = useCallback(() => {
-    cancelAnimationFrame(rafRef.current)
-    const tick = () => {
-      drawFrame()
-      rafRef.current = requestAnimationFrame(tick)
+    stopLoop()
+    const video = videoRef.current
+    if (!video) return
+
+    if (typeof video.requestVideoFrameCallback === 'function') {
+      const tick = () => {
+        drawFrame()
+        loopRef.current = { kind: 'rvfc', id: video.requestVideoFrameCallback(tick) }
+      }
+      loopRef.current = { kind: 'rvfc', id: video.requestVideoFrameCallback(tick) }
+    } else {
+      const tick = () => {
+        drawFrame()
+        loopRef.current = { kind: 'raf', id: requestAnimationFrame(tick) }
+      }
+      loopRef.current = { kind: 'raf', id: requestAnimationFrame(tick) }
     }
-    rafRef.current = requestAnimationFrame(tick)
-  }, [drawFrame])
+  }, [drawFrame, stopLoop])
 
   // --- Menyalakan kamera ---------------------------------------------------
 
@@ -133,22 +182,18 @@ export default function Camera({
 
       try {
         /*
-         * Minta setinggi mungkin, bukan 1080p.
+         * `ideal`, bukan `exact`: perangkat yang tidak sanggup memberi yang
+         * terdekat alih-alih menolak, jadi HP lama tetap jalan dan menyimpan
+         * apa adanya.
          *
-         * `ideal` bukan `exact`: perangkat yang tidak sanggup 4K akan memberi
-         * yang terdekat, bukan menolak. Jadi HP lama tetap jalan, HP baru
-         * memberi 8,3 MP alih-alih 2,1 MP — dan resolusi jepretan memang
-         * sepenuhnya ditentukan angka ini, karena frame diambil langsung dari
-         * stream.
-         *
-         * Rasio dibiarkan 16:9. Ini memotong sensor 4:3 di atas-bawah, tapi itu
-         * pilihan bingkai, bukan batas resolusi.
+         * Rasio 16:9 memotong sensor 4:3 di atas-bawah, tapi itu pilihan
+         * bingkai — bukan batas resolusi.
          */
         const stream = await navigator.mediaDevices.getUserMedia({
           video: {
             facingMode: { ideal: facing },
-            width: { ideal: 3840 },
-            height: { ideal: 2160 },
+            width: { ideal: STREAM_WIDTH },
+            height: { ideal: STREAM_HEIGHT },
           },
           audio: false,
         })
@@ -210,11 +255,11 @@ export default function Camera({
 
     return () => {
       cancelled = true
-      cancelAnimationFrame(rafRef.current)
+      stopLoop()
       streamRef.current?.getTracks().forEach((t) => t.stop())
       streamRef.current = null
     }
-  }, [facing, startLoop])
+  }, [facing, startLoop, stopLoop])
 
   // Konteks WebGL dilepas hanya saat komponennya benar-benar hilang, bukan tiap
   // kali kamera dibalik.
@@ -274,7 +319,7 @@ export default function Camera({
     // Loop dihentikan supaya render resolusi penuh tidak berebut canvas dengan
     // viewfinder. Frame terakhir tetap terpampang — itu jeda "rana" yang memang
     // diinginkan.
-    cancelAnimationFrame(rafRef.current)
+    stopLoop()
 
     let photoId: string | null = null
 
@@ -369,7 +414,7 @@ export default function Camera({
       setBusy(false)
       startLoop()
     }
-  }, [busy, eventId, phase.kind, rollEmpty, startLoop])
+  }, [busy, eventId, phase.kind, rollEmpty, startLoop, stopLoop])
 
   // --- Tampilan ------------------------------------------------------------
 
