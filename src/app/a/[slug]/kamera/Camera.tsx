@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, Images, Loader2, SwitchCamera } from 'lucide-react'
 import { DEFAULT_PRESET, FILM_PRESETS, getPreset, type FilmPreset } from '@/lib/catalog'
-import { DEFAULT_FRAME, PHOTO_FRAMES, type FrameId } from '@/lib/frames'
+import { DEFAULT_FRAME, PHOTO_FRAMES, getFrame, type FrameId } from '@/lib/frames'
 import { FilmRenderer, fitWithin, processCapture, videoToBitmap } from '@/lib/film'
 import { createClient } from '@/lib/supabase/client'
 import styles from './Camera.module.css'
@@ -88,6 +88,7 @@ export default function Camera({
   const [busy, setBusy] = useState(false)
   const [flash, setFlash] = useState(false)
   const [lastShot, setLastShot] = useState<string | null>(null)
+  const [videoSize, setVideoSize] = useState<{ w: number; h: number } | null>(null)
 
   /*
    * Pesan mengambang di atas viewfinder, bukan baris tetap di bawah layar.
@@ -226,6 +227,7 @@ export default function Camera({
         await rendererRef.current.loadPreset(presetRef.current)
 
         if (cancelled) return
+        setVideoSize({ w: video.videoWidth, h: video.videoHeight })
         setPhase({ kind: 'live' })
         startLoop()
       } catch (err) {
@@ -334,10 +336,17 @@ export default function Camera({
       const bitmap = await videoToBitmap(video)
       let shot
       try {
-        // Foto TIDAK dicerminkan sekalipun pratinjaunya iya. Cermin hanya
-        // membantu tamu mengarahkan dirinya; hasil yang tersimpan harus sesuai
-        // apa yang dilihat orang lain, termasuk tulisan di latar belakang.
-        shot = await processCapture(renderer, bitmap, presetRef.current, { mirror: false })
+        /*
+         * Selfie tersimpan MENGIKUTI pratinjau, ikut dicerminkan.
+         *
+         * Sebelumnya tidak: alasannya "hasil harus sesuai yang dilihat orang
+         * lain". Secara teknis benar, tapi tamu membingkai wajahnya di cermin
+         * lalu menerima foto yang terbalik dari yang baru saja mereka atur —
+         * dan mereka membacanya sebagai kerusakan, bukan sebagai akurasi.
+         * Prinsip yang sama dengan LUT dan grain: yang dibingkai harus sama
+         * dengan yang tersimpan.
+         */
+        shot = await processCapture(renderer, bitmap, presetRef.current, { mirror })
       } finally {
         bitmap.close()
       }
@@ -422,7 +431,41 @@ export default function Camera({
       setBusy(false)
       startLoop()
     }
-  }, [busy, eventId, frame, phase.kind, rollEmpty, startLoop, stopLoop])
+  }, [busy, eventId, frame, mirror, phase.kind, rollEmpty, startLoop, stopLoop])
+
+  /*
+   * Gaya bingkai untuk viewfinder, dihitung dari geometri yang sama dengan yang
+   * dipakai saat mengunduh (src/lib/frames.ts). Kalau pratinjau memakai
+   * angkanya sendiri, yang dilihat tamu dan yang mereka terima akan menyimpang.
+   *
+   * Padding CSS dalam persen selalu relatif LEBAR, sedangkan geometri bingkai
+   * memakai sisi terpendek foto — jadi konversinya dilakukan di sini, bukan
+   * diserahkan ke CSS.
+   */
+  const framePreview = (() => {
+    const f = getFrame(frame)
+    if (!f || f.id === 'none' || !videoSize) return null
+
+    const unit = Math.min(videoSize.w, videoSize.h)
+    const outW = videoSize.w + unit * (f.pad.left + f.pad.right)
+    const outH = videoSize.h + unit * (f.pad.top + f.pad.bottom)
+    const pct = (v: number) => `${((unit * v) / outW) * 100}%`
+
+    return {
+      frame: f,
+      // Tinggi pita sprocket ikut dihitung di sini, bukan ditebak di CSS —
+      // sumber geometrinya harus satu.
+      bandStyle: { height: `${((unit * f.pad.top) / outH) * 100}%` } as React.CSSProperties,
+      style: {
+        aspectRatio: `${outW} / ${outH}`,
+        background: f.background,
+        paddingTop: pct(f.pad.top),
+        paddingRight: pct(f.pad.right),
+        paddingBottom: pct(f.pad.bottom),
+        paddingLeft: pct(f.pad.left),
+      } as React.CSSProperties,
+    }
+  })()
 
   // --- Tampilan ------------------------------------------------------------
 
@@ -448,7 +491,26 @@ export default function Camera({
           hitam di atas-bawah justru berguna: di situlah kontrolnya duduk, tanpa
           menutupi foto.
         */}
-        <canvas ref={canvasRef} className={styles.canvas} />
+        {framePreview ? (
+          <div className={styles.framed} style={framePreview.style}>
+            <canvas ref={canvasRef} className={styles.canvas} />
+            {framePreview.frame.sprockets && (
+              <>
+                <span
+                  className={`${styles.sprockets} ${styles.sprocketsTop}`}
+                  style={framePreview.bandStyle}
+                />
+                <span
+                  className={`${styles.sprockets} ${styles.sprocketsBottom}`}
+                  style={framePreview.bandStyle}
+                />
+              </>
+            )}
+            {framePreview.frame.caption && <span className={styles.frameCaption}>{title}</span>}
+          </div>
+        ) : (
+          <canvas ref={canvasRef} className={styles.canvas} />
+        )}
 
         {flash && <div className={styles.flash} />}
 
