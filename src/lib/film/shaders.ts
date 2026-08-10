@@ -35,6 +35,8 @@ uniform float uVignette;
 uniform float uHalation;
 uniform float uSeed;
 uniform float uIntensity;
+uniform float uLumaLock;
+uniform float uContrast;
 uniform bool  uMirror;
 uniform bool  uFlipY;
 
@@ -119,8 +121,7 @@ void main() {
   if (uFlipY) uv.y = 1.0 - uv.y;
   if (uMirror) uv.x = 1.0 - uv.x;
 
-  vec3 original = texture(uSource, uv).rgb;
-  vec3 c = original;
+  vec3 c = texture(uSource, uv).rgb;
 
   // 1. Halation pada negatif
   c += halation(uv, uHalation);
@@ -134,7 +135,47 @@ void main() {
   }
 
   // 3. Pengembangan warna
-  c = sampleLut(clamp(c, 0.0, 1.0), uLutSize);
+  //
+  // uIntensity HANYA berlaku di sini, bukan di ujung shader. Sebelumnya ia
+  // mencampur seluruh hasil olahan dengan gambar asli, sehingga menurunkan
+  // kekuatan warna ikut menipiskan grain, vignette, dan halation — tiga hal
+  // yang justru harus tetap utuh.
+  vec3 base = clamp(c, 0.0, 1.0);
+  vec3 graded = sampleLut(base, uLutSize);
+
+  /*
+   * Kunci kecerahan: ambil warnanya, tolak angkat nadanya.
+   *
+   * LUT ini dibuat untuk konversi RAW yang datar. Diberi keluaran kamera ponsel
+   * yang sudah dinaikkan kontras dan saturasinya oleh ISP, kurva nadanya
+   * menumpuk dan mengangkat nada tengah sampai 30 level — gambarnya jadi cuci.
+   * Mengembalikan luminanci asli membuang tumpukan itu tanpa membuang karakter
+   * warnanya, sehingga kekuatan warna bisa didorong tinggi tanpa jadi pudar.
+   */
+  if (uLumaLock > 0.0) {
+    float lo = luma(base);
+    float lg = luma(graded);
+    // Rasio dibatasi: pada piksel nyaris hitam, lg mendekati nol dan
+    // pembagiannya meledak jadi bintik terang.
+    float ratio = clamp(lo / max(lg, 0.0001), 0.25, 4.0);
+    graded *= mix(1.0, ratio, uLumaLock);
+  }
+
+  c = mix(base, graded, uIntensity);
+
+  /*
+   * 3b. Kontras.
+   *
+   * Kendali tersendiri, bukan bagian dari LUT. Kunci nada di atas membuang
+   * angkat nada yang membuat gambar cuci, tapi ia ikut memangkas kurva nada
+   * film — dan kurva itulah sumber "punch". Kurva-S ini mengembalikannya tanpa
+   * mengembalikan wash-nya: bayangan ditekan turun, sorotan didorong naik,
+   * nada tengah tetap di tempat.
+   */
+  if (uContrast > 0.0) {
+    vec3 sc = clamp(c, 0.0, 1.0);
+    c = mix(c, sc * sc * (3.0 - 2.0 * sc), uContrast);
+  }
 
   // 4. Grain perak
   if (uGrain > 0.0) {
@@ -151,9 +192,6 @@ void main() {
     c += n * uGrain * 0.14 * weight;
   }
 
-  c = clamp(c, 0.0, 1.0);
-
-  // uIntensity memungkinkan pratinjau sebelum/sesudah tanpa mengganti shader.
-  fragColor = vec4(mix(original, c, uIntensity), 1.0);
+  fragColor = vec4(clamp(c, 0.0, 1.0), 1.0);
 }
 `

@@ -72,6 +72,8 @@ export default function FilmShowcase() {
           // rasa yang tidak akan mereka dapat.
           renderer.render(bitmap, preset, bitmap.width, bitmap.height, {
             intensity: preset.strength,
+            lumaLock: preset.lumaLock,
+            contrast: preset.contrast,
           });
 
           target.width = bitmap.width;

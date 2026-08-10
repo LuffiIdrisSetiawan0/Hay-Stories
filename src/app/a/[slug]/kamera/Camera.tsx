@@ -120,6 +120,8 @@ export default function Camera({
     renderer.render(video, presetRef.current, width, height, {
       mirror,
       intensity: presetRef.current.strength,
+      lumaLock: presetRef.current.lumaLock,
+      contrast: presetRef.current.contrast,
     })
   }, [mirror])
 

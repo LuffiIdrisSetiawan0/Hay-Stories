@@ -152,6 +152,23 @@ export interface FilmPreset {
    * bukan hitam-putih lagi, cuma gambar yang pudar warnanya.
    */
   strength: number
+  /**
+   * 0–1, seberapa banyak kecerahan asli dikembalikan setelah LUT.
+   *
+   * Inilah yang memungkinkan `strength` tinggi tanpa gambar jadi cuci: warna
+   * film diambil penuh, tapi kurva nadanya ditolak karena kamera ponsel sudah
+   * menerapkan kurvanya sendiri. Hitam-putih memakai 0 — di sana kurva nada
+   * justru inti dari tampilannya.
+   */
+  lumaLock: number
+  /**
+   * 0–1, kekuatan kurva-S kontras setelah grading.
+   *
+   * Terpisah dari LUT dengan sengaja. Kunci nada membuang angkat nada yang
+   * membuat gambar cuci, tapi ikut memangkas kurva nada film — dan kurva itulah
+   * sumber "punch". Ini mengembalikannya tanpa mengembalikan wash-nya.
+   */
+  contrast: number
   /** 0–1, kekuatan grain prosedural. */
   grain: number
   /** 0–1, kekuatan vignette. */
@@ -172,50 +189,60 @@ export const FILM_PRESETS: readonly FilmPreset[] = [
     name: 'Golden Hour 400',
     character: 'Kulit hangat natural, kontras lembut',
     lut: '/luts/golden-hour-400.png',
-    strength: 0.5,
-    grain: 0.12,
-    vignette: 0.07,
-    halation: 0.05,
+    strength: 0.95,
+    lumaLock: 0.65,
+    contrast: 0.3,
+    grain: 0.16,
+    vignette: 0.14,
+    halation: 0.1,
   },
   {
     id: 'pastel-400',
     name: 'Pastel 400',
     character: 'Terang lapang, hijau lembut, nada pastel',
     lut: '/luts/pastel-400.png',
-    strength: 0.55,
-    grain: 0.08,
-    vignette: 0.04,
-    halation: 0.03,
+    strength: 0.95,
+    lumaLock: 0.55,
+    contrast: 0.18,
+    grain: 0.1,
+    vignette: 0.08,
+    halation: 0.06,
   },
   {
     id: 'neon-night-1600',
     name: 'Neon Night 1600',
     character: 'Untuk resepsi berlampu, grain kasar, pendar merah',
     lut: '/luts/neon-night-1600.png',
-    strength: 0.6,
-    grain: 0.3,
-    vignette: 0.14,
-    halation: 0.25,
+    strength: 1.0,
+    lumaLock: 0.45,
+    contrast: 0.42,
+    grain: 0.34,
+    vignette: 0.22,
+    halation: 0.35,
   },
   {
     id: 'everyday-100',
     name: 'Everyday 100',
     character: 'Netral dan jernih, aman untuk segala kondisi',
     lut: '/luts/everyday-100.png',
-    strength: 0.35,
-    grain: 0.06,
-    vignette: 0.05,
-    halation: 0.03,
+    strength: 0.8,
+    lumaLock: 0.65,
+    contrast: 0.22,
+    grain: 0.08,
+    vignette: 0.1,
+    halation: 0.05,
   },
   {
     id: 'sunday-chrome',
     name: 'Sunday Chrome',
     character: 'Warna jenuh, kontras tinggi, biru pekat',
     lut: '/luts/sunday-chrome.png',
-    strength: 0.5,
-    grain: 0.04,
-    vignette: 0.09,
-    halation: 0.025,
+    strength: 1.0,
+    lumaLock: 0.5,
+    contrast: 0.5,
+    grain: 0.06,
+    vignette: 0.18,
+    halation: 0.05,
   },
   {
     id: 'noir-400',
@@ -223,9 +250,11 @@ export const FILM_PRESETS: readonly FilmPreset[] = [
     character: 'Hitam putih, grain kasar, kontras dramatis',
     lut: '/luts/noir-400.png',
     strength: 1.0,
-    grain: 0.35,
-    vignette: 0.16,
-    halation: 0,
+    lumaLock: 0.0,
+    contrast: 0.45,
+    grain: 0.38,
+    vignette: 0.26,
+    halation: 0.0,
   },
 ] as const
 

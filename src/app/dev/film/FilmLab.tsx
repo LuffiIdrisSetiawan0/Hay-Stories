@@ -19,12 +19,14 @@ type Status = 'loading' | 'ready' | 'unsupported' | 'error'
 /** Pengali yang ditumpuk di atas nilai bawaan tiap preset. 1 = apa adanya. */
 interface Knobs {
   strength: number
+  lumaLock: number
+  contrast: number
   grain: number
   vignette: number
   halation: number
 }
 
-const NEUTRAL: Knobs = { strength: 1, grain: 1, vignette: 1, halation: 1 }
+const NEUTRAL: Knobs = { strength: 1, lumaLock: 1, contrast: 1, grain: 1, vignette: 1, halation: 1 }
 
 /**
  * Terapkan pengali, jaga tetap dalam 0–1.
@@ -38,6 +40,8 @@ function tune(preset: FilmPreset, k: Knobs) {
   return {
     ...preset,
     strength: isMono ? preset.strength : clamp(preset.strength * k.strength),
+    lumaLock: clamp(preset.lumaLock * k.lumaLock),
+    contrast: clamp(preset.contrast * k.contrast),
     grain: clamp(preset.grain * k.grain),
     vignette: clamp(preset.vignette * k.vignette),
     halation: clamp(preset.halation * k.halation),
@@ -92,7 +96,11 @@ export default function FilmLab() {
       // Wajib per preset: satu tekstur LUT dipakai bergantian, jadi harus
       // ditukar sebelum tiap render.
       await renderer.loadPreset(tuned)
-      renderer.render(bitmap, tuned, width, height, { intensity: tuned.strength })
+      renderer.render(bitmap, tuned, width, height, {
+        intensity: tuned.strength,
+        lumaLock: tuned.lumaLock,
+        contrast: tuned.contrast,
+      })
 
       target.width = width
       target.height = height
@@ -257,6 +265,8 @@ export default function FilmLab() {
           }}
         >
           {knob('strength', 'Kekuatan')}
+          {knob('lumaLock', 'Kunci nada')}
+          {knob('contrast', 'Kontras')}
           {knob('grain', 'Grain')}
           {knob('vignette', 'Vignette')}
           {knob('halation', 'Halation')}
@@ -317,7 +327,7 @@ export default function FilmLab() {
                     marginTop: '0.2rem',
                   }}
                 >
-                  strength {t.strength.toFixed(2)} · grain {t.grain.toFixed(2)} · vignette{' '}
+                  strength {t.strength.toFixed(2)} · luma {t.lumaLock.toFixed(2)} · kontras {t.contrast.toFixed(2)} · grain {t.grain.toFixed(2)} · vignette{' '}
                   {t.vignette.toFixed(2)} · halation {t.halation.toFixed(3)}
                 </p>
               </figcaption>
@@ -344,7 +354,7 @@ export default function FilmLab() {
         >
           {FILM_PRESETS.map((p) => {
             const t = tune(p, knobs)
-            return `// ${p.name}\nstrength: ${t.strength.toFixed(2)}, grain: ${t.grain.toFixed(2)}, vignette: ${t.vignette.toFixed(2)}, halation: ${t.halation.toFixed(3)},`
+            return `// ${p.name}\nstrength: ${t.strength.toFixed(2)}, lumaLock: ${t.lumaLock.toFixed(2)}, contrast: ${t.contrast.toFixed(2)}, grain: ${t.grain.toFixed(2)}, vignette: ${t.vignette.toFixed(2)}, halation: ${t.halation.toFixed(3)},`
           }).join('\n')}
         </pre>
       </details>

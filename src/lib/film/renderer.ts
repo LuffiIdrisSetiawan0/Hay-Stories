@@ -8,8 +8,18 @@ export type FilmSource = HTMLVideoElement | HTMLImageElement | ImageBitmap | HTM
 export interface RenderOptions {
   /** Cerminkan horizontal — untuk kamera depan agar terasa seperti cermin. */
   mirror?: boolean
-  /** 0 = foto asli, 1 = filter penuh. Untuk pratinjau sebelum/sesudah. */
+  /** 0 = warna asli, 1 = grading penuh. Hanya memengaruhi LUT, bukan grain/vignette/halation. */
   intensity?: number
+  /**
+   * 0-1, seberapa banyak kecerahan asli dikembalikan setelah LUT.
+   *
+   * 1 berarti LUT hanya boleh mengubah warna, tidak boleh mengangkat atau
+   * menurunkan nada sama sekali. Dipakai untuk menahan kurva nada film
+   * menumpuk di atas kurva yang sudah diterapkan ISP kamera ponsel.
+   */
+  lumaLock?: number
+  /** 0–1, kekuatan kurva-S kontras setelah grading. */
+  contrast?: number
   /**
    * Setel `false` bila sumbernya sudah dalam orientasi bawah-ke-atas.
    * Default (`true`) benar untuk video, gambar, dan ImageBitmap biasa.
@@ -76,6 +86,8 @@ export class FilmRenderer {
       'uHalation',
       'uSeed',
       'uIntensity',
+      'uLumaLock',
+      'uContrast',
       'uMirror',
       'uFlipY',
     ]) {
@@ -157,6 +169,8 @@ export class FilmRenderer {
     gl.uniform1f(this.uniforms.uHalation, preset.halation)
     gl.uniform1f(this.uniforms.uSeed, Math.random() * 1000)
     gl.uniform1f(this.uniforms.uIntensity, options.intensity ?? 1)
+    gl.uniform1f(this.uniforms.uLumaLock, options.lumaLock ?? 0)
+    gl.uniform1f(this.uniforms.uContrast, options.contrast ?? 0)
     gl.uniform1i(this.uniforms.uMirror, options.mirror ? 1 : 0)
     gl.uniform1i(this.uniforms.uFlipY, options.flipY === false ? 0 : 1)
 

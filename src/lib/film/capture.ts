@@ -52,6 +52,8 @@ export async function processCapture(
   const full = await renderer.renderToBlob(source, preset, width, height, {
     mirror: options.mirror,
     intensity: preset.strength,
+    lumaLock: preset.lumaLock,
+    contrast: preset.contrast,
     quality: FULL_QUALITY,
   })
 
