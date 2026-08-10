@@ -138,6 +138,20 @@ export interface FilmPreset {
   character: string
   /** Berkas tekstur LUT bertile di /public/luts/ */
   lut: string
+  /**
+   * 0–1, seberapa jauh hasil grade dicampur ke gambar aslinya.
+   *
+   * Jarang 1. Tabel warnanya dibuat untuk konversi RAW yang datar dan netral,
+   * sementara yang kita beri adalah keluaran kamera ponsel yang kontras dan
+   * saturasinya sudah dinaikkan ISP. Menerapkannya penuh berarti memproses dua
+   * kali: pada Golden Hour 400 itu mengangkat nada tengah 30 level dan
+   * mendorong kulit sedang 37 level ke merah sambil membuang 18 level biru —
+   * semua orang jadi terlihat terbakar matahari.
+   *
+   * Hitam-putih adalah pengecualian dan harus tetap 1: dicampur sebagian, ia
+   * bukan hitam-putih lagi, cuma gambar yang pudar warnanya.
+   */
+  strength: number
   /** 0–1, kekuatan grain prosedural. */
   grain: number
   /** 0–1, kekuatan vignette. */
@@ -158,53 +172,59 @@ export const FILM_PRESETS: readonly FilmPreset[] = [
     name: 'Golden Hour 400',
     character: 'Kulit hangat natural, kontras lembut',
     lut: '/luts/golden-hour-400.png',
-    grain: 0.3,
-    vignette: 0.2,
-    halation: 0.15,
+    strength: 0.5,
+    grain: 0.12,
+    vignette: 0.07,
+    halation: 0.05,
   },
   {
     id: 'pastel-400',
     name: 'Pastel 400',
     character: 'Terang lapang, hijau lembut, nada pastel',
     lut: '/luts/pastel-400.png',
-    grain: 0.22,
-    vignette: 0.12,
-    halation: 0.1,
+    strength: 0.55,
+    grain: 0.08,
+    vignette: 0.04,
+    halation: 0.03,
   },
   {
     id: 'neon-night-1600',
     name: 'Neon Night 1600',
     character: 'Untuk resepsi berlampu, grain kasar, pendar merah',
     lut: '/luts/neon-night-1600.png',
-    grain: 0.55,
-    vignette: 0.3,
-    halation: 0.5,
+    strength: 0.6,
+    grain: 0.3,
+    vignette: 0.14,
+    halation: 0.25,
   },
   {
     id: 'everyday-100',
     name: 'Everyday 100',
     character: 'Netral dan jernih, aman untuk segala kondisi',
     lut: '/luts/everyday-100.png',
-    grain: 0.18,
-    vignette: 0.15,
-    halation: 0.1,
+    strength: 0.35,
+    grain: 0.06,
+    vignette: 0.05,
+    halation: 0.03,
   },
   {
     id: 'sunday-chrome',
     name: 'Sunday Chrome',
     character: 'Warna jenuh, kontras tinggi, biru pekat',
     lut: '/luts/sunday-chrome.png',
-    grain: 0.12,
-    vignette: 0.25,
-    halation: 0.08,
+    strength: 0.5,
+    grain: 0.04,
+    vignette: 0.09,
+    halation: 0.025,
   },
   {
     id: 'noir-400',
     name: 'Noir 400',
     character: 'Hitam putih, grain kasar, kontras dramatis',
     lut: '/luts/noir-400.png',
-    grain: 0.55,
-    vignette: 0.35,
+    strength: 1.0,
+    grain: 0.35,
+    vignette: 0.16,
     halation: 0,
   },
 ] as const

@@ -47,8 +47,11 @@ export async function processCapture(
 
   await renderer.loadPreset(preset)
 
+  // `intensity` WAJIB sama dengan yang dipakai viewfinder. Kalau berbeda,
+  // tamu membingkai satu rasa warna dan menyimpan rasa yang lain.
   const full = await renderer.renderToBlob(source, preset, width, height, {
     mirror: options.mirror,
+    intensity: preset.strength,
     quality: FULL_QUALITY,
   })
 

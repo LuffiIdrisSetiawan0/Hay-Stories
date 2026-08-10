@@ -117,7 +117,10 @@ export default function Camera({
     if (!video || !renderer || video.readyState < 2) return
 
     const { width, height } = fitWithin(video.videoWidth, video.videoHeight, PREVIEW_LONG_EDGE)
-    renderer.render(video, presetRef.current, width, height, { mirror })
+    renderer.render(video, presetRef.current, width, height, {
+      mirror,
+      intensity: presetRef.current.strength,
+    })
   }, [mirror])
 
   const stopLoop = useCallback(() => {

@@ -68,7 +68,11 @@ export default function FilmShowcase() {
           await renderer.loadPreset(preset);
           if (cancelled) return;
 
-          renderer.render(bitmap, preset, bitmap.width, bitmap.height);
+          // Kekuatan yang sama dengan kamera tamu — showcase tidak boleh menjanjikan
+          // rasa yang tidak akan mereka dapat.
+          renderer.render(bitmap, preset, bitmap.width, bitmap.height, {
+            intensity: preset.strength,
+          });
 
           target.width = bitmap.width;
           target.height = bitmap.height;
