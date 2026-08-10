@@ -9,6 +9,7 @@ Buka **SQL Editor** di dashboard Supabase, lalu jalankan berkas di `migrations/`
 2. `0002_storage.sql` — bucket storage dan kebijakan aksesnya
 3. `0003_guest_join.sql` — fungsi `join_event()` untuk pendaftaran tamu
 4. `0004_preset_per_photo.sql` — menandai `events.preset` tidak lagi dipakai
+5. `0005_photo_frame.sql` — kolom `photos.frame` untuk bingkai pilihan tamu
 
 Seluruh migrasi ditulis **idempoten**, jadi aman dijalankan ulang dan aman pada
 database yang sudah terlanjur memakai `schema.sql` versi lama.

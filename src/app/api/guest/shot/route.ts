@@ -1,6 +1,7 @@
 import type { NextRequest } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { FILM_PRESETS } from '@/lib/catalog'
+import { getFrame } from '@/lib/frames'
 import { findActiveGuest } from '@/lib/guest/event'
 import { readGuestSession } from '@/lib/guest/session'
 import { PHOTO_BUCKET, photoPaths } from '@/lib/photos'
@@ -86,6 +87,13 @@ export async function POST(request: NextRequest) {
     return Response.json({ error: 'Preset film tidak dikenal.' }, { status: 400 })
   }
 
+  // Bingkai divalidasi di sini, bukan lewat CHECK di database: daftarnya hidup
+  // di src/lib/frames.ts dan akan bertambah.
+  const frame = String(body.frame ?? 'none')
+  if (!getFrame(frame)) {
+    return Response.json({ error: 'Bingkai tidak dikenal.' }, { status: 400 })
+  }
+
   const width = Number(body.width)
   const height = Number(body.height)
   if (!Number.isFinite(width) || !Number.isFinite(height) || width < 1 || height < 1) {
@@ -144,6 +152,7 @@ export async function POST(request: NextRequest) {
       guest_name: session.guestName,
       guest_session_id: session.sessionId,
       preset,
+      frame,
       width: Math.round(width),
       height: Math.round(height),
       source: 'inapp',

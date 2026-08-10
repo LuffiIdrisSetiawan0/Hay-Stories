@@ -43,6 +43,7 @@ export interface PhotoRow {
   guest_name: string
   taken_at: string | null
   preset: string | null
+  frame: string | null
   width: number | null
   height: number | null
   storage_path: string | null
@@ -100,7 +101,7 @@ export async function listPhotos(
     let query = supabase
       .from('photos')
       .select(
-        'id, guest_name, taken_at, preset, width, height, storage_path, thumb_path, is_hidden',
+        'id, guest_name, taken_at, preset, frame, width, height, storage_path, thumb_path, is_hidden',
         { count: 'exact' }
       )
       .eq('event_id', eventId)

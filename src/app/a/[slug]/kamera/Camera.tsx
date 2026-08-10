@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, Images, Loader2, SwitchCamera } from 'lucide-react'
 import { DEFAULT_PRESET, FILM_PRESETS, getPreset, type FilmPreset } from '@/lib/catalog'
+import { DEFAULT_FRAME, PHOTO_FRAMES, type FrameId } from '@/lib/frames'
 import { FilmRenderer, fitWithin, processCapture, videoToBitmap } from '@/lib/film'
 import { createClient } from '@/lib/supabase/client'
 import styles from './Camera.module.css'
@@ -82,6 +83,7 @@ export default function Camera({
 
   const [phase, setPhase] = useState<Phase>({ kind: 'starting' })
   const [facing, setFacing] = useState<'environment' | 'user'>('environment')
+  const [frame, setFrame] = useState<FrameId>(DEFAULT_FRAME)
   const [shotsUsed, setShotsUsed] = useState(initialShotsUsed)
   const [busy, setBusy] = useState(false)
   const [flash, setFlash] = useState(false)
@@ -346,6 +348,7 @@ export default function Camera({
         body: JSON.stringify({
           eventId,
           preset: presetRef.current.id,
+          frame,
           width: shot.width,
           height: shot.height,
         }),
@@ -419,7 +422,7 @@ export default function Camera({
       setBusy(false)
       startLoop()
     }
-  }, [busy, eventId, phase.kind, rollEmpty, startLoop, stopLoop])
+  }, [busy, eventId, frame, phase.kind, rollEmpty, startLoop, stopLoop])
 
   // --- Tampilan ------------------------------------------------------------
 
@@ -511,6 +514,24 @@ export default function Camera({
       <div className={styles.dock}>
         {/* Nama saja. Deskripsi karakter tiap roll ada tempatnya di landing page,
             bukan di atas jempol orang yang sedang membidik. */}
+        {/* Bingkai tidak ikut tersimpan ke berkas — yang dicatat cuma pilihannya,
+            lalu ditempelkan saat foto diunduh. */}
+        <div className={styles.rolls} role="group" aria-label="Pilih bingkai">
+          {PHOTO_FRAMES.map((f) => (
+            <button
+              key={f.id}
+              type="button"
+              onClick={() => setFrame(f.id)}
+              aria-pressed={f.id === frame}
+              disabled={busy}
+              title={f.hint}
+              className={`${styles.roll} ${f.id === frame ? styles.rollActive : ''}`}
+            >
+              {f.name}
+            </button>
+          ))}
+        </div>
+
         <div className={styles.rolls} role="group" aria-label="Pilih roll film">
           {FILM_PRESETS.map((p) => (
             <button

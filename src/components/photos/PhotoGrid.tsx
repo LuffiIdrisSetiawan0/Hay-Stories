@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Download, Eye, EyeOff, X } from 'lucide-react'
 import { getPreset } from '@/lib/catalog'
-import { downloadUrl, photoFilename } from '@/lib/photo-links'
+import { photoFilename } from '@/lib/photo-links'
+import { drawFramed, getFrame } from '@/lib/frames'
 import type { SignedPhoto } from '@/lib/photos'
 import styles from './PhotoGrid.module.css'
 
@@ -12,6 +13,8 @@ import styles from './PhotoGrid.module.css'
  * host — bedanya hanya `moderation`, yang bila diisi memasang tombol
  * sembunyikan pada tiap ubin.
  */
+
+type GridPhotoRow = SignedPhoto
 
 interface Props {
   photos: SignedPhoto[]
@@ -29,6 +32,7 @@ function formatTaken(iso: string | null) {
 
 export default function PhotoGrid({ photos, eventTitle, moderation }: Props) {
   const [openIndex, setOpenIndex] = useState<number | null>(null)
+  const [saving, setSaving] = useState(false)
   const open = openIndex === null ? null : photos[openIndex]
 
   const close = useCallback(() => setOpenIndex(null), [])
@@ -68,6 +72,58 @@ export default function PhotoGrid({ photos, eventTitle, moderation }: Props) {
       document.body.style.overflow = previous
     }
   }, [openIndex])
+
+  /**
+   * Unduh dengan bingkai ditempelkan di perangkat ini.
+   *
+   * Arsip di storage sengaja polos, jadi bingkainya dikomposit saat diunduh —
+   * di browser, bukan di server. Gambarnya toh sudah dimuat penampil layar
+   * penuh, jadi tidak ada perjalanan jaringan tambahan dan tidak ada waktu
+   * eksekusi fungsi yang dibayar per unduhan.
+   */
+  const download = useCallback(
+    async (photo: GridPhotoRow) => {
+      setSaving(true)
+      try {
+        const frame = getFrame(photo.frame ?? 'none')
+        const res = await fetch(photo.fullUrl)
+        if (!res.ok) throw new Error(String(res.status))
+        const blob = await res.blob()
+
+        // Tanpa bingkai, berkas aslinya diteruskan apa adanya — tidak ada
+        // alasan mengencode ulang dan kehilangan kualitas.
+        let out = blob
+        if (frame && frame.id !== 'none') {
+          const bitmap = await createImageBitmap(blob)
+          try {
+            const canvas = drawFramed(bitmap, bitmap.width, bitmap.height, frame, eventTitle)
+            out = await new Promise<Blob>((resolve, reject) =>
+              canvas.toBlob(
+                (b) => (b ? resolve(b) : reject(new Error('Gagal membuat berkas.'))),
+                'image/jpeg',
+                0.92
+              )
+            )
+          } finally {
+            bitmap.close()
+          }
+        }
+
+        const href = URL.createObjectURL(out)
+        const a = document.createElement('a')
+        a.href = href
+        a.download = photoFilename(eventTitle, photo.id)
+        a.click()
+        URL.revokeObjectURL(href)
+      } catch {
+        // Jaringan putus atau tautan bertanda tangannya kedaluwarsa. Memuat
+        // ulang halaman menerbitkan tautan baru.
+      } finally {
+        setSaving(false)
+      }
+    },
+    [eventTitle]
+  )
 
   return (
     <>
@@ -128,14 +184,16 @@ export default function PhotoGrid({ photos, eventTitle, moderation }: Props) {
               </span>
             </div>
 
-            <a
-              href={downloadUrl(open.fullUrl, photoFilename(eventTitle, open.id))}
+            <button
+              type="button"
+              onClick={() => void download(open)}
+              disabled={saving}
               className={styles.viewerBtn}
               aria-label="Unduh foto ini"
               title="Unduh"
             >
               <Download size={18} />
-            </a>
+            </button>
 
             <button
               type="button"
