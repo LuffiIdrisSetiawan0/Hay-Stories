@@ -1,74 +1,57 @@
-import { QrCode, Camera, Image as ImageIcon } from "lucide-react";
 import Reveal from "@/components/ui/Reveal";
-import { Section, SectionHeading, TitleAccent } from "@/components/ui/Section";
+import BigWord from "@/components/ui/BigWord";
 import styles from "./HowItWorks.module.css";
 
+/**
+ * Tiga langkah, rata tengah, dipimpin satu kata raksasa.
+ *
+ * Versi sebelumnya memakai lingkaran ikon dan tata letak berselang-seling
+ * kiri-kanan dengan garis penghubung. Ramai untuk sesuatu yang isinya cuma tiga
+ * kalimat; sekarang angkanya yang jadi penanda dan sisanya ruang kosong.
+ */
 const steps = [
   {
-    icon: QrCode,
     number: "01",
     title: "Pindai QR",
     description:
-      "Tamu Anda cukup memindai QR code unik yang dicetak di meja atau layar. Tanpa perlu unduh aplikasi apa pun — langsung terbuka di browser.",
+      "Tamu memindai QR code di meja atau layar. Langsung terbuka di browser — tidak ada aplikasi yang perlu diunduh.",
   },
   {
-    icon: Camera,
     number: "02",
-    title: "Jepret Otentik",
+    title: "Jepret",
     description:
-      "Mereka mendapatkan kamera web khusus dan memilih sendiri roll filmnya — bisa diganti kapan saja. Jatah jepretan tetap terbatas, persis seperti kamera analog sungguhan.",
+      "Mereka memilih sendiri roll filmnya dan bisa berganti kapan saja. Jatah jepretan terbatas, persis kamera analog sungguhan.",
   },
   {
-    icon: ImageIcon,
     number: "03",
     title: "Terungkap Bersama",
     description:
-      "Semua foto dikunci hingga akhir acara. Terungkap secara bersamaan layaknya mencetak klise film — kejutan yang ditunggu semua orang.",
+      "Semua foto terkunci sampai acara usai, lalu terbuka bersamaan — seperti menunggu klise film selesai dicetak.",
   },
 ];
 
 export default function HowItWorks() {
   return (
-    <Section id="cara-kerja">
+    <section id="cara-kerja" className={styles.section}>
       <div className="container">
-        <SectionHeading
-          eyebrow="Cara Kerjanya"
-          title={
-            <>
-              Tiga Langkah <TitleAccent>Sederhana</TitleAccent>
-            </>
-          }
-          subtitle="Dari QR code hingga galeri kenangan — semudah scan, jepret, dan tunggu kejutannya."
-          centered
-        />
+        <Reveal className={styles.head}>
+          <BigWord>Caranya</BigWord>
+        </Reveal>
 
-        <div className={styles.timeline}>
+        <Reveal delay={100} className={styles.lede}>
+          <p>Tiga langkah, dan tamumu tidak perlu dijelaskan satu pun.</p>
+        </Reveal>
+
+        <ol className={styles.steps}>
           {steps.map((step, index) => (
-            <Reveal
-              key={step.number}
-              delay={index * 140}
-              className={`${styles.step} ${index % 2 === 1 ? styles.stepReversed : ""}`}
-            >
-              <div className={styles.stepVisual}>
-                <div className={styles.iconCircle}>
-                  <step.icon size={28} strokeWidth={1.2} />
-                </div>
-                <span className={styles.stepNumber}>{step.number}</span>
-              </div>
-
-              <div className={styles.connector}>
-                <div className={styles.connectorLine}></div>
-                <div className={styles.connectorDot}></div>
-              </div>
-
-              <div className={styles.stepText}>
-                <h3 className={styles.stepTitle}>{step.title}</h3>
-                <p className={styles.stepDesc}>{step.description}</p>
-              </div>
+            <Reveal key={step.number} delay={index * 130} as="li" className={styles.step}>
+              <span className={styles.number}>{step.number}</span>
+              <h3 className={styles.title}>{step.title}</h3>
+              <p className={styles.desc}>{step.description}</p>
             </Reveal>
           ))}
-        </div>
+        </ol>
       </div>
-    </Section>
+    </section>
   );
 }

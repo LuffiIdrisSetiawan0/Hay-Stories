@@ -1,53 +1,44 @@
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import Reveal from "@/components/ui/Reveal";
-import { Section, SectionHeading, TitleAccent } from "@/components/ui/Section";
+import BigWord from "@/components/ui/BigWord";
 import styles from "./ProblemSection.module.css";
 
-const problems = [
-  {
-    number: "01",
-    title: "Hilang di Grup Chat",
-    description:
-      "Foto candid tamu tersebar di puluhan HP. Minta kirim lewat WhatsApp? Separuhnya lupa, sisanya kirim blur.",
-  },
-  {
-    number: "02",
-    title: "Kamera Fisik yang Mahal",
-    description:
-      "Kamera sekali pakai fisik: Rp 150rb per unit, hasilnya 50:50, dan separuhnya hilang sebelum acara selesai.",
-  },
-  {
-    number: "03",
-    title: "Momen yang Tak Terulang",
-    description:
-      "Fotografer profesional menangkap momen formal. Tapi siapa yang merekam tawa lepas di meja tamu saat Anda tidak melihat?",
-  },
-];
-
+/**
+ * Seksi "kenapa", dibangun di sekitar satu kata raksasa.
+ *
+ * Versi sebelumnya memakai judul rata kiri dengan daftar bernomor. Sekarang
+ * bobotnya dipikul kata "KENAPA" dan pantulannya, lalu tiga kalimat rata tengah
+ * yang membaca seperti argumen — bukan daftar fitur.
+ *
+ * Tiga masalah aslinya tidak dibuang, hanya dipadatkan jadi satu alur: foto
+ * tercecer, kamera fisik mahal, dan momen yang tidak terlihat siapa pun.
+ */
 export default function ProblemSection() {
   return (
-    <Section>
+    <section className={styles.section}>
       <div className="container">
-        <SectionHeading
-          eyebrow="Masalah yang Sering Terjadi"
-          title={
-            <>
-              Kenangan yang <TitleAccent>Sering Terlewat</TitleAccent>
-            </>
-          }
-        />
+        <Reveal className={styles.head}>
+          <BigWord>Kenapa</BigWord>
+        </Reveal>
 
-        <div className={styles.list}>
-          {problems.map((problem, index) => (
-            <Reveal key={problem.number} delay={index * 120} className={styles.row}>
-              <span className={styles.number}>{problem.number}</span>
-              <div className={styles.rowContent}>
-                <h3 className={styles.rowTitle}>{problem.title}</h3>
-                <p className={styles.rowDesc}>{problem.description}</p>
-              </div>
-            </Reveal>
-          ))}
-        </div>
+        <Reveal delay={120} className={styles.body}>
+          <p className={styles.line}>Foto terbaik acaramu ada di HP orang lain.</p>
+          <p className={styles.line}>
+            Tersebar di puluhan ponsel, separuh lupa dikirim, sisanya blur.
+          </p>
+          <p className={styles.line}>
+            Itulah kenapa kami mengumpulkannya jadi <mark className={styles.mark}>satu album</mark>.
+          </p>
+        </Reveal>
+
+        <Reveal delay={220} className={styles.actionWrap}>
+          <Link href="#cara-kerja" className={styles.outlineBtn}>
+            Lihat cara kerjanya
+            <ArrowRight size={17} />
+          </Link>
+        </Reveal>
       </div>
-    </Section>
+    </section>
   );
 }

@@ -1,0 +1,44 @@
+/* ===========================================================================
+   Kata raksasa dengan pantulan
+   =========================================================================== */
+
+.wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 0.82;
+}
+
+.word,
+.reflection {
+  font-family: var(--font-sans);
+  /* Sengaja sangat besar: kata ini menggantikan seluruh blok judul seksi. */
+  font-size: clamp(4.5rem, 17vw, 13rem);
+  font-weight: 700;
+  letter-spacing: -0.045em;
+  text-transform: uppercase;
+  color: var(--color-text-primary);
+  user-select: none;
+}
+
+/*
+ * Pantulan: salinan yang dibalik lalu diredupkan ke bawah dengan mask.
+ * `-webkit-box-reflect` akan lebih ringkas tapi tidak pernah distandarkan dan
+ * tidak ada di Firefox.
+ */
+.reflection {
+  transform: scaleY(-1);
+  opacity: 0.16;
+  margin-top: 0.02em;
+  -webkit-mask-image: linear-gradient(to top, transparent 8%, #000 78%);
+  mask-image: linear-gradient(to top, transparent 8%, #000 78%);
+  pointer-events: none;
+}
+
+/* Layar sempit: pantulan setinggi penuh memakan ruang yang tidak ada. */
+@media (max-width: 640px) {
+  .reflection {
+    max-height: 0.55em;
+    overflow: hidden;
+  }
+}
