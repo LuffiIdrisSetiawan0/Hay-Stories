@@ -491,26 +491,34 @@ export default function Camera({
           hitam di atas-bawah justru berguna: di situlah kontrolnya duduk, tanpa
           menutupi foto.
         */}
-        {framePreview ? (
-          <div className={styles.framed} style={framePreview.style}>
-            <canvas ref={canvasRef} className={styles.canvas} />
-            {framePreview.frame.sprockets && (
-              <>
-                <span
-                  className={`${styles.sprockets} ${styles.sprocketsTop}`}
-                  style={framePreview.bandStyle}
-                />
-                <span
-                  className={`${styles.sprockets} ${styles.sprocketsBottom}`}
-                  style={framePreview.bandStyle}
-                />
-              </>
-            )}
-            {framePreview.frame.caption && <span className={styles.frameCaption}>{title}</span>}
-          </div>
-        ) : (
+        {/*
+          Pembungkus ini SELALU ada, bergaya atau tidak. Merender canvas di dua
+          cabang JSX yang berbeda membuat React melepasnya lalu memasang elemen
+          baru setiap kali bingkai diganti — sementara FilmRenderer masih
+          memegang konteks WebGL milik canvas yang lama, jadi yang tampil
+          kosong. Yang boleh berubah cuma gayanya.
+        */}
+        <div
+          className={`${styles.framed} ${framePreview ? styles.framedOn : ''}`}
+          style={framePreview?.style}
+        >
           <canvas ref={canvasRef} className={styles.canvas} />
-        )}
+
+          {framePreview?.frame.sprockets && (
+            <>
+              <span
+                className={`${styles.sprockets} ${styles.sprocketsTop}`}
+                style={framePreview.bandStyle}
+              />
+              <span
+                className={`${styles.sprockets} ${styles.sprocketsBottom}`}
+                style={framePreview.bandStyle}
+              />
+            </>
+          )}
+
+          {framePreview?.frame.caption && <span className={styles.frameCaption}>{title}</span>}
+        </div>
 
         {flash && <div className={styles.flash} />}
 

@@ -326,16 +326,26 @@
    Proporsi dan tebal tepinya dihitung di komponen dari geometri yang sama
    dengan yang dipakai saat mengunduh, supaya keduanya tidak menyimpang. */
 
+/* Tanpa bingkai: pembungkus mengisi panggung dan canvas tetap `contain`. */
 .framed {
   position: relative;
-  max-width: 100%;
+  width: 100%;
+  height: 100%;
+}
+
+/*
+ * Dengan bingkai: tinggi ditentukan aspect-ratio dari gaya inline, dan canvas
+ * mengisi kotak dalamnya persis. `fill` aman di sini karena padding-nya sudah
+ * dihitung dari rasio video, jadi kotak dalamnya berasio sama.
+ */
+.framedOn {
+  width: 100%;
+  height: auto;
   max-height: 100%;
   box-sizing: border-box;
 }
 
-.framed .canvas {
-  width: 100%;
-  height: 100%;
+.framedOn .canvas {
   object-fit: fill;
 }
 
