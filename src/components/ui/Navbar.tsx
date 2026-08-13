@@ -12,9 +12,11 @@ interface NavbarProps {
    * gelap — yang benar untuk halaman berlatar krem seperti /harga.
    */
   overHero?: boolean;
+  /** Bilah krem membulat yang mengambang, bukan bar selebar layar. */
+  pill?: boolean;
 }
 
-export default function Navbar({ overHero = false }: NavbarProps) {
+export default function Navbar({ overHero = false, pill = false }: NavbarProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -31,7 +33,7 @@ export default function Navbar({ overHero = false }: NavbarProps) {
   return (
     <>
       <header
-        className={[styles.header, overHero ? styles.overHero : "", isScrolled ? styles.scrolled : ""]
+        className={[styles.header, pill ? styles.pill : "", overHero ? styles.overHero : "", isScrolled ? styles.scrolled : ""]
           .filter(Boolean)
           .join(" ")}
       >

@@ -233,3 +233,46 @@
   padding: 1rem 2rem;
   text-decoration: none;
 }
+
+/* ===========================================================================
+   Varian pil mengambang
+
+   Bar tidak lagi selebar layar; isinya mengapung sebagai satu bilah membulat.
+   Dipakai di atas hero gelap, jadi pilnya terang dan teksnya tetap gelap —
+   `overHero` justru tidak boleh dipasang bersamanya.
+   =========================================================================== */
+
+.pill {
+  background: transparent;
+  border-bottom: none;
+  padding-top: clamp(0.75rem, 2vw, 1.35rem);
+}
+
+.pill .container {
+  max-width: 62rem;
+  padding: 0.55rem 0.65rem 0.55rem 1.5rem;
+  border-radius: var(--radius-full);
+  background: rgba(247, 244, 238, 0.96);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.28);
+  /* Token warna navbar dipaksa ke skema gelap-di-atas-terang, apa pun keadaan
+     gulirnya — pilnya selalu terang. */
+  --nav-fg: #1a1a1a;
+  --nav-fg-muted: rgba(26, 26, 26, 0.62);
+  --nav-rule: rgba(0, 0, 0, 0.12);
+  --nav-accent: var(--color-accent);
+}
+
+/* Tombol kanan jadi pil gelap yang kontras di dalam pil terang. */
+.pill .loginBtn {
+  padding: 0.6rem 1.25rem;
+  border-radius: var(--radius-full);
+  background: #1a1a1a;
+  color: #f7f4ee;
+  border: none;
+}
+
+.pill .loginBtn:hover {
+  background: #000;
+}

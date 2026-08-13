@@ -1,89 +1,132 @@
 /* ===========================================================================
-   Hero tipografis
+   Hero: judul rata tengah di atas hitam, kartu foto berhamburan di bawahnya.
 
-   Krem, bukan foto gelap setinggi layar. Bobotnya dipikul ukuran huruf dan
-   ruang kosong; foto turun jadi panel pendamping. Konsekuensinya judul,
-   kalimat pembuka, ajakan, dan awal seksi berikutnya muat di satu layar.
+   Seluruh komposisi tumpukan kartu disetel dari blok `--rot` / `--x` / `--y`
+   di bawah, bukan dari komponennya.
    =========================================================================== */
 
 .hero {
   position: relative;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  /* Bukan 100dvh: memaksa hero setinggi layar penuh justru menyembunyikan
-     seksi berikutnya, dan itu masalah yang sedang diperbaiki. */
-  min-height: min(86dvh, 52rem);
-  padding: clamp(7rem, 12vw, 9.5rem) clamp(1.25rem, 5vw, 4rem) clamp(2rem, 4vw, 3rem);
-  background: var(--color-bg-primary);
+  padding: clamp(7.5rem, 14vw, 11rem) clamp(1rem, 4vw, 3rem) clamp(3.5rem, 7vw, 6rem);
+  background: #0a0908;
   overflow: hidden;
 }
 
 .inner {
-  width: 100%;
-  max-width: 82rem;
+  max-width: 78rem;
   margin: 0 auto;
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: clamp(2.5rem, 5vw, 4rem);
-  align-items: center;
-}
-
-@media (min-width: 1000px) {
-  .inner {
-    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
-    gap: clamp(3rem, 6vw, 6rem);
-  }
-}
-
-/* ===== Kolom teks ===== */
-
-.copy {
-  max-width: 34rem;
+  text-align: center;
 }
 
 .eyebrow {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  margin-bottom: clamp(1.25rem, 3vw, 2rem);
   font-family: var(--font-mono);
   font-size: 0.6875rem;
-  letter-spacing: 0.28em;
+  letter-spacing: 0.3em;
   text-transform: uppercase;
-  color: var(--color-halation);
-}
-
-.eyebrowRule {
-  width: 2.25rem;
-  height: 1px;
-  background: currentColor;
-  opacity: 0.55;
+  color: rgba(245, 242, 236, 0.5);
+  margin-bottom: clamp(1.25rem, 3vw, 2rem);
 }
 
 .headline {
-  font-family: var(--font-serif);
-  /* Turun sampai 2.6rem di ponsel: "fotografer" itu kata panjang, dan judul
-     yang pecah jadi tiga baris di layar kecil kehilangan kesan tegasnya. */
-  font-size: clamp(2.6rem, 7.5vw, 5.25rem);
+  font-family: var(--font-sans);
+  font-size: clamp(2rem, 6.2vw, 4.5rem);
   font-weight: 600;
-  line-height: 0.98;
+  line-height: 1.16;
   letter-spacing: -0.03em;
-  color: var(--color-text-primary);
+  color: #f5f2ec;
+  text-wrap: balance;
 }
 
-.headlineItalic {
-  font-style: italic;
-  font-weight: 500;
-  color: var(--color-accent);
+/*
+ * Frasa yang dibalik: teks gelap di dalam kotak terang. `mark` bawaan browser
+ * berwarna kuning menyala, jadi seluruh gayanya ditulis ulang. `box-decoration-break`
+ * menjaga kotaknya tetap utuh di tiap baris kalau judulnya sampai membungkus.
+ */
+.mark {
+  background: #f5f2ec;
+  color: #0a0908;
+  padding: 0.04em 0.32em 0.12em;
+  border-radius: 0.42em;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
 }
 
-.subheadline {
-  margin-top: clamp(1.25rem, 3vw, 1.75rem);
-  max-width: 32rem;
-  font-size: clamp(0.9375rem, 1.4vw, 1.0625rem);
+/* ===== Tumpukan kartu ===== */
+
+.stack {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  /* Tinggi dikunci: kartu-kartunya diputar dan digeser, jadi tinggi alaminya
+     tidak bisa diandalkan untuk menyisakan ruang yang benar. */
+  height: clamp(13rem, 30vw, 24rem);
+  margin: clamp(2rem, 5vw, 3.5rem) 0 clamp(1.5rem, 4vw, 2.5rem);
+}
+
+.card {
+  position: absolute;
+  width: clamp(8rem, 19vw, 15rem);
+  aspect-ratio: 4 / 5;
+  margin: 0;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: #1a1714;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+  transform: translate(var(--x), var(--y)) rotate(var(--rot));
+  transition: transform var(--transition-base);
+}
+
+/* Kartu tengah paling depan; makin ke tepi makin miring, makin turun, makin
+   ke belakang. Urutannya sengaja simetris supaya kipasnya seimbang. */
+.card[data-index='0'] { --rot: -13deg; --x: -108%; --y: 8%;  z-index: 1; }
+.card[data-index='1'] { --rot: -6deg;  --x: -55%;  --y: 1%;  z-index: 2; }
+.card[data-index='2'] { --rot: 0deg;   --x: 0;     --y: -3%; z-index: 3; }
+.card[data-index='3'] { --rot: 6deg;   --x: 55%;   --y: 1%;  z-index: 2; }
+.card[data-index='4'] { --rot: 13deg;  --x: 108%;  --y: 8%;  z-index: 1; }
+
+@media (min-width: 900px) {
+  .card[data-index='0'] { --x: -215%; }
+  .card[data-index='1'] { --x: -108%; }
+  .card[data-index='3'] { --x: 108%; }
+  .card[data-index='4'] { --x: 215%; }
+}
+
+.card:hover {
+  transform: translate(var(--x), calc(var(--y) - 0.75rem)) rotate(var(--rot));
+}
+
+.canvas {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Label gelembung di kaki tiap kartu. */
+.tag {
+  position: absolute;
+  left: 50%;
+  bottom: 0.55rem;
+  transform: translateX(-50%);
+  padding: 0.28rem 0.6rem;
+  border-radius: var(--radius-full);
+  background: rgba(245, 242, 236, 0.92);
+  color: #1a1a1a;
+  font-family: var(--font-mono);
+  font-size: clamp(0.5rem, 1vw, 0.625rem);
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+
+/* ===== Kaki ===== */
+
+.lede {
+  max-width: 44rem;
+  margin: 0 auto;
+  font-size: clamp(0.9375rem, 1.5vw, 1.125rem);
   line-height: 1.75;
-  color: var(--color-text-secondary);
+  color: rgba(245, 242, 236, 0.72);
   text-wrap: pretty;
 }
 
@@ -92,87 +135,42 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
+  justify-content: center;
   gap: 0.85rem 1.5rem;
+}
+
+.primaryBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.9rem 2rem;
+  border-radius: var(--radius-full);
+  background: #f5f2ec;
+  color: #0a0908;
+  font-weight: 600;
+  font-size: 0.9375rem;
+  transition: transform var(--transition-fast), background-color var(--transition-base);
+}
+
+.primaryBtn:hover {
+  background: #fff;
+}
+
+.primaryBtn:active {
+  transform: scale(0.97);
 }
 
 .ghostBtn {
   display: inline-flex;
   align-items: center;
-  font-size: 0.9375rem;
-  color: var(--color-text-primary);
-  border-bottom: 1px solid var(--color-border-hover);
   padding-bottom: 0.2rem;
-  transition: border-color var(--transition-base), color var(--transition-base);
+  font-size: 0.9375rem;
+  color: rgba(245, 242, 236, 0.85);
+  border-bottom: 1px solid rgba(245, 242, 236, 0.3);
+  transition: color var(--transition-base), border-color var(--transition-base);
 }
 
 .ghostBtn:hover {
-  color: var(--color-accent);
-  border-color: var(--color-accent);
-}
-
-/* ===== Panel foto ===== */
-
-.panel {
-  position: relative;
-  /* Potret tegak: foto acara hampir selalu diambil vertikal dari ponsel, dan
-     panel lanskap akan memaksa pemotongan yang membuang kepala orang. */
-  aspect-ratio: 4 / 5;
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  background: var(--color-bg-secondary);
-}
-
-@media (min-width: 1000px) {
-  .panel {
-    aspect-ratio: 3 / 4;
-    max-height: 34rem;
-    justify-self: end;
-    width: 100%;
-  }
-}
-
-.photo {
-  object-fit: cover;
-}
-
-.panelTag {
-  position: absolute;
-  left: 0.9rem;
-  bottom: 0.9rem;
-  padding: 0.35rem 0.7rem;
-  border-radius: var(--radius-full);
-  background: rgba(10, 9, 8, 0.55);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  font-family: var(--font-mono);
-  font-size: 0.625rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: rgba(245, 242, 236, 0.9);
-}
-
-/* ===== Kaki ===== */
-
-.foot {
-  display: flex;
-  justify-content: center;
-  margin-top: clamp(2rem, 5vw, 3.5rem);
-}
-
-.scrollHint {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.6rem;
-  font-family: var(--font-mono);
-  font-size: 0.625rem;
-  letter-spacing: 0.28em;
-  text-transform: uppercase;
-  color: var(--color-text-muted);
-}
-
-.scrollLine {
-  width: 1px;
-  height: 2.25rem;
-  background: linear-gradient(to bottom, transparent, var(--color-border-hover));
+  color: #f5f2ec;
+  border-color: #f5f2ec;
 }

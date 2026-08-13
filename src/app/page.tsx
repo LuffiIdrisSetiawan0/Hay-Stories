@@ -20,16 +20,16 @@ import Footer from "@/components/landing/Footer";
  * angka yang bisa diperiksa memang kita punya. Testimoni asli yang mengganti
  * keduanya nanti jauh lebih kuat daripada yang dikarang sekarang.
  *
- * Ritme terang/gelap: hero krem → krem → krem → bernuansa → GELAP (showcase)
+ * Ritme terang/gelap: hero GELAP → krem → krem → bernuansa → GELAP (showcase)
  * → krem → krem → krem. Band gelap tunggal itu memberi jeda sekaligus
  * menempatkan foto pada latar yang membuatnya paling bagus.
  */
 export default function HomePage() {
   return (
     <main>
-      {/* Bukan lagi `overHero`: hero sekarang krem, dan mode itu memutihkan
-          teks navbar supaya terbaca di atas foto gelap. */}
-      <Navbar />
+      {/* Pil mengambang di atas hero gelap. `overHero` tidak dipakai bersama
+          `pill`: pilnya sendiri sudah terang, jadi teksnya harus tetap gelap. */}
+      <Navbar pill />
       <Hero />
       <EventTypes />
       <ProblemSection />
