@@ -4,7 +4,6 @@ import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 import Reveal from "@/components/ui/Reveal";
 import { Section } from "@/components/ui/Section";
-import BigWord from "@/components/ui/BigWord";
 import styles from "./FAQ.module.css";
 
 const faqs = [
@@ -45,7 +44,7 @@ export default function FAQ() {
     <Section id="faq">
       <div className="container">
         <Reveal className={styles.head}>
-          <BigWord>Tanya</BigWord>
+          <h2 className={styles.title}>Pertanyaan yang sering masuk</h2>
         </Reveal>
 
         <div className={styles.faqList}>

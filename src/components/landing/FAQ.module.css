@@ -87,3 +87,15 @@
   color: var(--color-text-secondary);
   text-wrap: balance;
 }
+
+/* Judul seksi biasa. Kata raksasa sengaja hanya dipakai satu seksi di halaman
+   ini — memakainya di mana-mana membuat seluruh halaman berbentuk sama. */
+.title {
+  font-family: var(--font-serif);
+  font-size: clamp(1.6rem, 3.4vw, 2.75rem);
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: var(--color-text-primary);
+  text-wrap: balance;
+}

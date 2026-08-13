@@ -1,178 +1,203 @@
+/* ===========================================================================
+   Seksi roll film: daftar bernomor di samping, satu contoh besar di sebelahnya.
+
+   Bentuknya sengaja berbeda dari seksi lain di halaman ini. Yang dipilih di
+   sini bukan sekadar dibaca — daftar yang bisa ditekan membuat pengunjung
+   membandingkan roll satu per satu, dan itu tujuan seksinya.
+   =========================================================================== */
+
 .inner {
-  max-width: 1280px;
+  max-width: 82rem;
   margin: 0 auto;
-  padding-inline: 1.5rem;
+  padding: 0 clamp(1rem, 4vw, 2rem);
 }
 
-@media (min-width: 640px) {
-  .inner {
-    padding-inline: 2rem;
-  }
-}
+/* ===== Kepala ===== */
 
-/*
- * Grid foto mepet tanpa jarak — pola OMS Photo. Jarak antar-foto memutus
- * ilusi "satu lembar kontak film"; menempelkannya membuat keenam preset
- * terbaca sebagai satu roll.
- */
-.grid {
-  margin-top: 3.5rem;
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1px;
-  background-color: var(--color-border);
-  border: 1px solid var(--color-border);
-}
-
-@media (min-width: 900px) {
-  .grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-.cell {
-  position: relative;
-  aspect-ratio: 4 / 5;
-  overflow: hidden;
-  background-color: var(--color-bg-secondary);
-}
-
-@media (min-width: 900px) {
-  .cell {
-    aspect-ratio: 3 / 2;
-  }
-}
-
-.canvas {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-
-.caption {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  padding: 2.5rem 1.1rem 1rem;
-  background: linear-gradient(to top, rgba(8, 7, 6, 0.85), transparent);
-  pointer-events: none;
-}
-
-.presetName {
-  font-family: var(--font-serif);
-  font-size: 1.0625rem;
-  font-weight: 500;
-  color: #f5f2ec;
-  letter-spacing: 0.01em;
-}
-
-.presetCharacter {
-  margin-top: 0.15rem;
-  font-size: 0.75rem;
-  line-height: 1.45;
-  color: rgba(245, 242, 236, 0.62);
-}
-
-/* Keadaan sebelum WebGL siap / bila perangkat tidak mendukung. */
-.fallback {
-  position: absolute;
-  inset: 0;
+.head {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1.5rem;
-  text-align: center;
-  font-size: 0.8125rem;
-  color: var(--color-text-muted);
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding-bottom: 1.1rem;
+  margin-bottom: clamp(2rem, 5vw, 3.5rem);
+  border-bottom: 1px solid var(--color-border);
 }
 
-.footnote {
-  margin-top: 1.75rem;
-  font-size: 0.8125rem;
-  color: var(--color-text-muted);
-  text-align: center;
-}
-
-/* ===== Carousel =====
-   Track bergulir dengan snap; kanvasnya tetap enam elemen yang sama, hanya
-   posisinya yang bergerak. Mengganti elemen saat berpindah roll akan membuat
-   React melepas kanvas yang sedang dipegang konteks WebGL. */
-
-.carousel {
-  position: relative;
-}
-
-.track {
-  display: flex;
-  gap: 0.75rem;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  scrollbar-width: none;
-  padding-bottom: 0.5rem;
-}
-
-.track::-webkit-scrollbar {
-  display: none;
-}
-
-.track > * {
-  flex: 0 0 min(78%, 30rem);
-  scroll-snap-align: center;
-}
-
-.nav {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 1.25rem;
-  margin-top: 1.5rem;
-}
-
-.navBtn {
-  display: grid;
-  place-items: center;
-  width: 2.6rem;
-  height: 2.6rem;
-  border-radius: var(--radius-full);
-  border: 1px solid var(--color-border);
-  color: var(--color-text-primary);
-  transition: background-color var(--transition-base), border-color var(--transition-base);
-}
-
-.navBtn:hover:not(:disabled) {
-  background: var(--color-bg-hover);
-  border-color: var(--color-border-hover);
-}
-
-.navBtn:disabled {
-  opacity: 0.3;
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--color-halation);
 }
 
 .counter {
   font-family: var(--font-mono);
-  font-size: 0.8125rem;
-  letter-spacing: 0.1em;
-  color: var(--color-text-muted);
+  font-size: clamp(1.25rem, 3vw, 2rem);
+  color: var(--color-text-primary);
   font-variant-numeric: tabular-nums;
+  line-height: 1;
 }
 
-/* Kepala seksi bergaya kata raksasa. Di permukaan gelap, BigWord mengambil
-   warnanya dari token `--color-text-primary` yang sudah dibalik `.surface-dark`,
-   jadi tidak perlu penimpaan warna di sini. */
-
-.head {
-  text-align: center;
-  margin-bottom: clamp(1.25rem, 3vw, 2rem);
+.counterTotal {
+  font-size: 0.5em;
+  color: var(--color-text-muted);
 }
 
-.lede {
-  max-width: 44rem;
-  margin: 0 auto clamp(2.5rem, 6vw, 4rem);
+/* ===== Tata letak dua kolom ===== */
+
+.layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: clamp(1.75rem, 4vw, 3rem);
+}
+
+@media (min-width: 880px) {
+  .layout {
+    grid-template-columns: minmax(0, 15rem) minmax(0, 1fr);
+    gap: clamp(2.5rem, 5vw, 4.5rem);
+    align-items: start;
+  }
+}
+
+/* ===== Daftar bernomor ===== */
+
+.list {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: 0.25rem;
+}
+
+.list::-webkit-scrollbar {
+  display: none;
+}
+
+/* Di ponsel daftarnya bergulir mendatar; begitu ada ruang ia jadi kolom tegak
+   dengan garis pemisah, dan barulah bentuk "daftar" itu terbaca. */
+@media (min-width: 880px) {
+  .list {
+    flex-direction: column;
+    gap: 0;
+    overflow: visible;
+  }
+}
+
+.listItem {
+  display: flex;
+  align-items: baseline;
+  gap: 0.85rem;
+  width: 100%;
+  padding: 0.7rem 0.9rem;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  transition: color var(--transition-base), border-color var(--transition-base),
+    background-color var(--transition-base);
+}
+
+@media (min-width: 880px) {
+  .listItem {
+    border: none;
+    border-radius: 0;
+    border-bottom: 1px solid var(--color-border);
+    padding: 0.95rem 0.25rem;
+  }
+}
+
+.listItem:hover {
+  color: var(--color-text-primary);
+}
+
+.listItemActive {
+  color: var(--color-text-primary);
+  border-color: var(--color-text-primary);
+}
+
+@media (min-width: 880px) {
+  .listItemActive {
+    border-bottom-color: var(--color-text-primary);
+  }
+}
+
+.listNumber {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.12em;
+  color: var(--color-halation);
+}
+
+.listName {
+  font-family: var(--font-serif);
+  font-size: clamp(0.9375rem, 1.5vw, 1.125rem);
+  font-weight: 600;
+}
+
+/* ===== Contoh besar ===== */
+
+.feature {
+  display: grid;
+  gap: clamp(1.25rem, 3vw, 1.75rem);
+}
+
+.frame {
+  position: relative;
+  aspect-ratio: 3 / 2;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--color-bg-secondary);
+}
+
+/*
+ * Keenam kanvas ditumpuk dan hanya dipudarkan. Menampilkan yang aktif dengan
+ * merender ulang elemennya akan melepas kanvas yang sedang dipegang konteks
+ * WebGL, dan hasilnya kosong.
+ */
+.canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity var(--transition-base);
+}
+
+.canvasActive {
+  opacity: 1;
+}
+
+.fallback {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
   text-align: center;
-  font-size: clamp(1rem, 1.7vw, 1.25rem);
-  line-height: 1.8;
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+}
+
+.featureName {
+  font-family: var(--font-serif);
+  font-size: clamp(1.5rem, 3vw, 2.25rem);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--color-text-primary);
+}
+
+.featureCharacter {
+  margin-top: 0.3rem;
+  font-size: clamp(0.9375rem, 1.5vw, 1.0625rem);
+  line-height: 1.7;
   color: var(--color-text-secondary);
-  text-wrap: balance;
+}
+
+.footnote {
+  margin-top: 0.9rem;
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
 }

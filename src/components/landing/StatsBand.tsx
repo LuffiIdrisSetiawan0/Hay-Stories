@@ -1,7 +1,6 @@
 import { FILM_PRESETS, getTier } from '@/lib/catalog'
 import { Section, StatRow } from '@/components/ui/Section'
 import Reveal from '@/components/ui/Reveal'
-import BigWord from '@/components/ui/BigWord'
 import styles from './StatsBand.module.css'
 
 const STARTER = getTier('starter')!
@@ -33,17 +32,21 @@ export default function StatsBand() {
     <Section id="angka" tone="tinted">
       <div className="container">
         <Reveal className={styles.head}>
-          <BigWord>Tanpa</BigWord>
-        </Reveal>
-
-        <Reveal delay={100} className={styles.lede}>
-          <p>
-            Tanpa aplikasi, tanpa akun, tanpa penjelasan. Tamu memindai QR dan langsung
-            memotret di browser.
-          </p>
+          <h2 className={styles.title}>
+            Tamu memindai satu QR code, lalu langsung memotret.
+          </h2>
         </Reveal>
 
         <StatRow stats={stats} />
+
+        {/* Baris kanal: menegaskan cakupan tanpa menambah klaim baru. */}
+        <Reveal delay={200} className={styles.channels}>
+          {['iPhone', 'Android', 'Desktop', 'Tanpa Aplikasi', 'Tanpa Akun'].map((c) => (
+            <span key={c} className={styles.channel}>
+              {c}
+            </span>
+          ))}
+        </Reveal>
       </div>
     </Section>
   )

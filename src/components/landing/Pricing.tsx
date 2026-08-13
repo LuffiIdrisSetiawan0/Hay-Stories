@@ -3,7 +3,6 @@ import { Check, ArrowRight, Star } from "lucide-react";
 import { TIERS, formatPrice, formatGuestLimit } from "@/lib/catalog";
 import Reveal from "@/components/ui/Reveal";
 import { Section } from "@/components/ui/Section";
-import BigWord from "@/components/ui/BigWord";
 import styles from "./Pricing.module.css";
 
 export default function Pricing() {
@@ -11,7 +10,7 @@ export default function Pricing() {
     <Section id="harga" tone="tinted">
       <div className="container">
         <Reveal className={styles.head}>
-          <BigWord>Harga</BigWord>
+          <h2 className={styles.title}>Bayar sekali per album</h2>
         </Reveal>
 
         <Reveal delay={100} className={styles.lede}>
