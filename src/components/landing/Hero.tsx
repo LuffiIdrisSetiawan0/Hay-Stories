@@ -12,12 +12,6 @@ import styles from "./Hero.module.css";
  * beresolusi tinggi — tata letak ini sepenuhnya bergantung pada fotonya.
  */
 
-const PROOF = [
-  { value: "6", label: "Preset film" },
-  { value: "0", label: "Aplikasi diunduh" },
-  { value: "< 2 mnt", label: "Album siap" },
-] as const;
-
 export default function Hero() {
   return (
     <section className={styles.hero}>
@@ -57,16 +51,10 @@ export default function Hero() {
         </div>
       </div>
 
+      {/* Baris angkanya pindah ke seksi tersendiri di bawah. Hero yang hanya
+          berisi foto, satu kalimat, dan satu ajakan gulir terasa jauh lebih
+          lapang — dan angka yang sama muncul dua kali justru melemahkannya. */}
       <div className={styles.proof}>
-        <div className={styles.proofStats}>
-          {PROOF.map((item) => (
-            <div key={item.label} className={styles.proofStat}>
-              <span className={styles.proofValue}>{item.value}</span>
-              <span className={styles.proofLabel}>{item.label}</span>
-            </div>
-          ))}
-        </div>
-
         <span className={styles.scrollHint}>
           <span className={styles.scrollLine} aria-hidden="true" />
           Gulir

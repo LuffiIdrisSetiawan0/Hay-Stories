@@ -1,0 +1,109 @@
+/* ===========================================================================
+   Empat pintu masuk jenis acara
+
+   Baris bernomor bergaris tipis, bukan kartu berbayang. Bobotnya ditanggung
+   tipografi dan ruang kosong — di halaman yang isinya foto, kartu berbayang
+   justru berebut perhatian dengan fotonya.
+   =========================================================================== */
+
+.wrap {
+  padding: clamp(3rem, 7vw, 5.5rem) 0;
+  background: var(--color-bg-primary);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 760px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1100px) {
+  .grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.cell {
+  border-top: 1px solid var(--color-border);
+}
+
+/*
+ * Di satu kolom setiap sel butuh garis atas. Begitu berjajar, garis itu
+ * berubah fungsi jadi pemisah vertikal — kalau tidak, deretan garis horizontal
+ * akan terbaca seperti tabel.
+ */
+@media (min-width: 760px) {
+  .cell {
+    border-top: none;
+    border-left: 1px solid var(--color-border);
+  }
+
+  .cell:first-child {
+    border-left: none;
+  }
+}
+
+@media (min-width: 760px) and (max-width: 1099px) {
+  .cell:nth-child(odd) {
+    border-left: none;
+  }
+
+  .cell:nth-child(n + 3) {
+    border-top: 1px solid var(--color-border);
+  }
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  height: 100%;
+  padding: 1.6rem 1.4rem 1.8rem;
+  color: var(--color-text-primary);
+  transition: background-color var(--transition-base);
+}
+
+.card:hover {
+  background: var(--color-bg-secondary);
+}
+
+.index {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.18em;
+  color: var(--color-halation);
+}
+
+.label {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: var(--font-serif);
+  font-size: clamp(1.25rem, 2.4vw, 1.6rem);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.arrow {
+  flex-shrink: 0;
+  color: var(--color-text-faint);
+  transition: transform var(--transition-base), color var(--transition-base);
+}
+
+.card:hover .arrow {
+  transform: translate(2px, -2px);
+  color: var(--color-accent);
+}
+
+.line {
+  font-size: 0.8438rem;
+  line-height: 1.6;
+  color: var(--color-text-muted);
+  text-wrap: pretty;
+}

@@ -94,3 +94,66 @@
   color: var(--color-text-muted);
   text-align: center;
 }
+
+/* ===== Carousel =====
+   Track bergulir dengan snap; kanvasnya tetap enam elemen yang sama, hanya
+   posisinya yang bergerak. Mengganti elemen saat berpindah roll akan membuat
+   React melepas kanvas yang sedang dipegang konteks WebGL. */
+
+.carousel {
+  position: relative;
+}
+
+.track {
+  display: flex;
+  gap: 0.75rem;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  padding-bottom: 0.5rem;
+}
+
+.track::-webkit-scrollbar {
+  display: none;
+}
+
+.track > * {
+  flex: 0 0 min(78%, 30rem);
+  scroll-snap-align: center;
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.25rem;
+  margin-top: 1.5rem;
+}
+
+.navBtn {
+  display: grid;
+  place-items: center;
+  width: 2.6rem;
+  height: 2.6rem;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-primary);
+  transition: background-color var(--transition-base), border-color var(--transition-base);
+}
+
+.navBtn:hover:not(:disabled) {
+  background: var(--color-bg-hover);
+  border-color: var(--color-border-hover);
+}
+
+.navBtn:disabled {
+  opacity: 0.3;
+}
+
+.counter {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  letter-spacing: 0.1em;
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}

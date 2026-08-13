@@ -1,30 +1,38 @@
 import Navbar from "@/components/ui/Navbar";
 import Hero from "@/components/landing/Hero";
-import SocialProof from "@/components/landing/SocialProof";
+import EventTypes from "@/components/landing/EventTypes";
 import ProblemSection from "@/components/landing/ProblemSection";
-import HowItWorks from "@/components/landing/HowItWorks";
+import StatsBand from "@/components/landing/StatsBand";
 import FilmShowcase from "@/components/landing/FilmShowcase";
-import Testimonials from "@/components/landing/Testimonials";
+import HowItWorks from "@/components/landing/HowItWorks";
 import Pricing from "@/components/landing/Pricing";
 import FAQ from "@/components/landing/FAQ";
 import Footer from "@/components/landing/Footer";
 
 /**
- * Ritme terang/gelap halaman, mengikuti pola jeda SNXP Studio:
- * hero foto → krem → krem → GELAP (showcase) → krem → krem bernuansa → krem.
- * Band gelap tunggal itu memberi jeda sekaligus menempatkan foto pada latar
- * yang membuatnya paling bagus.
+ * Susunan halaman mengikuti pola situs agensi: pintu masuk per kategori tepat
+ * setelah hero, lalu "kenapa", angka bukti, carousel penawaran, dan cara kerja.
+ *
+ * Dua seksi lama dihapus, bukan dipindah. `Testimonials` dan `SocialProof`
+ * keduanya berisi kutipan dan logo karangan — README proyek ini sendiri
+ * menandainya harus diganti sebelum dipromosikan. Referensinya membangun
+ * kredibilitas lewat angka yang bisa diperiksa, bukan lewat testimoni, dan
+ * angka yang bisa diperiksa memang kita punya. Testimoni asli yang mengganti
+ * keduanya nanti jauh lebih kuat daripada yang dikarang sekarang.
+ *
+ * Ritme terang/gelap tetap dijaga: hero foto → krem → krem → bernuansa →
+ * GELAP (showcase) → krem → krem → krem.
  */
 export default function HomePage() {
   return (
     <main>
       <Navbar overHero />
       <Hero />
-      <SocialProof />
+      <EventTypes />
       <ProblemSection />
-      <HowItWorks />
+      <StatsBand />
       <FilmShowcase />
-      <Testimonials />
+      <HowItWorks />
       <Pricing />
       <FAQ />
       <Footer />

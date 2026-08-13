@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { FILM_PRESETS } from "@/lib/catalog";
 import { FilmRenderer, isFilmSupported } from "@/lib/film";
 import { Section, SectionHeading, TitleAccent } from "@/components/ui/Section";
@@ -23,6 +24,26 @@ const SAMPLE = "/img/hero-placeholder.jpg";
 export default function FilmShowcase() {
   const { ref: sectionRef, inView } = useInView<HTMLDivElement>({ threshold: 0.05 });
   const [failed, setFailed] = useState(false);
+  const [active, setActive] = useState(0);
+  const trackRef = useRef<HTMLDivElement | null>(null);
+
+  /*
+   * Menggulir track, bukan mengganti elemen yang dirender.
+   *
+   * Keenam kanvas tetap dirender sekali di awal oleh satu konteks WebGL.
+   * Menukar-nukar elemen saat berpindah roll akan membuat React melepas
+   * kanvasnya, dan konteks GL yang memegang kanvas lama jadi menggambar ke
+   * elemen yang sudah dibuang — persis bug yang pernah mengosongkan viewfinder
+   * kamera.
+   */
+  const goTo = useCallback((index: number) => {
+    const track = trackRef.current;
+    if (!track) return;
+    const clamped = Math.max(0, Math.min(FILM_PRESETS.length - 1, index));
+    const cell = track.children[clamped] as HTMLElement | undefined;
+    cell?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+    setActive(clamped);
+  }, []);
 
   const glCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const targetsRef = useRef(new Map<string, HTMLCanvasElement>());
@@ -108,7 +129,8 @@ export default function FilmShowcase() {
           centered
         />
 
-        <div className={styles.grid}>
+        <div className={styles.carousel}>
+          <div className={styles.track} ref={trackRef}>
           {FILM_PRESETS.map((preset) => (
             <figure key={preset.id} className={styles.cell}>
               <canvas
@@ -124,6 +146,33 @@ export default function FilmShowcase() {
               </figcaption>
             </figure>
           ))}
+          </div>
+
+          <div className={styles.nav}>
+            <button
+              type="button"
+              onClick={() => goTo(active - 1)}
+              disabled={active === 0}
+              className={styles.navBtn}
+              aria-label="Roll sebelumnya"
+            >
+              <ChevronLeft size={18} />
+            </button>
+
+            <span className={styles.counter}>
+              {String(active + 1).padStart(2, "0")} / {String(FILM_PRESETS.length).padStart(2, "0")}
+            </span>
+
+            <button
+              type="button"
+              onClick={() => goTo(active + 1)}
+              disabled={active === FILM_PRESETS.length - 1}
+              className={styles.navBtn}
+              aria-label="Roll berikutnya"
+            >
+              <ChevronRight size={18} />
+            </button>
+          </div>
         </div>
 
         <p className={styles.footnote}>
