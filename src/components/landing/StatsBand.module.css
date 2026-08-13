@@ -1,0 +1,16 @@
+/* Kepala seksi angka. Rata tengah, mengikuti seksi-seksi lain. */
+
+.head {
+  text-align: center;
+  margin-bottom: clamp(1.25rem, 3vw, 2rem);
+}
+
+.lede {
+  max-width: 40rem;
+  margin: 0 auto clamp(2.5rem, 6vw, 4rem);
+  text-align: center;
+  font-size: clamp(1rem, 1.7vw, 1.25rem);
+  line-height: 1.8;
+  color: var(--color-text-secondary);
+  text-wrap: balance;
+}

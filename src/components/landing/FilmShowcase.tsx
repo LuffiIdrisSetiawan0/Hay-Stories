@@ -4,7 +4,9 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { FILM_PRESETS } from "@/lib/catalog";
 import { FilmRenderer, isFilmSupported } from "@/lib/film";
-import { Section, SectionHeading, TitleAccent } from "@/components/ui/Section";
+import { Section } from "@/components/ui/Section";
+import Reveal from "@/components/ui/Reveal";
+import BigWord from "@/components/ui/BigWord";
 import { useInView } from "@/components/ui/useInView";
 import styles from "./FilmShowcase.module.css";
 
@@ -117,17 +119,17 @@ export default function FilmShowcase() {
   return (
     <Section id="preset" tone="dark">
       <div ref={sectionRef} className={styles.inner}>
-        <SectionHeading
-          eyebrow="Preset Film"
-          marker="rule"
-          title={
-            <>
-              Enam roll, enam <TitleAccent>karakter</TitleAccent>
-            </>
-          }
-          subtitle="Setiap tamu memilih sendiri roll yang dipakainya, dan bebas berganti di tengah acara. Enam karakter film yang berbeda, satu album yang sama."
-          centered
-        />
+        <Reveal className={styles.head}>
+          <BigWord>Roll</BigWord>
+        </Reveal>
+
+        <Reveal delay={100} className={styles.lede}>
+          <p>
+            Setiap tamu memilih sendiri roll yang dipakainya, dan bebas berganti di tengah
+            acara. Enam karakter film yang berbeda, satu album yang sama.
+          </p>
+        </Reveal>
+
 
         <div className={styles.carousel}>
           <div className={styles.track} ref={trackRef}>

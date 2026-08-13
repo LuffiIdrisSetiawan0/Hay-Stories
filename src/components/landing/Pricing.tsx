@@ -2,23 +2,22 @@ import Link from "next/link";
 import { Check, ArrowRight, Star } from "lucide-react";
 import { TIERS, formatPrice, formatGuestLimit } from "@/lib/catalog";
 import Reveal from "@/components/ui/Reveal";
-import { Section, SectionHeading, TitleAccent } from "@/components/ui/Section";
+import { Section } from "@/components/ui/Section";
+import BigWord from "@/components/ui/BigWord";
 import styles from "./Pricing.module.css";
 
 export default function Pricing() {
   return (
     <Section id="harga" tone="tinted">
       <div className="container">
-        <SectionHeading
-          eyebrow="Koleksi & Harga"
-          title={
-            <>
-              Investasi untuk <TitleAccent>Kenangan Otentik</TitleAccent>
-            </>
-          }
-          subtitle="Bayar sekali per album, tanpa biaya tersembunyi. Bebas unduh semua momen selamanya."
-          centered
-        />
+        <Reveal className={styles.head}>
+          <BigWord>Harga</BigWord>
+        </Reveal>
+
+        <Reveal delay={100} className={styles.lede}>
+          <p>Bayar sekali per album, tanpa biaya berulang. Fotonya milikmu selamanya.</p>
+        </Reveal>
+
 
         <div className={styles.grid}>
           {TIERS.map((plan, i) => (

@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 import Reveal from "@/components/ui/Reveal";
-import { Section, SectionHeading, TitleAccent } from "@/components/ui/Section";
+import { Section } from "@/components/ui/Section";
+import BigWord from "@/components/ui/BigWord";
 import styles from "./FAQ.module.css";
 
 const faqs = [
@@ -43,15 +44,9 @@ export default function FAQ() {
   return (
     <Section id="faq">
       <div className="container">
-        <SectionHeading
-          eyebrow="Pertanyaan Umum"
-          title={
-            <>
-              Ada pertanyaan? <TitleAccent>Kami bantu.</TitleAccent>
-            </>
-          }
-          centered
-        />
+        <Reveal className={styles.head}>
+          <BigWord>Tanya</BigWord>
+        </Reveal>
 
         <div className={styles.faqList}>
           {faqs.map((faq, i) => (

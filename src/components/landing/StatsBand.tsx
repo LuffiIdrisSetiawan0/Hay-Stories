@@ -1,5 +1,8 @@
 import { FILM_PRESETS, getTier } from '@/lib/catalog'
-import { Section, SectionHeading, StatRow, TitleAccent } from '@/components/ui/Section'
+import { Section, StatRow } from '@/components/ui/Section'
+import Reveal from '@/components/ui/Reveal'
+import BigWord from '@/components/ui/BigWord'
+import styles from './StatsBand.module.css'
 
 const STARTER = getTier('starter')!
 
@@ -29,16 +32,16 @@ export default function StatsBand() {
   return (
     <Section id="angka" tone="tinted">
       <div className="container">
-        <SectionHeading
-          eyebrow="Yang Kamu Dapat"
-          marker="rule"
-          title={
-            <>
-              Tanpa aplikasi, tanpa <TitleAccent>ribet</TitleAccent>
-            </>
-          }
-          subtitle="Tamu memindai QR dan langsung memotret di browser. Tidak ada yang perlu diunduh, tidak ada akun yang perlu dibuat, dan tidak ada satu pun tamu yang perlu dijelaskan caranya."
-        />
+        <Reveal className={styles.head}>
+          <BigWord>Tanpa</BigWord>
+        </Reveal>
+
+        <Reveal delay={100} className={styles.lede}>
+          <p>
+            Tanpa aplikasi, tanpa akun, tanpa penjelasan. Tamu memindai QR dan langsung
+            memotret di browser.
+          </p>
+        </Reveal>
 
         <StatRow stats={stats} />
       </div>
