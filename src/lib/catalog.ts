@@ -113,9 +113,19 @@ export function formatGuestLimit(maxGuests: number | null): string {
 //
 // Tabel warnanya diturunkan dari stok film sungguhan lewat RawTherapee Film
 // Simulation Collection (CC BY-SA 4.0) — lihat CREDITS.md dan
-// scripts/build-luts.mjs. Grade buatan tangan sebelumnya menggeser abu-abu
-// tengah hanya 6 level dari 255, di bawah ambang yang bisa dilihat mata; yang
-// sekarang bergeser rata-rata 15 dan sampai 67 level.
+// scripts/build-luts.mjs.
+//
+// Yang dipakai film KONSUMER, sebagian besar varian push. Pilihan pertama
+// (Portra, Provia, Reala) adalah stok potret profesional yang karakternya
+// lembut, dan ketiganya terukur cuma berjarak 9 level pada nada kulit — praktis
+// kembar. Sekarang pasangan yang paling mirip pun berjarak 14 level, dan yang
+// terjauh 152.
+//
+// `lumaLock` sengaja rendah di sini. Ia membereskan angkat nada yang membuat
+// gambar cuci, tapi caranya dengan mengembalikan luminansi asli — yang berarti
+// ikut memangkas kurva nada film, justru sumber kontras yang dicari. Yang
+// menangani wash sekarang `contrast`: kurva-S menekan bayangan turun sekaligus
+// memberi punch, dua-duanya searah.
 //
 // Nama sengaja orisinal. Menamai preset dengan merek film asli (Kodak Portra,
 // Fujifilm, CineStill, Ilford) adalah penggunaan merek dagang terdaftar dan
@@ -187,14 +197,14 @@ export const FILM_PRESETS: readonly FilmPreset[] = [
   {
     id: 'golden-hour-400',
     name: 'Golden Hour 400',
-    character: 'Kulit hangat natural, kontras lembut',
+    character: 'Hangat dan berani, kontras tinggi',
     lut: '/luts/golden-hour-400.png',
-    strength: 0.95,
-    lumaLock: 0.65,
-    contrast: 0.3,
-    grain: 0.16,
-    vignette: 0.14,
-    halation: 0.1,
+    strength: 1.0,
+    lumaLock: 0.35,
+    contrast: 0.35,
+    grain: 0.24,
+    vignette: 0.2,
+    halation: 0.12,
   },
   {
     id: 'pastel-400',
@@ -202,10 +212,10 @@ export const FILM_PRESETS: readonly FilmPreset[] = [
     character: 'Terang lapang, hijau lembut, nada pastel',
     lut: '/luts/pastel-400.png',
     strength: 0.95,
-    lumaLock: 0.55,
-    contrast: 0.18,
-    grain: 0.1,
-    vignette: 0.08,
+    lumaLock: 0.35,
+    contrast: 0.22,
+    grain: 0.12,
+    vignette: 0.1,
     halation: 0.06,
   },
   {
@@ -214,46 +224,46 @@ export const FILM_PRESETS: readonly FilmPreset[] = [
     character: 'Untuk resepsi berlampu, grain kasar, pendar merah',
     lut: '/luts/neon-night-1600.png',
     strength: 1.0,
-    lumaLock: 0.45,
-    contrast: 0.42,
-    grain: 0.34,
-    vignette: 0.22,
+    lumaLock: 0.2,
+    contrast: 0.4,
+    grain: 0.4,
+    vignette: 0.26,
     halation: 0.35,
   },
   {
     id: 'everyday-100',
     name: 'Everyday 100',
-    character: 'Netral dan jernih, aman untuk segala kondisi',
+    character: 'Jernih dan netral, grain sangat halus',
     lut: '/luts/everyday-100.png',
-    strength: 0.8,
-    lumaLock: 0.65,
-    contrast: 0.22,
+    strength: 0.9,
+    lumaLock: 0.0,
+    contrast: 0.28,
     grain: 0.08,
-    vignette: 0.1,
+    vignette: 0.14,
     halation: 0.05,
   },
   {
     id: 'sunday-chrome',
     name: 'Sunday Chrome',
-    character: 'Warna jenuh, kontras tinggi, biru pekat',
+    character: 'Cross-process: bayangan sian, sorotan kuning',
     lut: '/luts/sunday-chrome.png',
     strength: 1.0,
-    lumaLock: 0.5,
-    contrast: 0.5,
-    grain: 0.06,
-    vignette: 0.18,
-    halation: 0.05,
+    lumaLock: 0.0,
+    contrast: 0.35,
+    grain: 0.2,
+    vignette: 0.24,
+    halation: 0.1,
   },
   {
     id: 'noir-400',
     name: 'Noir 400',
-    character: 'Hitam putih, grain kasar, kontras dramatis',
+    character: 'Hitam putih kontras keras, grain kasar',
     lut: '/luts/noir-400.png',
     strength: 1.0,
     lumaLock: 0.0,
-    contrast: 0.45,
-    grain: 0.38,
-    vignette: 0.26,
+    contrast: 0.42,
+    grain: 0.42,
+    vignette: 0.28,
     halation: 0.0,
   },
 ] as const

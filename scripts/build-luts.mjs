@@ -45,13 +45,35 @@ const TARGET = 32
  * penggunaan merek dagang terdaftar dan berisiko secara hukum — arsip sumbernya
  * memakai nama itu untuk keperluan informatif, kami tidak.
  */
+/*
+ * Yang dipakai adalah film KONSUMER, dan sebagian besar varian PUSH ("+", "++").
+ *
+ * Pilihan pertama saya keliru: Portra, Provia, dan Reala adalah stok potret
+ * profesional untuk kamera bagus, dan karakternya memang lembut. Terukur,
+ * ketiganya berjarak sembilan level saja satu sama lain pada nada kulit —
+ * praktis kembar. Kamera sekali pakai diisi film konsumer murah yang sering
+ * di-push, dan itulah sumber kontras serta saturasi yang dicari.
+ *
+ * Angka pembandingnya (kemiringan kurva nada / saturasi pada kulit sedang):
+ *   Portra 400 normal   1,15 / 92
+ *   Superia 400 ++      1,24 / 104
+ *   Tri-X 400 +         1,32 / --
+ *
+ * Superia 200 XPRO adalah cross-process: kulit 198,134,96 keluar jadi
+ * 82,127,163. Seratus lima puluh dua level dari stok lain — satu-satunya cara
+ * memastikan enam roll benar-benar terbedakan sekali lihat.
+ *
+ * ID-nya sengaja tidak diubah meski stoknya ditukar: foto yang sudah tersimpan
+ * menyimpan id preset, dan mengganti kuncinya akan membuat nama roll pada foto
+ * lama tidak lagi bisa dicari.
+ */
 const PRESETS = {
-  'golden-hour-400': 'HaldCLUT/Color/Kodak/Kodak Portra 400 2.png',
+  'golden-hour-400': 'HaldCLUT/Color/Fuji/Fuji Superia 400 4 ++.png',
   'pastel-400': 'HaldCLUT/Color/Fuji/Fuji 400H 2.png',
-  'neon-night-1600': 'HaldCLUT/Color/Fuji/Fuji Superia 1600 2.png',
-  'everyday-100': 'HaldCLUT/Color/Fuji/Fuji Superia Reala 100.png',
-  'sunday-chrome': 'HaldCLUT/Color/Kodak/Kodak Ektar 100.png',
-  'noir-400': 'HaldCLUT/Black-and-White/Kodak/Kodak TRI-X 400 2.png',
+  'neon-night-1600': 'HaldCLUT/Color/Fuji/Fuji Superia 1600 3 +.png',
+  'everyday-100': 'HaldCLUT/Color/Kodak/Kodak Ektar 100.png',
+  'sunday-chrome': 'HaldCLUT/Color/Fuji/Fuji Superia 200 XPRO.png',
+  'noir-400': 'HaldCLUT/Black-and-White/Kodak/Kodak TRI-X 400 4 +.png',
 }
 
 // ---------------------------------------------------------------------------
