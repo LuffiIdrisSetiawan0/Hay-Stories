@@ -1,213 +1,178 @@
-/*
- * Hero foto full-bleed — pola Ludmila Borosova.
- *
- * Foto memenuhi seluruh viewport, judul serif di tengah, satu tombol pill,
- * navigasi transparan mengambang di atasnya.
- */
+/* ===========================================================================
+   Hero tipografis
+
+   Krem, bukan foto gelap setinggi layar. Bobotnya dipikul ukuran huruf dan
+   ruang kosong; foto turun jadi panel pendamping. Konsekuensinya judul,
+   kalimat pembuka, ajakan, dan awal seksi berikutnya muat di satu layar.
+   =========================================================================== */
 
 .hero {
   position: relative;
-  min-height: 100svh;
   display: flex;
-  align-items: center;
+  flex-direction: column;
   justify-content: center;
+  /* Bukan 100dvh: memaksa hero setinggi layar penuh justru menyembunyikan
+     seksi berikutnya, dan itu masalah yang sedang diperbaiki. */
+  min-height: min(86dvh, 52rem);
+  padding: clamp(7rem, 12vw, 9.5rem) clamp(1.25rem, 5vw, 4rem) clamp(2rem, 4vw, 3rem);
+  background: var(--color-bg-primary);
   overflow: hidden;
-  background-color: #0c0b09;
-  isolation: isolate;
 }
 
-.media {
-  position: absolute;
-  inset: 0;
-  z-index: -2;
-}
-
-.photo {
+.inner {
   width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-/*
- * Dua lapisan gelap, bukan satu:
- *   - selubung rata menjaga rasio kontras teks di mana pun fotonya terang
- *   - gradien bawah menahan bagian bawah agar indikator scroll tetap terbaca
- * Satu overlay pekat akan mematikan foto; dua lapisan tipis tidak.
- */
-.scrim {
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  background:
-    linear-gradient(to top, rgba(12, 11, 9, 0.72) 0%, rgba(12, 11, 9, 0) 45%),
-    radial-gradient(120% 90% at 50% 45%, rgba(12, 11, 9, 0.28) 0%, rgba(12, 11, 9, 0.62) 100%);
-}
-
-.content {
-  position: relative;
-  width: 100%;
-  max-width: 54rem;
+  max-width: 82rem;
   margin: 0 auto;
-  padding: 6rem 1.5rem 8rem;
-  text-align: center;
-  color: #f7f4ee;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: clamp(2.5rem, 5vw, 4rem);
+  align-items: center;
+}
+
+@media (min-width: 1000px) {
+  .inner {
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+    gap: clamp(3rem, 6vw, 6rem);
+  }
+}
+
+/* ===== Kolom teks ===== */
+
+.copy {
+  max-width: 34rem;
 }
 
 .eyebrow {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 0.7rem;
+  gap: 0.75rem;
+  margin-bottom: clamp(1.25rem, 3vw, 2rem);
   font-family: var(--font-mono);
   font-size: 0.6875rem;
   letter-spacing: 0.28em;
   text-transform: uppercase;
-  color: rgba(247, 244, 238, 0.78);
-  margin-bottom: 1.75rem;
+  color: var(--color-halation);
 }
 
-.eyebrow::before,
-.eyebrow::after {
-  content: '';
-  width: 1.75rem;
+.eyebrowRule {
+  width: 2.25rem;
   height: 1px;
-  background-color: rgba(247, 244, 238, 0.4);
+  background: currentColor;
+  opacity: 0.55;
 }
 
 .headline {
   font-family: var(--font-serif);
-  font-weight: 500;
-  font-size: clamp(2.75rem, 7.5vw, 5.75rem);
-  line-height: 1.02;
-  letter-spacing: -0.025em;
-  text-wrap: balance;
-  /* Bayangan sangat lembut agar teks tetap terbaca di atas sorotan terang foto */
-  text-shadow: 0 2px 30px rgba(0, 0, 0, 0.35);
+  /* Turun sampai 2.6rem di ponsel: "fotografer" itu kata panjang, dan judul
+     yang pecah jadi tiga baris di layar kecil kehilangan kesan tegasnya. */
+  font-size: clamp(2.6rem, 7.5vw, 5.25rem);
+  font-weight: 600;
+  line-height: 0.98;
+  letter-spacing: -0.03em;
+  color: var(--color-text-primary);
 }
 
 .headlineItalic {
-  display: block;
   font-style: italic;
-  color: #e8c99a;
+  font-weight: 500;
+  color: var(--color-accent);
 }
 
 .subheadline {
-  margin: 1.75rem auto 0;
-  max-width: 34rem;
-  font-size: clamp(0.9375rem, 1.6vw, 1.0625rem);
-  line-height: 1.7;
-  color: rgba(247, 244, 238, 0.85);
+  margin-top: clamp(1.25rem, 3vw, 1.75rem);
+  max-width: 32rem;
+  font-size: clamp(0.9375rem, 1.4vw, 1.0625rem);
+  line-height: 1.75;
+  color: var(--color-text-secondary);
   text-wrap: pretty;
 }
 
 .actions {
-  margin-top: 2.5rem;
+  margin-top: clamp(1.75rem, 4vw, 2.5rem);
   display: flex;
   flex-wrap: wrap;
-  gap: 0.85rem;
-  justify-content: center;
+  align-items: center;
+  gap: 0.85rem 1.5rem;
 }
 
 .ghostBtn {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.85rem 1.75rem;
-  border-radius: var(--radius-full);
-  border: 1px solid rgba(247, 244, 238, 0.3);
-  color: #f7f4ee;
   font-size: 0.9375rem;
-  font-weight: 500;
-  transition: background-color var(--transition-base), border-color var(--transition-base);
+  color: var(--color-text-primary);
+  border-bottom: 1px solid var(--color-border-hover);
+  padding-bottom: 0.2rem;
+  transition: border-color var(--transition-base), color var(--transition-base);
 }
 
 .ghostBtn:hover {
-  background-color: rgba(247, 244, 238, 0.12);
-  border-color: rgba(247, 244, 238, 0.55);
+  color: var(--color-accent);
+  border-color: var(--color-accent);
 }
 
-/* ===== Baris angka bukti di kaki hero (pola OMS & SNXP) ===== */
+/* ===== Panel foto ===== */
 
-.proof {
+.panel {
+  position: relative;
+  /* Potret tegak: foto acara hampir selalu diambil vertikal dari ponsel, dan
+     panel lanskap akan memaksa pemotongan yang membuang kepala orang. */
+  aspect-ratio: 4 / 5;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--color-bg-secondary);
+}
+
+@media (min-width: 1000px) {
+  .panel {
+    aspect-ratio: 3 / 4;
+    max-height: 34rem;
+    justify-self: end;
+    width: 100%;
+  }
+}
+
+.photo {
+  object-fit: cover;
+}
+
+.panelTag {
   position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  padding: 0 clamp(1.5rem, 5vw, 4rem) clamp(1.75rem, 4vw, 2.75rem);
-  display: flex;
-  align-items: flex-end;
-  /* Tinggal indikator gulir sendirian setelah baris angka pindah ke seksinya
-     sendiri; `space-between` akan menempelkannya ke kiri tanpa alasan. */
-  justify-content: center;
-  gap: 2rem;
-}
-
-.proofStats {
-  display: flex;
-  gap: clamp(1.5rem, 4vw, 3.5rem);
-}
-
-.proofStat {
-  display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
-}
-
-.proofValue {
-  font-size: clamp(1.125rem, 1.8vw, 1.5rem);
-  font-weight: 600;
-  line-height: 1;
-  color: #f7f4ee;
-  font-variant-numeric: tabular-nums;
-}
-
-.proofLabel {
-  font-size: 0.5625rem;
-  font-weight: 600;
-  letter-spacing: 0.18em;
+  left: 0.9rem;
+  bottom: 0.9rem;
+  padding: 0.35rem 0.7rem;
+  border-radius: var(--radius-full);
+  background: rgba(10, 9, 8, 0.55);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: rgba(247, 244, 238, 0.55);
+  color: rgba(245, 242, 236, 0.9);
+}
+
+/* ===== Kaki ===== */
+
+.foot {
+  display: flex;
+  justify-content: center;
+  margin-top: clamp(2rem, 5vw, 3.5rem);
 }
 
 .scrollHint {
-  display: inline-flex;
+  display: flex;
+  flex-direction: column;
   align-items: center;
   gap: 0.6rem;
   font-family: var(--font-mono);
   font-size: 0.625rem;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.28em;
   text-transform: uppercase;
-  color: rgba(247, 244, 238, 0.55);
+  color: var(--color-text-muted);
 }
 
 .scrollLine {
-  display: block;
   width: 1px;
-  height: 2.5rem;
-  background: linear-gradient(to bottom, rgba(247, 244, 238, 0.5), transparent);
-  animation: scrollPulse 2.4s var(--ease-out-expo) infinite;
-  transform-origin: top;
-}
-
-@keyframes scrollPulse {
-  0%, 100% { transform: scaleY(0.4); opacity: 0.4; }
-  50% { transform: scaleY(1); opacity: 1; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .scrollLine {
-    animation: none;
-    transform: none;
-  }
-}
-
-@media (max-width: 640px) {
-  .proof {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1.25rem;
-  }
-
-  .scrollHint {
-    display: none;
-  }
+  height: 2.25rem;
+  background: linear-gradient(to bottom, transparent, var(--color-border-hover));
 }

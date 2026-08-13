@@ -4,57 +4,68 @@ import { ArrowRight } from "lucide-react";
 import styles from "./Hero.module.css";
 
 /**
- * Hero foto full-bleed setinggi viewport — pola Ludmila Borosova, dengan baris
- * angka bukti di kakinya yang diambil dari OMS dan SNXP.
+ * Hero tipografis di atas krem, bukan foto gelap setinggi layar.
  *
- * TODO: `hero-placeholder.jpg` dibangkitkan oleh
- * `scripts/generate-hero-placeholder.mjs`. Ganti dengan foto acara asli
- * beresolusi tinggi — tata letak ini sepenuhnya bergantung pada fotonya.
+ * Versi sebelumnya menutup seluruh viewport dengan satu foto dan menaruh teks
+ * di atasnya. Bagus kalau fotonya kuat — tapi fotonya masih placeholder, dan
+ * lebih penting lagi, tata letak itu memaksa pengunjung menggulir satu layar
+ * penuh sebelum menemukan satu pun informasi.
+ *
+ * Sekarang tipografi yang memikul bobotnya dan foto jadi panel pendamping.
+ * Judul, kalimat pembuka, ajakan, dan awal seksi berikutnya semuanya masuk di
+ * satu layar.
+ *
+ * TODO: `hero-placeholder.jpg` dibangkitkan `scripts/generate-hero-placeholder.mjs`.
+ * Ganti dengan foto acara asli — panel ini satu-satunya bukti visual di layar
+ * pertama, dan placeholder buram melemahkannya jauh lebih besar dari dugaan.
  */
-
 export default function Hero() {
   return (
     <section className={styles.hero}>
-      <div className={styles.media}>
-        <Image
-          src="/img/hero-placeholder.jpg"
-          alt=""
-          fill
-          priority
-          sizes="100vw"
-          className={styles.photo}
-        />
-      </div>
-      <div className={styles.scrim} aria-hidden="true" />
+      <div className={styles.inner}>
+        <div className={styles.copy}>
+          <p className={styles.eyebrow}>
+            <span className={styles.eyebrowRule} aria-hidden="true" />
+            Kamera sekali pakai digital
+          </p>
 
-      <div className={styles.content}>
-        <p className={styles.eyebrow}>Kamera sekali pakai digital</p>
+          <h1 className={styles.headline}>
+            Setiap tamu
+            <br />
+            jadi <span className={styles.headlineItalic}>fotografer</span>
+          </h1>
 
-        <h1 className={styles.headline}>
-          Abadikan Momen
-          <span className={styles.headlineItalic}>Tanpa Filter</span>
-        </h1>
+          <p className={styles.subheadline}>
+            Satu QR code di meja. Tamu memotret langsung dari browser dengan roll film
+            pilihan mereka sendiri, dan semua foto tetap tersembunyi sampai acaramu usai
+            — lalu terungkap bersamaan.
+          </p>
 
-        <p className={styles.subheadline}>
-          Tamu memotret lewat satu QR code, dengan roll film pilihan mereka sendiri. Semua foto
-          tersembunyi sampai acaramu usai — lalu terungkap bersamaan.
-        </p>
+          <div className={styles.actions}>
+            <Link href="/login" className="btn btn-primary btn-lg">
+              Buat album
+              <ArrowRight size={17} />
+            </Link>
+            <Link href="#cara-kerja" className={styles.ghostBtn}>
+              Lihat cara kerjanya
+            </Link>
+          </div>
+        </div>
 
-        <div className={styles.actions}>
-          <Link href="/login" className="btn btn-accent">
-            Buat Album Sekarang
-            <ArrowRight size={17} />
-          </Link>
-          <Link href="#cara-kerja" className={styles.ghostBtn}>
-            Lihat cara kerjanya
-          </Link>
+        <div className={styles.panel}>
+          <Image
+            src="/img/hero-placeholder.jpg"
+            alt=""
+            fill
+            priority
+            sizes="(min-width: 1000px) 44vw, 100vw"
+            className={styles.photo}
+          />
+          <span className={styles.panelTag}>Golden Hour 400</span>
         </div>
       </div>
 
-      {/* Baris angkanya pindah ke seksi tersendiri di bawah. Hero yang hanya
-          berisi foto, satu kalimat, dan satu ajakan gulir terasa jauh lebih
-          lapang — dan angka yang sama muncul dua kali justru melemahkannya. */}
-      <div className={styles.proof}>
+      <div className={styles.foot}>
         <span className={styles.scrollHint}>
           <span className={styles.scrollLine} aria-hidden="true" />
           Gulir
