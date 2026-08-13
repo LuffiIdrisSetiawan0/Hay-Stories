@@ -96,7 +96,10 @@ export default function PhotoGrid({ photos, eventTitle, moderation }: Props) {
         if (frame && frame.id !== 'none') {
           const bitmap = await createImageBitmap(blob)
           try {
-            const canvas = drawFramed(bitmap, bitmap.width, bitmap.height, frame, eventTitle)
+            const canvas = drawFramed(bitmap, bitmap.width, bitmap.height, frame, {
+              title: eventTitle,
+              takenAt: photo.taken_at ? new Date(photo.taken_at) : null,
+            })
             out = await new Promise<Blob>((resolve, reject) =>
               canvas.toBlob(
                 (b) => (b ? resolve(b) : reject(new Error('Gagal membuat berkas.'))),

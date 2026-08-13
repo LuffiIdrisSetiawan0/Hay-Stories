@@ -4,8 +4,15 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, Images, Loader2, SwitchCamera } from 'lucide-react'
 import { DEFAULT_PRESET, FILM_PRESETS, getPreset, type FilmPreset } from '@/lib/catalog'
-import { DEFAULT_FRAME, PHOTO_FRAMES, getFrame, type FrameId } from '@/lib/frames'
-import { FilmRenderer, fitWithin, processCapture, videoToBitmap } from '@/lib/film'
+import {
+  DEFAULT_FRAME,
+  PHOTO_FRAMES,
+  cropRect,
+  frameTimestamp,
+  getFrame,
+  type FrameId,
+} from '@/lib/frames'
+import { FilmRenderer, captureSize, fitWithin, processCapture, videoToBitmap } from '@/lib/film'
 import { createClient } from '@/lib/supabase/client'
 import styles from './Camera.module.css'
 
@@ -333,6 +340,27 @@ export default function Camera({
     let photoId: string | null = null
 
     try {
+      /*
+       * Klaim jepretan BERBARENGAN dengan rendernya, bukan sesudahnya.
+       *
+       * Server cuma perlu ukuran foto, dan itu sudah diketahui dari dimensi
+       * video sebelum satu piksel pun dirender. Menjalankannya berurutan
+       * berarti tamu menunggu satu perjalanan jaringan penuh yang sebenarnya
+       * bisa berlangsung sementara GPU bekerja.
+       */
+      const size = captureSize(video.videoWidth, video.videoHeight)
+      const claimPromise = fetch('/api/guest/shot', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          eventId,
+          preset: presetRef.current.id,
+          frame,
+          width: size.width,
+          height: size.height,
+        }),
+      })
+
       const bitmap = await videoToBitmap(video)
       let shot
       try {
@@ -351,18 +379,7 @@ export default function Camera({
         bitmap.close()
       }
 
-      const claim = await fetch('/api/guest/shot', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          eventId,
-          preset: presetRef.current.id,
-          frame,
-          width: shot.width,
-          height: shot.height,
-        }),
-      })
-
+      const claim = await claimPromise
       const claimBody = await claim.json()
 
       if (!claim.ok) {
@@ -446,9 +463,12 @@ export default function Camera({
     const f = getFrame(frame)
     if (!f || f.id === 'none' || !videoSize) return null
 
-    const unit = Math.min(videoSize.w, videoSize.h)
-    const outW = videoSize.w + unit * (f.pad.left + f.pad.right)
-    const outH = videoSize.h + unit * (f.pad.top + f.pad.bottom)
+    // Pratinjau memakai ukuran SESUDAH dipotong, sama seperti saat mengunduh.
+    // Kalau tidak, tamu membingkai lanskap penuh lalu menerima potret 4:5.
+    const { sw, sh } = cropRect(videoSize.w, videoSize.h, f.ratio)
+    const unit = Math.min(sw, sh)
+    const outW = sw + unit * (f.pad.left + f.pad.right)
+    const outH = sh + unit * (f.pad.top + f.pad.bottom)
     const pct = (v: number) => `${((unit * v) / outW) * 100}%`
 
     return {
@@ -517,7 +537,12 @@ export default function Camera({
             </>
           )}
 
-          {framePreview?.frame.caption && <span className={styles.frameCaption}>{title}</span>}
+          {framePreview?.frame.caption && (
+            <span className={styles.frameCaption}>
+              <span className={styles.frameTitle}>{title}</span>
+              <span className={styles.frameStamp}>{frameTimestamp()}</span>
+            </span>
+          )}
         </div>
 
         {flash && <div className={styles.flash} />}

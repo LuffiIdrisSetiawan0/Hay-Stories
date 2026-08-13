@@ -18,7 +18,16 @@ export interface PhotoFrame {
   name: string
   /** Penjelasan singkat untuk tombol di kamera. */
   hint: string
-  /** Tepi sebagai fraksi sisi terpendek foto. */
+  /**
+   * Rasio lebar:tinggi AREA FOTO saja, tanpa bingkainya. Kosong = ikut rasio
+   * asli jepretan.
+   *
+   * Fotonya dipotong tengah untuk mencapai rasio ini, dan pemotongannya terjadi
+   * saat mengunduh — arsip di storage tetap utuh, jadi rasio bisa diubah kapan
+   * saja tanpa ada yang hilang permanen.
+   */
+  ratio?: number
+  /** Tepi sebagai fraksi sisi terpendek AREA FOTO. */
   pad: { top: number; right: number; bottom: number; left: number }
   /** Warna bidang bingkai. */
   background: string
@@ -41,9 +50,10 @@ export const PHOTO_FRAMES: readonly PhotoFrame[] = [
   {
     id: 'print',
     name: 'Cetak',
-    hint: 'Border putih, nama acara di bawah',
-    // Bawah lebih lebar: itu ruang untuk nama acara, seperti cetakan 4R.
-    pad: { top: 0.05, right: 0.05, bottom: 0.16, left: 0.05 },
+    hint: 'Border putih 4:5, nama acara di bawah',
+    ratio: 4 / 5,
+    // Bawah jauh lebih lebar: ada dua baris di sana, nama acara dan waktunya.
+    pad: { top: 0.06, right: 0.06, bottom: 0.24, left: 0.06 },
     background: '#f7f4ee',
     caption: true,
     sprockets: false,
@@ -66,12 +76,34 @@ export function getFrame(id: string): PhotoFrame | undefined {
   return PHOTO_FRAMES.find((f) => f.id === id)
 }
 
-/** Ukuran kanvas akhir setelah bingkai ditambahkan. */
+/**
+ * Bagian sumber yang dipakai setelah dipotong ke rasio bingkai.
+ *
+ * Potongan diambil dari TENGAH. Untuk bingkai potret di atas jepretan lanskap
+ * ini membuang banyak sisi kiri-kanan, jadi viewfinder wajib menampilkan
+ * potongannya — kalau tidak, tamu membingkai sesuatu lalu menerima yang lain.
+ */
+export function cropRect(srcWidth: number, srcHeight: number, ratio?: number) {
+  if (!ratio) return { sx: 0, sy: 0, sw: srcWidth, sh: srcHeight }
+
+  const current = srcWidth / srcHeight
+  if (current > ratio) {
+    const w = Math.round(srcHeight * ratio)
+    return { sx: Math.round((srcWidth - w) / 2), sy: 0, sw: w, sh: srcHeight }
+  }
+  const h = Math.round(srcWidth / ratio)
+  return { sx: 0, sy: Math.round((srcHeight - h) / 2), sw: srcWidth, sh: h }
+}
+
+/** Ukuran kanvas akhir setelah dipotong dan diberi bingkai. */
 export function framedSize(frame: PhotoFrame, width: number, height: number) {
-  const unit = Math.min(width, height)
+  const { sw, sh } = cropRect(width, height, frame.ratio)
+  const unit = Math.min(sw, sh)
   return {
-    width: Math.round(width + unit * (frame.pad.left + frame.pad.right)),
-    height: Math.round(height + unit * (frame.pad.top + frame.pad.bottom)),
+    width: Math.round(sw + unit * (frame.pad.left + frame.pad.right)),
+    height: Math.round(sh + unit * (frame.pad.top + frame.pad.bottom)),
+    photoWidth: sw,
+    photoHeight: sh,
     offsetX: Math.round(unit * frame.pad.left),
     offsetY: Math.round(unit * frame.pad.top),
   }
@@ -89,29 +121,55 @@ export function drawFramed(
   width: number,
   height: number,
   frame: PhotoFrame,
-  caption?: string
+  caption?: { title: string; takenAt?: Date | null }
 ): HTMLCanvasElement {
-  const { width: w, height: h, offsetX, offsetY } = framedSize(frame, width, height)
-  const unit = Math.min(width, height)
+  const box = framedSize(frame, width, height)
+  const crop = cropRect(width, height, frame.ratio)
+  const unit = Math.min(box.photoWidth, box.photoHeight)
 
   const canvas = document.createElement('canvas')
-  canvas.width = w
-  canvas.height = h
+  canvas.width = box.width
+  canvas.height = box.height
 
   const ctx = canvas.getContext('2d')
   if (!ctx) throw new Error('Canvas 2D tidak tersedia.')
 
   if (frame.id !== 'none') {
     ctx.fillStyle = frame.background
-    ctx.fillRect(0, 0, w, h)
+    ctx.fillRect(0, 0, box.width, box.height)
   }
 
-  ctx.drawImage(source, offsetX, offsetY, width, height)
+  // Sembilan argumen: potongan sumber dipetakan ke kotak foto di dalam bingkai.
+  ctx.drawImage(
+    source,
+    crop.sx,
+    crop.sy,
+    crop.sw,
+    crop.sh,
+    box.offsetX,
+    box.offsetY,
+    box.photoWidth,
+    box.photoHeight
+  )
 
-  if (frame.sprockets) drawSprockets(ctx, w, h, unit * frame.pad.top)
-  if (frame.caption && caption) drawCaption(ctx, w, h, unit * frame.pad.bottom, caption)
+  if (frame.sprockets) drawSprockets(ctx, box.width, box.height, unit * frame.pad.top)
+  if (frame.caption && caption) {
+    drawCaption(ctx, box.width, box.height, unit * frame.pad.bottom, caption)
+  }
 
   return canvas
+}
+
+/** Format waktu untuk cap di bingkai. */
+export function frameTimestamp(takenAt?: Date | null): string {
+  const d = takenAt ?? new Date()
+  return new Intl.DateTimeFormat('id-ID', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(d)
 }
 
 /**
@@ -161,26 +219,38 @@ function roundRect(
   ctx.closePath()
 }
 
+/**
+ * Dua baris di pita bawah: nama acara, lalu waktu jepretan di bawahnya.
+ *
+ * Ukurannya fraksi dari lebar pita, bukan piksel — bingkai dibuat pada
+ * resolusi foto aslinya, yang berbeda-beda per perangkat.
+ */
 function drawCaption(
   ctx: CanvasRenderingContext2D,
   w: number,
   h: number,
   band: number,
-  text: string
+  caption: { title: string; takenAt?: Date | null }
 ) {
-  const size = band * 0.28
-  ctx.fillStyle = 'rgba(26, 26, 26, 0.62)'
-  ctx.font = `${size}px "Courier New", monospace`
+  const titleSize = band * 0.34
+  const stampSize = band * 0.19
+
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
 
   // Dipotong kalau nama acaranya panjang; bingkai tidak boleh melar.
-  let label = text
+  ctx.font = `600 ${titleSize}px "Courier New", monospace`
+  let label = caption.title
   const max = w * 0.86
   while (label.length > 4 && ctx.measureText(label).width > max) {
     label = label.slice(0, -2)
   }
-  if (label !== text) label += '…'
+  if (label !== caption.title) label += '…'
 
-  ctx.fillText(label, w / 2, h - band * 0.52)
+  ctx.fillStyle = 'rgba(26, 26, 26, 0.78)'
+  ctx.fillText(label, w / 2, h - band * 0.62)
+
+  ctx.font = `${stampSize}px "Courier New", monospace`
+  ctx.fillStyle = 'rgba(26, 26, 26, 0.45)'
+  ctx.fillText(frameTimestamp(caption.takenAt), w / 2, h - band * 0.28)
 }

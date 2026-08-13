@@ -1,4 +1,4 @@
-import { FilmRenderer, canvasToBlob } from './renderer'
+import { FilmRenderer } from './renderer'
 import type { FilmPreset } from '@/lib/catalog'
 
 /**
@@ -31,19 +31,23 @@ export interface ProcessedCapture {
 }
 
 /**
- * Menerapkan preset film ke satu sumber gambar dan menghasilkan foto penuh
- * plus thumbnail-nya.
+ * Ukuran akhir foto tersimpan untuk sumber sebesar ini.
  *
- * Dipakai bersama oleh ketiga jalur pengambilan gambar (viewfinder in-app,
- * kamera native HD, unggah dari galeri) supaya hasilnya identik.
+ * Diekspor supaya pemanggil bisa mengklaim jepretan ke server SEBELUM
+ * gambarnya selesai dirender — klaim hanya butuh ukurannya, dan menunggu GPU
+ * selesai lebih dulu berarti satu perjalanan jaringan penuh yang terbuang.
  */
+export function captureSize(sourceWidth: number, sourceHeight: number) {
+  return fitWithin(sourceWidth, sourceHeight, MAX_LONG_EDGE)
+}
+
 export async function processCapture(
   renderer: FilmRenderer,
   source: ImageBitmap,
   preset: FilmPreset,
   options: { mirror?: boolean } = {}
 ): Promise<ProcessedCapture> {
-  const { width, height } = fitWithin(source.width, source.height, MAX_LONG_EDGE)
+  const { width, height } = captureSize(source.width, source.height)
 
   await renderer.loadPreset(preset)
 
@@ -57,37 +61,27 @@ export async function processCapture(
     quality: FULL_QUALITY,
   })
 
+  /*
+   * Thumbnail dirender ULANG dari sumber yang sama, bukan diturunkan dari JPEG
+   * penuh yang baru saja dibuat.
+   *
+   * Versi sebelumnya memanggil createImageBitmap() atas blob 2560x1440 —
+   * artinya JPEG yang baru saja di-encode langsung didekode lagi seutuhnya
+   * hanya untuk dikecilkan. Merender ulang lewat LUT yang sama pada 480 px
+   * nyaris gratis di GPU, dan warnanya identik karena preset dan seluruh
+   * parameternya sama persis. Yang berbeda cuma skala grain, dan pada
+   * thumbnail selebar 480 px itu tidak terlihat.
+   */
   const thumbSize = fitWithin(source.width, source.height, THUMB_LONG_EDGE)
-  const thumb = await renderThumb(full, thumbSize.width, thumbSize.height)
-
-  return { full, thumb, width, height }
-}
-
-/**
- * Thumbnail diturunkan dari foto yang SUDAH difilter, bukan dari sumber asli.
- * Kalau diturunkan dari sumber, grid galeri akan terlihat berbeda dari foto
- * yang dibuka — perbedaan halus yang langsung terasa salah.
- */
-async function renderThumb(fullPhoto: Blob, width: number, height: number): Promise<Blob> {
-  const bitmap = await createImageBitmap(fullPhoto, {
-    resizeWidth: width,
-    resizeHeight: height,
-    resizeQuality: 'high',
+  const thumb = await renderer.renderToBlob(source, preset, thumbSize.width, thumbSize.height, {
+    mirror: options.mirror,
+    intensity: preset.strength,
+    lumaLock: preset.lumaLock,
+    contrast: preset.contrast,
+    quality: THUMB_QUALITY,
   })
 
-  try {
-    const canvas = document.createElement('canvas')
-    canvas.width = width
-    canvas.height = height
-
-    const ctx = canvas.getContext('2d')
-    if (!ctx) throw new Error('Canvas 2D tidak tersedia.')
-    ctx.drawImage(bitmap, 0, 0, width, height)
-
-    return await canvasToBlob(canvas, THUMB_QUALITY)
-  } finally {
-    bitmap.close()
-  }
+  return { full, thumb, width, height }
 }
 
 /**

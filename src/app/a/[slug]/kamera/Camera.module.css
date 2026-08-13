@@ -345,8 +345,13 @@
   box-sizing: border-box;
 }
 
+/*
+ * `cover`, bukan `fill`. Untuk bingkai berasio sendiri (Cetak 4:5) kotak
+ * fotonya tidak seasio dengan video, jadi `fill` akan menggepengkan gambar.
+ * `cover` memotong dari tengah — persis yang dilakukan cropRect() saat unduh.
+ */
 .framedOn .canvas {
-  object-fit: fill;
+  object-fit: cover;
 }
 
 .sprockets {
@@ -381,10 +386,23 @@
   position: absolute;
   left: 0;
   right: 0;
-  bottom: 2%;
+  bottom: 3%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15em;
   text-align: center;
   font-family: var(--font-mono);
-  font-size: clamp(0.5rem, 2.2vw, 0.85rem);
-  color: rgba(26, 26, 26, 0.62);
   pointer-events: none;
+}
+
+.frameTitle {
+  font-size: clamp(0.7rem, 3.4vw, 1.15rem);
+  font-weight: 600;
+  color: rgba(26, 26, 26, 0.78);
+}
+
+.frameStamp {
+  font-size: clamp(0.45rem, 1.9vw, 0.7rem);
+  color: rgba(26, 26, 26, 0.45);
 }
