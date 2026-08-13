@@ -46,33 +46,43 @@ const TARGET = 32
  * memakai nama itu untuk keperluan informatif, kami tidak.
  */
 /*
- * Yang dipakai adalah film KONSUMER, dan sebagian besar varian PUSH ("+", "++").
+ * Kanon fotografi pernikahan, bukan film konsumer.
  *
- * Pilihan pertama saya keliru: Portra, Provia, dan Reala adalah stok potret
- * profesional untuk kamera bagus, dan karakternya memang lembut. Terukur,
- * ketiganya berjarak sembilan level saja satu sama lain pada nada kulit —
- * praktis kembar. Kamera sekali pakai diisi film konsumer murah yang sering
- * di-push, dan itulah sumber kontras serta saturasi yang dicari.
+ * Percobaan sebelumnya memakai Superia push dan satu cross-process demi punch
+ * ala kamera sekali pakai. Punch-nya dapat, tapi salah sasaran: cross-process
+ * mengubah kulit 198,134,96 jadi 82,127,163 — tidak ada pasangan yang mau
+ * kulitnya sian di foto pernikahannya.
  *
- * Angka pembandingnya (kemiringan kurva nada / saturasi pada kulit sedang):
- *   Portra 400 normal   1,15 / 92
- *   Superia 400 ++      1,24 / 104
- *   Tri-X 400 +         1,32 / --
+ * Yang dipakai fotografer pernikahan sangat konsisten: Portra 400 untuk momen
+ * utama, Fuji 400H untuk gaya terang-lapang, Portra 800 untuk resepsi karena ia
+ * menangani campuran cahaya gedung yang merusak film daylight.
  *
- * Superia 200 XPRO adalah cross-process: kulit 198,134,96 keluar jadi
- * 82,127,163. Seratus lima puluh dua level dari stok lain — satu-satunya cara
- * memastikan enam roll benar-benar terbedakan sekali lihat.
+ * Perbedaan antar-roll tetap didapat, tapi dari VARIAN, bukan dari keluar
+ * kanon: VC (vivid), NC (neutral), HC (high contrast), dan push "+"/"++".
+ * Kesimpulan saya sebelumnya bahwa stok pernikahan pasti mirip satu sama lain
+ * keliru — yang saya bandingkan waktu itu cuma versi dasarnya.
  *
- * ID-nya sengaja tidak diubah meski stoknya ditukar: foto yang sudah tersimpan
- * menyimpan id preset, dan mengganti kuncinya akan membuat nama roll pada foto
- * lama tidak lagi bisa dicari.
+ * Dua stok dipilih dari hasil ukuran, bukan dari reputasinya. Fuji 400H push
+ * dan Portra 800 HC — dua kandidat paling "benar" di atas kertas — ternyata
+ * membuang 16 dan 29 level biru pada kulit gelap; itu ambang di mana orang
+ * mulai terlihat terbakar matahari, dan pasar acara ini mayoritas berkulit
+ * sedang sampai gelap. Astia 100F justru MENAMBAH 4 level biru, dan Portra 800
+ * push berhenti di -11 sambil tetap memberi kontras 1,16.
+ *
+ * Tidak ada satu pun stok tungsten di koleksi ini; CineStill 800T tidak pernah
+ * masuk rilis 2015. Kesan resepsi malam karenanya bersandar pada Portra 800 HC
+ * ditambah halation, yang disetel paling tinggi untuk preset itu.
+ *
+ * ID sengaja tidak diubah meski stoknya ditukar: foto yang sudah tersimpan
+ * memegang id preset, dan mengganti kuncinya membuat nama roll pada foto lama
+ * tidak lagi bisa dicari.
  */
 const PRESETS = {
-  'golden-hour-400': 'HaldCLUT/Color/Fuji/Fuji Superia 400 4 ++.png',
-  'pastel-400': 'HaldCLUT/Color/Fuji/Fuji 400H 2.png',
-  'neon-night-1600': 'HaldCLUT/Color/Fuji/Fuji Superia 1600 3 +.png',
-  'everyday-100': 'HaldCLUT/Color/Kodak/Kodak Ektar 100.png',
-  'sunday-chrome': 'HaldCLUT/Color/Fuji/Fuji Superia 200 XPRO.png',
+  'golden-hour-400': 'HaldCLUT/Color/Kodak/Kodak Portra 400 VC 3 +.png',
+  'pastel-400': 'HaldCLUT/Color/Fuji/Fuji Astia 100F.png',
+  'neon-night-1600': 'HaldCLUT/Color/Kodak/Kodak Portra 800 3 +.png',
+  'everyday-100': 'HaldCLUT/Color/Kodak/Kodak Portra 160 NC 2.png',
+  'sunday-chrome': 'HaldCLUT/Color/Kodak/Kodak Ektar 100.png',
   'noir-400': 'HaldCLUT/Black-and-White/Kodak/Kodak TRI-X 400 4 +.png',
 }
 

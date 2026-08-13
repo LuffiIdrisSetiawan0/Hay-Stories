@@ -115,11 +115,20 @@ export function formatGuestLimit(maxGuests: number | null): string {
 // Simulation Collection (CC BY-SA 4.0) — lihat CREDITS.md dan
 // scripts/build-luts.mjs.
 //
-// Yang dipakai film KONSUMER, sebagian besar varian push. Pilihan pertama
-// (Portra, Provia, Reala) adalah stok potret profesional yang karakternya
-// lembut, dan ketiganya terukur cuma berjarak 9 level pada nada kulit — praktis
-// kembar. Sekarang pasangan yang paling mirip pun berjarak 14 level, dan yang
-// terjauh 152.
+// Enam roll memetakan enam momen acara, bukan enam warna acak: momen utama,
+// luar ruang, gedung berlampu, warna apa adanya, detail dekorasi, dan hitam
+// putih. Stoknya kanon fotografi pernikahan — Portra, Astia, Ektar, Tri-X.
+//
+// Dua stok dipilih dari hasil ukuran, bukan reputasinya. Fuji 400H push dan
+// Portra 800 HC, dua kandidat paling "benar" di atas kertas, ternyata membuang
+// 16 dan 29 level biru pada nada kulit gelap — ambang di mana orang mulai
+// terlihat terbakar matahari. Pasar acara ini mayoritas berkulit sedang sampai
+// gelap, jadi keduanya ditolak.
+//
+// Pemisahan antar roll diukur lintas palet nyata (kulit, gaun putih, langit,
+// dedaunan, bunga, bayangan), bukan pada satu petak kulit saja. Dua film bisa
+// identik di kulit tapi jauh berbeda di dedaunan, dan mengukur kulit saja
+// membuat lineup yang sehat terlihat gagal.
 //
 // `lumaLock` sengaja rendah di sini. Ia membereskan angkat nada yang membuat
 // gambar cuci, tapi caranya dengan mengembalikan luminansi asli — yang berarti
@@ -197,73 +206,73 @@ export const FILM_PRESETS: readonly FilmPreset[] = [
   {
     id: 'golden-hour-400',
     name: 'Golden Hour 400',
-    character: 'Hangat dan berani, kontras tinggi',
+    character: 'Momen utama. Kulit hangat natural, warna hidup',
     lut: '/luts/golden-hour-400.png',
     strength: 1.0,
-    lumaLock: 0.35,
-    contrast: 0.35,
-    grain: 0.24,
-    vignette: 0.2,
-    halation: 0.12,
+    lumaLock: 0.3,
+    contrast: 0.38,
+    grain: 0.2,
+    vignette: 0.16,
+    halation: 0.1,
   },
   {
     id: 'pastel-400',
-    name: 'Pastel 400',
-    character: 'Terang lapang, hijau lembut, nada pastel',
+    name: 'Pastel 100',
+    character: 'Luar ruang dan dekorasi. Terang lapang, nada pastel',
     lut: '/luts/pastel-400.png',
-    strength: 0.95,
-    lumaLock: 0.35,
-    contrast: 0.22,
-    grain: 0.12,
-    vignette: 0.1,
+    strength: 1.0,
+    lumaLock: 0.0,
+    contrast: 0.26,
+    grain: 0.1,
+    vignette: 0.08,
     halation: 0.06,
   },
   {
     id: 'neon-night-1600',
-    name: 'Neon Night 1600',
-    character: 'Untuk resepsi berlampu, grain kasar, pendar merah',
+    name: 'Resepsi 800',
+    character: 'Gedung berlampu. Menangani campuran cahaya, pendar hangat',
     lut: '/luts/neon-night-1600.png',
     strength: 1.0,
-    lumaLock: 0.2,
-    contrast: 0.4,
-    grain: 0.4,
-    vignette: 0.26,
-    halation: 0.35,
+    lumaLock: 0.3,
+    contrast: 0.34,
+    grain: 0.32,
+    vignette: 0.22,
+    halation: 0.38,
   },
   {
     id: 'everyday-100',
-    name: 'Everyday 100',
-    character: 'Jernih dan netral, grain sangat halus',
+    name: 'Everyday 160',
+    character: 'Warna apa adanya. Grain paling halus, paling jujur',
     lut: '/luts/everyday-100.png',
-    strength: 0.9,
-    lumaLock: 0.0,
-    contrast: 0.28,
-    grain: 0.08,
-    vignette: 0.14,
+    strength: 0.95,
+    lumaLock: 0.3,
+    contrast: 0.24,
+    grain: 0.07,
+    vignette: 0.1,
     halation: 0.05,
   },
   {
     id: 'sunday-chrome',
     name: 'Sunday Chrome',
-    character: 'Cross-process: bayangan sian, sorotan kuning',
+    character: 'Detail, bunga, dan dekorasi. Warna paling jenuh',
     lut: '/luts/sunday-chrome.png',
     strength: 1.0,
     lumaLock: 0.0,
-    contrast: 0.35,
-    grain: 0.2,
-    vignette: 0.24,
-    halation: 0.1,
+    contrast: 0.42,
+    grain: 0.1,
+    vignette: 0.18,
+    halation: 0.06,
   },
   {
     id: 'noir-400',
     name: 'Noir 400',
-    character: 'Hitam putih kontras keras, grain kasar',
+    character: 'Momen emosional. Hitam putih kontras keras',
     lut: '/luts/noir-400.png',
     strength: 1.0,
     lumaLock: 0.0,
-    contrast: 0.42,
+    contrast: 0.4,
     grain: 0.42,
-    vignette: 0.28,
+    vignette: 0.26,
     halation: 0.0,
   },
 ] as const
