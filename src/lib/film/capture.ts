@@ -45,7 +45,7 @@ export async function processCapture(
   renderer: FilmRenderer,
   source: ImageBitmap,
   preset: FilmPreset,
-  options: { mirror?: boolean } = {}
+  options: { mirror?: boolean; smooth?: number } = {}
 ): Promise<ProcessedCapture> {
   const { width, height } = captureSize(source.width, source.height)
 
@@ -58,6 +58,7 @@ export async function processCapture(
     intensity: preset.strength,
     lumaLock: preset.lumaLock,
     contrast: preset.contrast,
+    smooth: options.smooth,
     quality: FULL_QUALITY,
   })
 
@@ -78,6 +79,7 @@ export async function processCapture(
     intensity: preset.strength,
     lumaLock: preset.lumaLock,
     contrast: preset.contrast,
+    smooth: options.smooth,
     quality: THUMB_QUALITY,
   })
 

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, Images, Loader2, SwitchCamera } from 'lucide-react'
+import { ArrowLeft, Images, Loader2, Sparkles, SwitchCamera } from 'lucide-react'
 import { DEFAULT_PRESET, FILM_PRESETS, getPreset, type FilmPreset } from '@/lib/catalog'
 import {
   DEFAULT_FRAME,
@@ -49,6 +49,15 @@ const STREAM_HEIGHT = 1440
 /** Roll yang sudah terpasang saat kamera dibuka. Tamu bebas menggantinya. */
 const INITIAL_PRESET = getPreset(DEFAULT_PRESET)!
 
+/**
+ * Kekuatan penghalusan kulit saat dinyalakan.
+ *
+ * Sengaja tidak penuh. Pada 1.0 detail kulit hilang sama sekali dan wajah
+ * terlihat seperti plastik — lebih buruk daripada jerawat yang terlihat. Angka
+ * ini menekan sekitar separuh detail berkontras rendah di area kulit saja.
+ */
+const SKIN_SMOOTH = 0.65
+
 type Phase =
   | { kind: 'starting' }
   | { kind: 'live' }
@@ -91,6 +100,9 @@ export default function Camera({
   const [phase, setPhase] = useState<Phase>({ kind: 'starting' })
   const [facing, setFacing] = useState<'environment' | 'user'>('environment')
   const [frame, setFrame] = useState<FrameId>(DEFAULT_FRAME)
+  /* Menyala secara bawaan karena itu yang diminta klien, tapi tetap bisa
+     dimatikan — sebagian tamu justru ingin fotonya apa adanya. */
+  const [softSkin, setSoftSkin] = useState(true)
   const [shotsUsed, setShotsUsed] = useState(initialShotsUsed)
   const [busy, setBusy] = useState(false)
   const [flash, setFlash] = useState(false)
@@ -132,8 +144,9 @@ export default function Camera({
       intensity: presetRef.current.strength,
       lumaLock: presetRef.current.lumaLock,
       contrast: presetRef.current.contrast,
+      smooth: softSkin ? SKIN_SMOOTH : 0,
     })
-  }, [mirror])
+  }, [mirror, softSkin])
 
   const stopLoop = useCallback(() => {
     const loop = loopRef.current
@@ -374,7 +387,10 @@ export default function Camera({
          * Prinsip yang sama dengan LUT dan grain: yang dibingkai harus sama
          * dengan yang tersimpan.
          */
-        shot = await processCapture(renderer, bitmap, presetRef.current, { mirror })
+        shot = await processCapture(renderer, bitmap, presetRef.current, {
+          mirror,
+          smooth: softSkin ? SKIN_SMOOTH : 0,
+        })
       } finally {
         bitmap.close()
       }
@@ -448,7 +464,7 @@ export default function Camera({
       setBusy(false)
       startLoop()
     }
-  }, [busy, eventId, frame, mirror, phase.kind, rollEmpty, startLoop, stopLoop])
+  }, [busy, eventId, frame, mirror, phase.kind, rollEmpty, softSkin, startLoop, stopLoop])
 
   /*
    * Gaya bingkai untuk viewfinder, dihitung dari geometri yang sama dengan yang
@@ -670,6 +686,18 @@ export default function Camera({
             ) : (
               <span className={styles.shutterDot} />
             )}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setSoftSkin((v) => !v)}
+            disabled={controlsLocked}
+            aria-pressed={softSkin}
+            className={`${styles.iconBtn} ${softSkin ? styles.iconBtnOn : ''}`}
+            aria-label={softSkin ? 'Matikan kulit halus' : 'Nyalakan kulit halus'}
+            title="Kulit halus"
+          >
+            <Sparkles size={18} />
           </button>
 
           <button

@@ -24,9 +24,19 @@ interface Knobs {
   grain: number
   vignette: number
   halation: number
+  /** Nilai MUTLAK 0-1, bukan pengali: penghalusan tidak ada di preset. */
+  smooth: number
 }
 
-const NEUTRAL: Knobs = { strength: 1, lumaLock: 1, contrast: 1, grain: 1, vignette: 1, halation: 1 }
+const NEUTRAL: Knobs = {
+  strength: 1,
+  lumaLock: 1,
+  contrast: 1,
+  grain: 1,
+  vignette: 1,
+  halation: 1,
+  smooth: 0.65,
+}
 
 /**
  * Terapkan pengali, jaga tetap dalam 0–1.
@@ -100,6 +110,7 @@ export default function FilmLab() {
         intensity: tuned.strength,
         lumaLock: tuned.lumaLock,
         contrast: tuned.contrast,
+        smooth: k.smooth,
       })
 
       target.width = width
@@ -200,14 +211,15 @@ export default function FilmLab() {
       <input
         type="range"
         min={0}
-        max={2}
+        max={key === 'smooth' ? 1 : 2}
         step={0.05}
         value={knobs[key]}
         onChange={(e) => setKnobs((k) => ({ ...k, [key]: Number(e.target.value) }))}
         style={{ width: '160px' }}
       />
       <span style={{ fontFamily: 'var(--font-mono)', minWidth: '4ch' }}>
-        {knobs[key].toFixed(2)}×
+        {knobs[key].toFixed(2)}
+        {key === 'smooth' ? '' : '×'}
       </span>
     </label>
   )
@@ -270,6 +282,7 @@ export default function FilmLab() {
           {knob('grain', 'Grain')}
           {knob('vignette', 'Vignette')}
           {knob('halation', 'Halation')}
+          {knob('smooth', 'Kulit')}
           <button type="button" className="btn btn-secondary" onClick={() => setKnobs(NEUTRAL)}>
             Reset
           </button>

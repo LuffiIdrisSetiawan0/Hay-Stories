@@ -406,3 +406,14 @@
   font-size: clamp(0.45rem, 1.9vw, 0.7rem);
   color: rgba(26, 26, 26, 0.45);
 }
+
+/* Tombol ikon yang sedang menyala — dibalik jadi terang, sama seperti chip roll
+   yang aktif, supaya keadaannya terbaca tanpa perlu label. */
+.iconBtnOn {
+  background: #f5f2ec;
+  color: #1a1a1a;
+}
+
+.iconBtnOn:hover {
+  background: #fff;
+}

@@ -21,6 +21,11 @@ export interface RenderOptions {
   /** 0–1, kekuatan kurva-S kontras setelah grading. */
   contrast?: number
   /**
+   * 0–1, penghalusan kulit. Menekan detail berkontras rendah di area bernada
+   * kulit saja; tepi tajam seperti mata dan bibir tidak tersentuh.
+   */
+  smooth?: number
+  /**
    * Setel `false` bila sumbernya sudah dalam orientasi bawah-ke-atas.
    * Default (`true`) benar untuk video, gambar, dan ImageBitmap biasa.
    */
@@ -88,6 +93,7 @@ export class FilmRenderer {
       'uIntensity',
       'uLumaLock',
       'uContrast',
+      'uSmooth',
       'uMirror',
       'uFlipY',
     ]) {
@@ -171,6 +177,7 @@ export class FilmRenderer {
     gl.uniform1f(this.uniforms.uIntensity, options.intensity ?? 1)
     gl.uniform1f(this.uniforms.uLumaLock, options.lumaLock ?? 0)
     gl.uniform1f(this.uniforms.uContrast, options.contrast ?? 0)
+    gl.uniform1f(this.uniforms.uSmooth, options.smooth ?? 0)
     gl.uniform1i(this.uniforms.uMirror, options.mirror ? 1 : 0)
     gl.uniform1i(this.uniforms.uFlipY, options.flipY === false ? 0 : 1)
 
