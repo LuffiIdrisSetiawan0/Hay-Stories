@@ -1,13 +1,13 @@
 /* ===========================================================================
-   Y-Vision Morphing Floating Pill Capsule Mega Menu & Animations
+   Y-Vision Floating White Pill Capsule & Morphing Mega Menu
    =========================================================================== */
 
-/* Backdrop overlay with smooth blur & fade */
+/* Backdrop overlay */
 .backdrop {
   position: fixed;
   inset: 0;
   z-index: 85;
-  background: rgba(0, 0, 0, 0.72);
+  background: rgba(0, 0, 0, 0.75);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   opacity: 0;
@@ -23,7 +23,7 @@
 /* Header container (fixed at top center) */
 .header {
   position: fixed;
-  top: 0.85rem;
+  top: 1rem;
   left: 0;
   right: 0;
   z-index: 95;
@@ -34,45 +34,39 @@
 }
 
 /* 
- * Floating Morphing Capsule
- * Closed: 480px sleek pill
- * Open: Wide mega-menu card (up to 1280px)
+ * Morphing White Capsule (y-vision.co.kr exact style)
+ * Closed: 480px sleek white pill
+ * Open: Wide crisp mega-menu card (up to 1360px)
  */
 .capsule {
   pointer-events: auto;
   width: 100%;
   max-width: 480px;
   border-radius: 9999px;
-  background: rgba(18, 16, 13, 0.92);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: #ffffff;
+  color: #0c0b09;
+  border: 1px solid rgba(0, 0, 0, 0.08);
   box-shadow:
-    0 14px 32px -6px rgba(0, 0, 0, 0.75),
-    0 0 0 1px rgba(255, 255, 255, 0.06);
-  color: #f5f2ec;
+    0 12px 36px -4px rgba(0, 0, 0, 0.35),
+    0 0 0 1px rgba(0, 0, 0, 0.04);
   overflow: hidden;
   transition:
-    max-width 0.48s cubic-bezier(0.16, 1, 0.3, 1),
-    border-radius 0.48s cubic-bezier(0.16, 1, 0.3, 1),
-    background-color 0.35s ease,
-    border-color 0.35s ease,
-    box-shadow 0.45s ease;
+    max-width 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+    border-radius 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.4s ease;
   will-change: max-width, border-radius;
 }
 
 .capsuleOpen {
-  max-width: min(1280px, calc(100vw - 2rem));
+  max-width: min(1320px, calc(100vw - 2rem));
   border-radius: 26px;
-  background: #12100d;
-  border-color: rgba(255, 255, 255, 0.18);
   box-shadow:
-    0 36px 90px -12px rgba(0, 0, 0, 0.92),
-    0 0 0 1px rgba(255, 255, 255, 0.1);
+    0 32px 80px -8px rgba(0, 0, 0, 0.75),
+    0 0 0 1px rgba(0, 0, 0, 0.08);
 }
 
 /* ===========================================================================
-   Top Capsule Bar (Always Visible)
+   Top Bar inside the Capsule (56px)
    =========================================================================== */
 
 .bar {
@@ -80,29 +74,29 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 50px;
-  padding-inline: 1rem 0.45rem;
+  height: 52px;
+  padding-inline: 1.15rem 0.5rem;
 }
 
 @media (min-width: 640px) {
   .bar {
-    height: 54px;
-    padding-inline: 1.25rem 0.55rem;
+    height: 56px;
+    padding-inline: 1.35rem 0.6rem;
   }
 }
 
-/* ===== Animated Hamburger Button ===== */
+/* ===== Animated Hamburger Button (Left) ===== */
 
 .menuBtn {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
   font-family: var(--font-sans);
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-weight: 700;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: #f5f2ec;
+  color: #0c0b09;
   cursor: pointer;
   padding: 0.35rem 0.45rem;
   border-radius: 9999px;
@@ -110,12 +104,12 @@
 }
 
 .menuBtn:hover {
-  opacity: 0.85;
+  opacity: 0.75;
 }
 
 .iconWrapper {
   position: relative;
-  width: 16px;
+  width: 17px;
   height: 12px;
   display: flex;
   flex-direction: column;
@@ -125,8 +119,8 @@
 .line {
   display: block;
   width: 100%;
-  height: 1.75px;
-  background-color: currentColor;
+  height: 1.8px;
+  background-color: #0c0b09;
   border-radius: 2px;
   transition:
     transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
@@ -134,7 +128,7 @@
   transform-origin: center;
 }
 
-/* Hamburger to 'X' animation */
+/* Morphing hamburger lines into 'X' */
 .menuBtnActive .line1 {
   transform: translateY(5.1px) rotate(45deg);
 }
@@ -159,18 +153,18 @@
   }
 }
 
-/* ===== Centered Wordmark ===== */
+/* ===== Centered Wordmark (HAY STORIES) ===== */
 
 .wordmark {
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
   font-family: var(--font-sans);
-  font-size: 0.875rem;
+  font-size: 0.95rem;
   font-weight: 800;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: #ffffff;
+  color: #0c0b09;
   white-space: nowrap;
   transition: opacity 0.2s ease;
   user-select: none;
@@ -178,29 +172,29 @@
 
 @media (min-width: 640px) {
   .wordmark {
-    font-size: 0.95rem;
+    font-size: 1.05rem;
   }
 }
 
 .wordmark:hover {
-  opacity: 0.85;
+  opacity: 0.75;
 }
 
-/* ===== Pill CTA Button ===== */
+/* ===== Pill CTA Button (Black on White) ===== */
 
 .ctaBtn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0.4rem 1.05rem;
+  padding: 0.45rem 1.2rem;
   border-radius: 9999px;
   font-family: var(--font-sans);
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 700;
   white-space: nowrap;
-  background: #ffffff;
-  color: #0c0b09;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+  background: #0c0b09;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   transition:
     transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
     opacity 0.2s ease,
@@ -208,8 +202,9 @@
 }
 
 .ctaBtn:hover {
-  opacity: 0.92;
-  transform: scale(1.04);
+  background: #24211c;
+  opacity: 0.95;
+  transform: scale(1.03);
 }
 
 .ctaBtn:active {
@@ -217,7 +212,7 @@
 }
 
 /* ===========================================================================
-   Expandable Mega Menu Content & Staggered Reveal Animations
+   Mega Menu Expandable Content & Animations
    =========================================================================== */
 
 .menuDrawer {
@@ -225,7 +220,7 @@
   grid-template-rows: 0fr;
   opacity: 0;
   transition:
-    grid-template-rows 0.48s cubic-bezier(0.16, 1, 0.3, 1),
+    grid-template-rows 0.45s cubic-bezier(0.16, 1, 0.3, 1),
     opacity 0.35s ease;
 }
 
@@ -238,16 +233,16 @@
   overflow: hidden;
   max-height: calc(100svh - 6.5rem);
   overflow-y: auto;
-  padding: 1rem 1.5rem 2rem;
+  padding: 1.25rem 1.5rem 2rem;
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 2.25rem;
 }
 
 @media (min-width: 768px) {
   .menuInner {
-    padding: 1.25rem 2.25rem 2.5rem;
-    gap: 2.5rem;
+    padding: 1.5rem 2.5rem 2.75rem;
+    gap: 2.75rem;
   }
 }
 
@@ -255,9 +250,9 @@
 .sectionHeading {
   font-family: var(--font-mono);
   font-size: 0.6875rem;
-  letter-spacing: 0.3em;
+  letter-spacing: 0.25em;
   text-transform: uppercase;
-  color: var(--color-accent);
+  color: #8c7b69;
   margin-bottom: 1.25rem;
   opacity: 0;
   transform: translateY(12px);
@@ -281,7 +276,7 @@
 @media (min-width: 768px) {
   .serviceGrid {
     grid-template-columns: repeat(4, 1fr);
-    gap: 1.5rem;
+    gap: 1.75rem;
   }
 }
 
@@ -310,7 +305,7 @@
 }
 
 .serviceLink:hover {
-  background-color: rgba(255, 255, 255, 0.045);
+  background-color: rgba(0, 0, 0, 0.035);
 }
 
 .serviceIndex {
@@ -318,9 +313,9 @@
   font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.1em;
-  color: var(--color-accent);
+  color: #8c7b69;
   margin-top: 0.2rem;
-  opacity: 0.75;
+  opacity: 0.85;
 }
 
 .serviceInfo {
@@ -337,21 +332,21 @@
   font-family: var(--font-sans);
   font-size: 1.05rem;
   font-weight: 700;
-  color: #f5f2ec;
+  color: #0c0b09;
   transition: color 0.25s ease;
 }
 
 .arrowIcon {
   opacity: 0;
   transform: translateX(-5px) translateY(2px);
-  color: var(--color-accent);
+  color: #8c7b69;
   transition:
     opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1),
     transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .serviceLink:hover .serviceTitle {
-  color: #ffffff;
+  color: #000000;
 }
 
 .serviceLink:hover .arrowIcon {
@@ -362,13 +357,13 @@
 .serviceDesc {
   font-size: 0.8125rem;
   line-height: 1.5;
-  color: rgba(245, 242, 236, 0.55);
+  color: #5c5852;
 }
 
 /* ===== Explore Navigation ===== */
 
 .exploreNav {
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
   padding-top: 1.5rem;
 }
 
@@ -396,24 +391,24 @@
   font-family: var(--font-sans);
   font-size: 0.95rem;
   font-weight: 600;
-  color: rgba(245, 242, 236, 0.8);
-  transition: color 0.2s ease, transform 0.2s ease;
+  color: #2e2b26;
+  transition: color 0.2s ease;
 }
 
 .exploreLink:hover {
-  color: #ffffff;
+  color: #000000;
 }
 
 /* ===== Menu Footer ===== */
 
 .menuFooter {
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
   padding-top: 1.25rem;
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
   font-size: 0.8125rem;
-  color: rgba(245, 242, 236, 0.45);
+  color: #736d64;
   opacity: 0;
   transform: translateY(12px);
   transition:
@@ -445,12 +440,13 @@
 }
 
 .footerLinks a {
-  color: rgba(245, 242, 236, 0.65);
+  color: #3b3731;
+  font-weight: 500;
   transition: color 0.2s ease;
 }
 
 .footerLinks a:hover {
-  color: #ffffff;
+  color: #000000;
 }
 
 .dot {

@@ -106,7 +106,7 @@ export default function Navbar({ overHero = false }: NavbarProps) {
       />
 
       <header className={styles.header}>
-        {/* Floating Morphing Capsule */}
+        {/* Floating Morphing Capsule Menu (Y-Vision White Pill) */}
         <div
           ref={capsuleRef}
           className={`${styles.capsule} ${open ? styles.capsuleOpen : ""}`}
@@ -114,9 +114,9 @@ export default function Navbar({ overHero = false }: NavbarProps) {
           aria-modal={open}
           aria-label="Menu Utama"
         >
-          {/* Top Bar inside the Capsule */}
+          {/* Top Capsule Bar */}
           <div className={styles.bar}>
-            {/* Animated Hamburger / Close Button */}
+            {/* Animated Hamburger Button (Left) */}
             <button
               ref={triggerRef}
               type="button"
@@ -130,15 +130,15 @@ export default function Navbar({ overHero = false }: NavbarProps) {
                 <span className={`${styles.line} ${styles.line2}`} />
                 <span className={`${styles.line} ${styles.line3}`} />
               </div>
-              <span className={styles.menuLabel}>{open ? "Tutup" : "Menu"}</span>
+              <span className={styles.menuLabel}>{open ? "TUTUP" : "MENU"}</span>
             </button>
 
             {/* Centered Brand Logo */}
             <Link href="/" className={styles.wordmark} onClick={close}>
-              HAY Stories
+              HAY STORIES
             </Link>
 
-            {/* Pill Action Button */}
+            {/* Pill CTA Button (Right) */}
             <Link href="/login" className={styles.ctaBtn} onClick={close}>
               Buat album
             </Link>
@@ -152,14 +152,14 @@ export default function Navbar({ overHero = false }: NavbarProps) {
           >
             <div className={styles.menuInner}>
               {/* Section 1: Fitur & Roll Film */}
-              <nav aria-label="Fitur & Roll Film" className={styles.animatedSection}>
-                <p className={styles.sectionHeading}>Fitur & Roll Film</p>
+              <nav aria-label="Fitur & Roll Film">
+                <p className={styles.sectionHeading}>Fitur & Layanan</p>
                 <ul className={styles.serviceGrid}>
                   {SERVICE_ITEMS.map((item, idx) => (
                     <li
                       key={item.index}
                       className={styles.serviceItem}
-                      style={{ "--stagger": `${idx * 50 + 80}ms` } as React.CSSProperties}
+                      style={{ "--stagger": `${idx * 45 + 80}ms` } as React.CSSProperties}
                     >
                       <Link
                         href={item.href}
@@ -188,7 +188,7 @@ export default function Navbar({ overHero = false }: NavbarProps) {
                     <li
                       key={link.label}
                       className={styles.exploreItem}
-                      style={{ "--stagger": `${idx * 40 + 260}ms` } as React.CSSProperties}
+                      style={{ "--stagger": `${idx * 35 + 240}ms` } as React.CSSProperties}
                     >
                       <Link
                         href={link.href}

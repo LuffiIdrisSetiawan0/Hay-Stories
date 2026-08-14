@@ -6,11 +6,11 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   min-height: 100svh;
   overflow: hidden;
-  /* Bawah lebih longgar: baris roll menempel di tepi dan butuh ruang napas. */
-  padding-block: calc(var(--nav-height) + 3.5rem) 0;
+  padding-top: clamp(6rem, 9.5vw, 8.5rem);
+  padding-bottom: 3.5rem;
 }
 
 .inner {
@@ -23,7 +23,7 @@
   align-items: center;
   text-align: center;
   flex: 1;
-  justify-content: center;
+  justify-content: flex-start;
   padding-block-end: 2.5rem;
 }
 
