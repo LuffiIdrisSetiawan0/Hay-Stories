@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown } from "lucide-react";
+import { Plus } from "lucide-react";
 import Reveal from "@/components/ui/Reveal";
-import { Section } from "@/components/ui/Section";
+import SplitText from "@/components/ui/SplitText";
 import styles from "./FAQ.module.css";
 
 const faqs = [
@@ -17,7 +17,7 @@ const faqs = [
   },
   {
     q: "Preset film apa yang tersedia?",
-    a: "Preset film meniru kamera sekali pakai dan film nyata seperti Kodak FunSaver, Fujifilm QuickSnap, Kodak Portra 400, Kodak Ektar 100, Ilford HP5 Plus, dan CineStill 800T.",
+    a: "Ada enam roll: Golden Hour 400, Pastel 100, Sunday Chrome, Noir 400, Neon Night 1600, dan Everyday 100. Tabel warnanya diturunkan dari stok film sungguhan, dan tiap roll menjawab satu kondisi acara — kulit di bawah lampu gedung, dekorasi terang di luar ruang, sampai resepsi malam berlampu warna.",
   },
   {
     q: "Kapan foto bisa dilihat?",
@@ -29,45 +29,69 @@ const faqs = [
   },
   {
     q: "Berapa biayanya?",
-    a: "Hingga 5 tamu selalu gratis. Acara yang lebih besar mulai dari Rp 49.000. Sekali bayar per album, tanpa langganan atau biaya tersembunyi.",
+    a: "Hingga 5 tamu selalu gratis. Acara yang lebih besar mulai dari Rp 199.000. Sekali bayar per album, tanpa langganan atau biaya tersembunyi.",
   },
 ];
 
+/**
+ * Akordeon pertanyaan.
+ *
+ * Jawabannya dibuka lewat `grid-template-rows: 0fr → 1fr`, bukan `max-height`
+ * yang ditebak. Nilai tebakan selalu salah di salah satu ujung: terlalu kecil
+ * memotong jawaban terpanjang, terlalu besar membuat animasi menutupnya jeda
+ * dulu sebelum ada yang bergerak.
+ */
 export default function FAQ() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
-  const toggle = (index: number) => {
-    setOpenIndex(openIndex === index ? null : index);
-  };
-
   return (
-    <Section id="faq">
+    <section id="faq" className={styles.section}>
       <div className="container">
-        <Reveal className={styles.head}>
-          <h2 className={styles.title}>Pertanyaan yang sering masuk</h2>
-        </Reveal>
-
-        <div className={styles.faqList}>
-          {faqs.map((faq, i) => (
-            <Reveal
-              key={faq.q}
-              delay={i * 70}
-              className={`${styles.faqItem} ${openIndex === i ? styles.faqOpen : ""}`}
-            >
-              <button className={styles.faqQuestion} onClick={() => toggle(i)}>
-                <span>{faq.q}</span>
-                <ChevronDown
-                  size={18}
-                  className={`${styles.faqChevron} ${openIndex === i ? styles.faqChevronOpen : ""}`}
-                />
-              </button>
-              <div className={`${styles.faqAnswer} ${openIndex === i ? styles.faqAnswerOpen : ""}`}>
-                <p>{faq.a}</p>
-              </div>
-            </Reveal>
-          ))}
+        <div className={styles.head}>
+          <p className={styles.eyebrow}>FAQ</p>
+          <h2 className={styles.title}>
+            <SplitText by="word" delay={80}>
+              Pertanyaan yang sering masuk
+            </SplitText>
+          </h2>
         </div>
+
+        <ul className={styles.list}>
+          {faqs.map((faq, i) => {
+            const open = openIndex === i;
+            return (
+              <Reveal key={faq.q} as="li" delay={i * 70} className={styles.item}>
+                <h3>
+                  <button
+                    type="button"
+                    className={styles.question}
+                    aria-expanded={open}
+                    aria-controls={`faq-answer-${i}`}
+                    onClick={() => setOpenIndex(open ? null : i)}
+                  >
+                    <span>{faq.q}</span>
+                    <Plus
+                      size={18}
+                      strokeWidth={1.5}
+                      className={`${styles.icon} ${open ? styles.iconOpen : ""}`}
+                      aria-hidden="true"
+                    />
+                  </button>
+                </h3>
+
+                <div
+                  id={`faq-answer-${i}`}
+                  className={`${styles.answer} ${open ? styles.answerOpen : ""}`}
+                >
+                  <div className={styles.answerInner}>
+                    <p>{faq.a}</p>
+                  </div>
+                </div>
+              </Reveal>
+            );
+          })}
+        </ul>
       </div>
-    </Section>
+    </section>
   );
 }

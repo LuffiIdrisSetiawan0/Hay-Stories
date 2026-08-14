@@ -1,36 +1,33 @@
 /* ===========================================================================
-   Tiga langkah, rata tengah
-
-   Tanpa lingkaran ikon, tanpa garis penghubung, tanpa tata letak berselang-
-   seling. Angka besar yang jadi penanda; sisanya ruang kosong.
+   Cara kerja — tiga langkah
    =========================================================================== */
 
 .section {
-  padding: clamp(4.5rem, 11vw, 9rem) 0 clamp(4.5rem, 10vw, 8rem);
-  background: var(--color-bg-secondary);
-  text-align: center;
+  padding-block: var(--section-py);
+  background-color: var(--color-bg-secondary);
   overflow: hidden;
 }
 
 .head {
-  margin-bottom: clamp(1.25rem, 3vw, 2rem);
+  display: flex;
+  justify-content: center;
 }
 
 .lede {
-  max-width: 40rem;
-  margin: 0 auto clamp(3rem, 7vw, 5rem);
-  font-size: clamp(1rem, 1.7vw, 1.25rem);
-  line-height: 1.8;
+  max-width: 26em;
+  margin-inline: auto;
+  margin-top: clamp(1.75rem, 4vw, 2.5rem);
+  text-align: center;
+  font-size: var(--text-title-2);
+  line-height: 1.6;
   color: var(--color-text-secondary);
-  text-wrap: balance;
+  text-wrap: pretty;
 }
 
 .steps {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: clamp(2.5rem, 6vw, 3.5rem);
-  max-width: 68rem;
-  margin: 0 auto;
+  gap: clamp(2.5rem, 5vw, 3rem);
+  margin-top: clamp(3rem, 7vw, 5rem);
 }
 
 @media (min-width: 820px) {
@@ -40,39 +37,39 @@
   }
 }
 
-.step {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.6rem;
-  padding: 0 clamp(0.5rem, 2vw, 1.5rem);
+/*
+ * Garis di atas tiap langkah memanjang dari kiri saat masuk viewport. Ia yang
+ * memberi urutan — mata mengikuti garis yang tumbuh sebelum angkanya terbaca.
+ */
+.rule {
+  display: block;
+  height: 1px;
+  margin-bottom: 1.75rem;
+  background: var(--color-border-hover);
 }
 
-/*
- * Angka besar tapi diredam. Ia penanda urutan, bukan informasi — kalau
- * kontrasnya penuh, mata membacanya lebih dulu daripada judul langkahnya.
- */
 .number {
-  font-family: var(--font-sans);
-  font-size: clamp(2.75rem, 6vw, 4rem);
-  font-weight: 700;
-  line-height: 1;
-  letter-spacing: -0.04em;
-  color: var(--color-text-faint);
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.24em;
+  color: var(--color-accent);
 }
 
 .title {
-  font-family: var(--font-serif);
-  font-size: clamp(1.375rem, 2.4vw, 1.75rem);
-  font-weight: 600;
-  letter-spacing: -0.01em;
+  margin-top: 1rem;
+  font-size: var(--text-display-6);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
   color: var(--color-text-primary);
 }
 
 .desc {
-  max-width: 24rem;
-  font-size: 0.9375rem;
+  margin-top: 0.85rem;
+  max-width: 30em;
+  font-size: var(--text-title-4);
   line-height: 1.75;
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
   text-wrap: pretty;
 }

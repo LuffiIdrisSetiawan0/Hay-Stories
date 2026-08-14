@@ -1,15 +1,48 @@
-/*
- * Pembungkus seksi, judul, dan animasi masuk kini ditangani
- * <Section> / <SectionHeading> / <Reveal> di src/components/ui/.
- */
+/* ===========================================================================
+   Harga
+   =========================================================================== */
 
-/* Grid */
+.section {
+  padding-block: var(--section-py);
+  background-color: var(--color-bg-primary);
+  overflow: hidden;
+}
+
+.head {
+  max-width: 34rem;
+}
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+}
+
+.title {
+  margin-top: 1rem;
+  font-size: var(--text-display-5);
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 1.1;
+  color: var(--color-text-primary);
+}
+
+.lede {
+  margin-top: 1rem;
+  font-size: var(--text-title-3);
+  line-height: 1.7;
+  color: var(--color-text-secondary);
+  text-wrap: pretty;
+}
+
+/* ===== Petak paket ===== */
+
 .grid {
   display: grid;
-  grid-template-columns: repeat(1, 1fr);
-  gap: 1.5rem;
-  align-items: stretch;
-  margin-top: 4rem;
+  gap: 1rem;
+  margin-top: clamp(2.5rem, 6vw, 4rem);
 }
 
 @media (min-width: 640px) {
@@ -21,20 +54,24 @@
 @media (min-width: 1024px) {
   .grid {
     grid-template-columns: repeat(4, 1fr);
-    gap: 1.25rem;
   }
 }
 
-/* Card */
 .card {
   display: flex;
   flex-direction: column;
-  padding: 2rem 1.75rem;
-  background: var(--color-bg-elevated);
+  padding: 1.75rem 1.5rem;
   border: 1px solid var(--color-border);
-  position: relative;
-  transition: border-color var(--transition-base), box-shadow var(--transition-base),
-    transform var(--transition-base);
+  border-radius: var(--radius-xl);
+  background: var(--color-bg-card);
+  /*
+   * Kartu ini beranimasi masuk lewat `.reveal-throw`, yang memegang `transform`
+   * dan `opacity`. Hover-nya karena itu hanya boleh menyentuh properti lain —
+   * transform apa pun di sini akan menimpa keadaan akhir animasi masuknya.
+   */
+  transition:
+    border-color var(--transition-base),
+    box-shadow var(--transition-base);
 }
 
 .card:hover {
@@ -42,170 +79,132 @@
   box-shadow: var(--shadow-md);
 }
 
-.card:hover {
-  border-color: var(--color-accent);
-}
-
 .cardBest {
   border-color: var(--color-accent);
-  background: var(--color-bg-primary);
-  box-shadow: 0 8px 40px rgba(181, 136, 99, 0.1);
+  box-shadow: var(--shadow-md);
 }
 
-/* Best Badge */
-.bestBadge {
-  position: absolute;
-  top: -0.75rem;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  align-items: center;
-  gap: 0.375rem;
-  padding: 0.25rem 0.875rem;
-  background: var(--color-accent);
-  color: #fff;
-  font-size: 0.6875rem;
-  font-weight: 600;
-  letter-spacing: 0.05em;
+.badge {
+  align-self: flex-start;
+  margin-bottom: 0.9rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: var(--radius-full);
+  background: var(--color-accent-soft);
+  font-family: var(--font-mono);
+  font-size: 0.5625rem;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
-  white-space: nowrap;
+  color: var(--color-accent);
 }
 
-/* Plan Info */
 .planName {
-  font-family: var(--font-serif);
-  font-size: 1.5rem;
-  font-weight: 500;
+  font-size: var(--text-title-1);
+  font-weight: 700;
+  letter-spacing: -0.02em;
   color: var(--color-text-primary);
-  margin-bottom: 0.25rem;
 }
 
 .planTagline {
+  margin-top: 0.25rem;
   font-size: 0.8125rem;
   color: var(--color-text-muted);
-  margin-bottom: 1.5rem;
 }
 
-/* Price */
-/*
- * Harga coret DI ATAS harga berlaku, bukan di sampingnya.
- * Menaruhnya berdampingan membuat "Rp 1.099.000" pecah jadi dua baris pada
- * lebar kartu — "Rp" sendirian di baris pertama, angkanya di bawah.
- */
 .priceBlock {
-  margin-bottom: 0.25rem;
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.1rem;
-  min-height: 3.4rem;
-  justify-content: flex-end;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
 }
 
 .wasPrice {
   font-size: 0.8125rem;
-  color: var(--color-text-muted);
+  color: var(--color-text-faint);
   text-decoration: line-through;
-  white-space: nowrap;
 }
 
 .price {
-  font-family: var(--font-serif);
-  font-size: 1.875rem;
-  font-weight: 600;
-  line-height: 1.1;
+  font-size: var(--text-display-6);
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 1;
   color: var(--color-text-primary);
-  white-space: nowrap;
 }
 
 .guests {
-  font-size: 0.8125rem;
-  color: var(--color-text-muted);
-  margin-bottom: 1.5rem;
-  padding-bottom: 1.5rem;
+  margin-top: 0.6rem;
+  padding-bottom: 1.35rem;
   border-bottom: 1px solid var(--color-border);
+  font-size: 0.8125rem;
+  color: var(--color-text-secondary);
 }
 
-/* Features */
 .features {
   display: flex;
   flex-direction: column;
-  gap: 0.625rem;
-  margin-bottom: 2rem;
+  gap: 0.65rem;
+  margin-top: 1.35rem;
+  /* Mendorong tombol ke dasar kartu, jadi keempat tombol sejajar walau daftar
+     fiturnya berbeda panjang. */
   flex: 1;
 }
 
 .featureItem {
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.875rem;
+  align-items: flex-start;
+  gap: 0.6rem;
+  font-size: 0.8125rem;
+  line-height: 1.55;
   color: var(--color-text-secondary);
 }
 
 .featureCheck {
-  color: var(--color-accent);
   flex-shrink: 0;
+  margin-top: 0.15rem;
+  color: var(--color-accent);
 }
 
-/* Button */
 .planBtn {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.5rem;
-  border: 1px solid var(--color-border);
-  background: transparent;
-  color: var(--color-text-primary);
+  gap: 0.45rem;
+  margin-top: 1.75rem;
+  padding: 0.8rem 1.25rem;
+  border: 1px solid var(--color-border-hover);
+  border-radius: var(--radius-full);
   font-size: 0.875rem;
-  font-weight: 500;
-  text-decoration: none;
-  transition: all 0.3s ease;
-  margin-top: auto;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  transition:
+    background-color var(--transition-base),
+    border-color var(--transition-base),
+    color var(--transition-base);
 }
 
 .planBtn:hover {
-  border-color: var(--color-accent);
-  color: var(--color-accent);
+  background: var(--color-text-primary);
+  border-color: var(--color-text-primary);
+  color: var(--color-bg-primary);
 }
 
 .planBtnBest {
   background: var(--color-accent);
-  color: #fff;
   border-color: var(--color-accent);
+  color: #ffffff;
 }
 
 .planBtnBest:hover {
-  opacity: 0.9;
-  color: #fff;
+  background: var(--color-accent-hover);
+  border-color: var(--color-accent-hover);
+  color: #ffffff;
 }
 
-/* Kepala seksi bergaya kata raksasa, menggantikan blok eyebrow + judul. */
-
-.head {
-  text-align: center;
-  margin-bottom: clamp(1.25rem, 3vw, 2rem);
+.planBtn svg {
+  transition: transform var(--transition-base);
 }
 
-.lede {
-  max-width: 40rem;
-  margin: 0 auto clamp(2.5rem, 6vw, 4rem);
-  text-align: center;
-  font-size: clamp(1rem, 1.7vw, 1.25rem);
-  line-height: 1.8;
-  color: var(--color-text-secondary);
-  text-wrap: balance;
-}
-
-/* Judul seksi biasa. Kata raksasa sengaja hanya dipakai satu seksi di halaman
-   ini — memakainya di mana-mana membuat seluruh halaman berbentuk sama. */
-.title {
-  font-family: var(--font-serif);
-  font-size: clamp(1.6rem, 3.4vw, 2.75rem);
-  font-weight: 600;
-  line-height: 1.2;
-  letter-spacing: -0.02em;
-  color: var(--color-text-primary);
-  text-wrap: balance;
+.planBtn:hover svg {
+  transform: translateX(3px);
 }

@@ -1,101 +1,111 @@
-/*
- * Pembungkus seksi, judul, dan animasi masuk kini ditangani
- * <Section> / <SectionHeading> / <Reveal> di src/components/ui/.
- */
+/* ===========================================================================
+   FAQ
+   =========================================================================== */
 
-/* FAQ List */
-.faqList {
-  text-align: left;
-  max-width: 46rem;
-  margin: 4rem auto 0;
+.section {
+  padding-block: var(--section-py);
+  background-color: var(--color-bg-secondary);
+  overflow: hidden;
 }
 
-.faqItem {
-  border-bottom: 1px solid var(--color-border);
+.head {
+  max-width: 34rem;
 }
 
-.faqItem:first-child {
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+}
+
+.title {
+  margin-top: 1rem;
+  font-size: var(--text-display-5);
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 1.1;
+  color: var(--color-text-primary);
+}
+
+/* ===== Daftar ===== */
+
+.list {
+  max-width: 48rem;
+  margin-top: clamp(2.5rem, 6vw, 4rem);
   border-top: 1px solid var(--color-border);
 }
 
-.faqQuestion {
-  width: 100%;
+.item {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.question {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1.5rem 0;
-  font-family: var(--font-sans);
-  font-size: 1rem;
-  font-weight: 500;
-  color: var(--color-text-primary);
+  gap: 1.5rem;
+  width: 100%;
+  padding-block: 1.35rem;
   text-align: left;
-  cursor: pointer;
-  transition: color 0.3s ease;
-  background: none;
-  border: none;
+  font-size: var(--text-title-2);
+  font-weight: 600;
+  line-height: 1.45;
+  color: var(--color-text-primary);
+  transition: color var(--transition-base);
 }
 
-.faqQuestion:hover {
+.question:hover {
   color: var(--color-accent);
 }
 
-.faqChevron {
+.icon {
   flex-shrink: 0;
   color: var(--color-text-muted);
-  transition: transform 0.3s ease, color 0.3s ease;
-  margin-left: 1rem;
+  transition: transform var(--transition-slow), color var(--transition-base);
 }
 
-.faqChevronOpen {
-  transform: rotate(180deg);
+/* Plus berputar jadi silang saat terbuka — satu ikon, dua keadaan. */
+.iconOpen {
+  transform: rotate(135deg);
   color: var(--color-accent);
 }
 
-.faqAnswer {
-  max-height: 0;
+/*
+ * `0fr → 1fr` pada baris grid: tinggi tujuannya dihitung browser dari isi
+ * sebenarnya, jadi tidak ada angka yang perlu ditebak dan jawaban sepanjang apa
+ * pun tetap terbuka penuh.
+ */
+.answer {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.45s var(--ease-ref);
+}
+
+.answerOpen {
+  grid-template-rows: 1fr;
+}
+
+.answerInner {
   overflow: hidden;
-  transition: max-height 0.4s ease, padding 0.4s ease;
-  padding: 0;
 }
 
-.faqAnswerOpen {
-  max-height: 250px;
-  padding: 0 0 1.5rem;
-}
-
-.faqAnswer p {
-  font-family: var(--font-sans);
-  font-size: 0.9375rem;
-  color: var(--color-text-secondary);
-  line-height: 1.8;
-  font-weight: 300;
-}
-
-/* Kepala seksi bergaya kata raksasa, menggantikan blok eyebrow + judul. */
-
-.head {
-  text-align: center;
-  margin-bottom: clamp(1.25rem, 3vw, 2rem);
-}
-
-.lede {
-  max-width: 40rem;
-  margin: 0 auto clamp(2.5rem, 6vw, 4rem);
-  text-align: center;
-  font-size: clamp(1rem, 1.7vw, 1.25rem);
+.answerInner p {
+  padding-bottom: 1.5rem;
+  max-width: 42em;
+  font-size: var(--text-title-4);
   line-height: 1.8;
   color: var(--color-text-secondary);
-  text-wrap: balance;
+  text-wrap: pretty;
 }
 
-/* Judul seksi biasa. Kata raksasa sengaja hanya dipakai satu seksi di halaman
-   ini — memakainya di mana-mana membuat seluruh halaman berbentuk sama. */
-.title {
-  font-family: var(--font-serif);
-  font-size: clamp(1.6rem, 3.4vw, 2.75rem);
-  font-weight: 600;
-  line-height: 1.2;
-  letter-spacing: -0.02em;
-  color: var(--color-text-primary);
-  text-wrap: balance;
+@media (prefers-reduced-motion: reduce) {
+  .answer {
+    transition: none;
+  }
+
+  .icon {
+    transition: none;
+  }
 }

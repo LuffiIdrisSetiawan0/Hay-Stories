@@ -1,201 +1,225 @@
 /* ===========================================================================
-   Hero: judul rata tengah di atas hitam, kartu foto berhamburan di bawahnya.
-
-   Seluruh komposisi tumpukan kartu disetel dari blok `--rot` / `--x` / `--y`
-   di bawah, bukan dari komponennya.
+   Hero
    =========================================================================== */
 
 .hero {
   position: relative;
-  padding: clamp(5.5rem, 9vw, 7.5rem) clamp(1rem, 4vw, 3rem) clamp(2.5rem, 5vw, 4rem);
-  background: #0a0908;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 100svh;
   overflow: hidden;
+  /* Bawah lebih longgar: baris roll menempel di tepi dan butuh ruang napas. */
+  padding-block: calc(var(--nav-height) + 3.5rem) 0;
 }
 
 .inner {
-  max-width: 78rem;
-  margin: 0 auto;
+  width: 100%;
+  max-width: var(--max-width);
+  margin-inline: auto;
+  padding-inline: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   text-align: center;
+  flex: 1;
+  justify-content: center;
+  padding-block-end: 2.5rem;
 }
+
+@media (min-width: 640px) {
+  .inner {
+    padding-inline: 2rem;
+  }
+}
+
+/* ===== Judul ===== */
 
 .eyebrow {
   font-family: var(--font-mono);
   font-size: 0.6875rem;
-  letter-spacing: 0.3em;
+  letter-spacing: 0.32em;
   text-transform: uppercase;
-  color: rgba(245, 242, 236, 0.5);
-  margin-bottom: clamp(0.9rem, 2vw, 1.35rem);
+  color: var(--color-accent);
 }
 
 .headline {
+  margin-top: 1.5rem;
+  max-width: 16em;
   font-family: var(--font-sans);
-  font-size: clamp(1.75rem, 4.4vw, 3.15rem);
+  font-size: var(--text-display-2);
   font-weight: 600;
-  line-height: 1.18;
-  letter-spacing: -0.03em;
-  color: #f5f2ec;
+  line-height: 1.02;
+  letter-spacing: -0.035em;
+  color: var(--color-text-primary);
   text-wrap: balance;
-}
-
-/*
- * Frasa yang dibalik: teks gelap di dalam kotak terang. `mark` bawaan browser
- * berwarna kuning menyala, jadi seluruh gayanya ditulis ulang. `box-decoration-break`
- * menjaga kotaknya tetap utuh di tiap baris kalau judulnya sampai membungkus.
- */
-.mark {
-  background: #f5f2ec;
-  color: #0a0908;
-  padding: 0.04em 0.32em 0.12em;
-  border-radius: 0.42em;
-  box-decoration-break: clone;
-  -webkit-box-decoration-break: clone;
 }
 
 /* ===== Tumpukan kartu ===== */
 
-.stack {
-  position: relative;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  /* Tinggi dikunci: kartu-kartunya diputar dan digeser, jadi tinggi alaminya
-     tidak bisa diandalkan untuk menyisakan ruang yang benar. */
-  height: clamp(10rem, 21vw, 17.5rem);
-  margin: clamp(1.5rem, 3.5vw, 2.5rem) 0 clamp(1.25rem, 3vw, 2rem);
+.deck {
+  --card-w: clamp(7.5rem, 15vw, 12rem);
+  /* Sejauh mana kartu terluar bergeser dari pusat, sebagai satuan dasar.
+     Faktor per kartu dikalikan ke sini lewat --x / --y. */
+  --spread: clamp(2.2rem, 6.5vw, 6rem);
+
+  display: grid;
+  place-items: center;
+  width: 100%;
+  min-height: calc(var(--card-w) * 1.55);
+  margin-block: clamp(2.5rem, 6vw, 4.5rem);
 }
 
 .card {
-  position: absolute;
-  /*
-   * Tinggi yang mengikuti wadah, lebar yang mengikuti rasio — bukan sebaliknya.
-   * Versi sebelumnya menetapkan lebar lewat vw, dan pada layar lebar tinggi
-   * hasilnya melampaui tinggi tumpukan sehingga kartunya meluber ke bawah
-   * layar. Dengan cara ini kartu tidak akan pernah lebih tinggi dari wadahnya.
-   */
-  height: 100%;
-  width: auto;
-  aspect-ratio: 4 / 5;
-  margin: 0;
+  /* Keenam kartu menempati sel yang sama — inilah yang membuat keadaan awalnya
+     benar-benar setumpuk, bukan berjajar lalu dirapatkan. */
+  grid-area: 1 / 1;
+  width: var(--card-w);
+  padding: 0.5rem 0.5rem 0;
   border-radius: var(--radius-md);
-  overflow: hidden;
-  background: #1a1714;
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
-  transform: translate(var(--x), var(--y)) rotate(var(--rot));
-  transition: transform var(--transition-base);
+  background: #14120f;
+  box-shadow: var(--shadow-lg);
+
+  transform-origin: bottom center;
+  opacity: 0;
+  transform: translateY(150px) scale(1.12) rotate(-10deg);
+  transition:
+    opacity 0.9s var(--ease-ref),
+    transform 1.05s var(--ease-ref);
+  transition-delay: calc(var(--i, 0) * 90ms);
+  will-change: opacity, transform;
 }
 
-/* Kartu tengah paling depan; makin ke tepi makin miring, makin turun, makin
-   ke belakang. Urutannya sengaja simetris supaya kipasnya seimbang. */
-.card[data-index='0'] { --rot: -12deg; --x: -86%; --y: 7%;  z-index: 1; }
-.card[data-index='1'] { --rot: -6deg;  --x: -45%;  --y: 1%;  z-index: 2; }
-.card[data-index='2'] { --rot: 0deg;   --x: 0;     --y: -2%; z-index: 3; }
-.card[data-index='3'] { --rot: 6deg;   --x: 45%;   --y: 1%;  z-index: 2; }
-.card[data-index='4'] { --rot: 12deg;  --x: 86%;   --y: 7%;  z-index: 1; }
-
-/* Dirapatkan pada layar lebar. Rentang penuh 2x190% plus lebar kartu masih
-   muat di dalam container 78rem; lebih dari itu kartu tepi akan terpotong. */
-@media (min-width: 900px) {
-  .card[data-index='0'] { --x: -190%; }
-  .card[data-index='1'] { --x: -95%; }
-  .card[data-index='3'] { --x: 95%; }
-  .card[data-index='4'] { --x: 190%; }
-}
-
-/*
- * Ponsel sempit. Tinggi tumpukan menentukan lebar kartu, jadi pada layar di
- * bawah 480px kartunya harus ikut mengecil — kalau tidak, lima kartu selebar
- * 128px mustahil muat dalam container 328px berapa pun rapatnya disusun.
- */
-@media (max-width: 480px) {
-  .stack {
-    height: clamp(8.5rem, 34vw, 11rem);
-  }
-
-  .card[data-index='0'] { --x: -72%; }
-  .card[data-index='1'] { --x: -38%; }
-  .card[data-index='3'] { --x: 38%; }
-  .card[data-index='4'] { --x: 72%; }
-}
-
-.card:hover {
-  transform: translate(var(--x), calc(var(--y) - 0.75rem)) rotate(var(--rot));
+.deckDealt .card {
+  opacity: 1;
+  transform: translate(calc(var(--x) * var(--spread)), calc(var(--y) * var(--spread)))
+    rotate(var(--r)) scale(1);
+  will-change: auto;
 }
 
 .canvas {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
   display: block;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  border-radius: calc(var(--radius-md) - 0.25rem);
+  /* Sebelum WebGL selesai, kanvasnya kosong dan transparan — tanpa latar ini
+     yang terlihat cuma bingkai melayang tanpa isi. */
+  background: #1f1b16;
 }
 
-/* Label gelembung di kaki tiap kartu. */
 .tag {
-  position: absolute;
-  left: 50%;
-  bottom: 0.55rem;
-  transform: translateX(-50%);
-  padding: 0.28rem 0.6rem;
-  border-radius: var(--radius-full);
-  background: rgba(245, 242, 236, 0.92);
-  color: #1a1a1a;
+  padding-block: 0.5rem 0.55rem;
   font-family: var(--font-mono);
-  font-size: clamp(0.5rem, 1vw, 0.625rem);
-  letter-spacing: 0.08em;
+  font-size: 0.5rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* ===== Kaki ===== */
+/* ===== Lede & tombol ===== */
 
 .lede {
-  max-width: 44rem;
-  margin: 0 auto;
-  font-size: clamp(0.9375rem, 1.5vw, 1.125rem);
-  line-height: 1.75;
-  color: rgba(245, 242, 236, 0.72);
+  max-width: 34em;
+  font-size: var(--text-title-3);
+  line-height: 1.65;
+  color: var(--color-text-secondary);
   text-wrap: pretty;
 }
 
 .actions {
-  margin-top: clamp(1.75rem, 4vw, 2.5rem);
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
   justify-content: center;
-  gap: 0.85rem 1.5rem;
+  gap: 0.75rem;
+  margin-block: clamp(1.75rem, 4vw, 2.5rem) clamp(2rem, 5vw, 3rem);
 }
 
-.primaryBtn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.9rem 2rem;
-  border-radius: var(--radius-full);
-  background: #f5f2ec;
-  color: #0a0908;
-  font-weight: 600;
-  font-size: 0.9375rem;
-  transition: transform var(--transition-fast), background-color var(--transition-base);
-}
-
-.primaryBtn:hover {
-  background: #fff;
-}
-
-.primaryBtn:active {
-  transform: scale(0.97);
-}
-
+.primaryBtn,
 .ghostBtn {
   display: inline-flex;
   align-items: center;
-  padding-bottom: 0.2rem;
+  gap: 0.5rem;
+  padding: 0.9rem 1.9rem;
+  border-radius: var(--radius-full);
   font-size: 0.9375rem;
-  color: rgba(245, 242, 236, 0.85);
-  border-bottom: 1px solid rgba(245, 242, 236, 0.3);
-  transition: color var(--transition-base), border-color var(--transition-base);
+  font-weight: 600;
+  transition:
+    background-color var(--transition-base),
+    border-color var(--transition-base),
+    color var(--transition-base),
+    transform var(--transition-fast);
+}
+
+.primaryBtn {
+  background: var(--color-text-primary);
+  color: #14120f;
+}
+
+.primaryBtn:hover {
+  background: #ffffff;
+  transform: translateY(-2px);
+}
+
+.ghostBtn {
+  border: 1px solid var(--color-border);
+  color: var(--color-text-primary);
 }
 
 .ghostBtn:hover {
-  color: #f5f2ec;
-  border-color: #f5f2ec;
+  border-color: var(--color-border-hover);
+  background: var(--color-bg-hover);
+}
+
+.primaryBtn svg {
+  transition: transform var(--transition-base);
+}
+
+.primaryBtn:hover svg {
+  transform: translateX(3px);
+}
+
+/* ===== Baris roll di tepi bawah ===== */
+
+.rollBand {
+  border-top: 1px solid var(--color-border);
+  padding-block: 1rem;
+}
+
+.rollItem {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.rollAt {
+  color: var(--color-accent);
+  margin-right: 0.15em;
+}
+
+/* Titik pemisah antar nama. Dipasang di sini dan bukan sebagai teks supaya
+   pembaca layar tidak ikut membacanya sebagai karakter. */
+.rollDot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--color-text-faint);
+  margin-inline: 1.75rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card {
+    opacity: 1;
+    transform: translate(calc(var(--x) * var(--spread)), calc(var(--y) * var(--spread)))
+      rotate(var(--r));
+    transition: none;
+  }
 }

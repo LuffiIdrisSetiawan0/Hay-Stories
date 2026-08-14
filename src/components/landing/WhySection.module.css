@@ -1,0 +1,87 @@
+/* ===========================================================================
+   Seksi "Kenapa"
+   =========================================================================== */
+
+.section {
+  position: relative;
+  padding-block: var(--section-py);
+  background-color: var(--color-bg-primary);
+  overflow: hidden;
+}
+
+.head {
+  display: flex;
+  justify-content: center;
+}
+
+.body {
+  max-width: 28em;
+  margin-inline: auto;
+  margin-top: clamp(2.5rem, 6vw, 4rem);
+  text-align: center;
+}
+
+.line,
+.lineLast {
+  font-size: var(--text-display-6);
+  font-weight: 600;
+  line-height: 1.5;
+  letter-spacing: -0.015em;
+  color: var(--color-text-primary);
+  text-wrap: pretty;
+}
+
+/*
+ * Baris penutup dipisahkan warnanya, bukan diberi tanda baca tambahan. Inilah
+ * kalimat yang membalik masalah jadi jawaban, dan satu-satunya yang perlu
+ * menonjol dari tiga.
+ */
+.lineLast {
+  margin-top: 0.6em;
+  color: var(--color-text-secondary);
+}
+
+.lineLast::after {
+  content: "";
+  display: block;
+  width: 3rem;
+  height: 2px;
+  margin: 1.6rem auto 0;
+  background: var(--color-accent);
+}
+
+.actionWrap {
+  display: flex;
+  justify-content: center;
+  margin-top: clamp(2.25rem, 5vw, 3.25rem);
+}
+
+.outlineBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.85rem 1.75rem;
+  border: 1px solid var(--color-border-hover);
+  border-radius: var(--radius-full);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  transition:
+    background-color var(--transition-base),
+    color var(--transition-base),
+    border-color var(--transition-base);
+}
+
+.outlineBtn:hover {
+  background: var(--color-text-primary);
+  border-color: var(--color-text-primary);
+  color: var(--color-bg-primary);
+}
+
+.outlineBtn svg {
+  transition: transform var(--transition-base);
+}
+
+.outlineBtn:hover svg {
+  transform: translateX(3px);
+}

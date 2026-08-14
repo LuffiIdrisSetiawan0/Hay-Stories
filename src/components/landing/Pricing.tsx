@@ -1,55 +1,64 @@
 import Link from "next/link";
-import { Check, ArrowRight, Star } from "lucide-react";
+import { Check, ArrowRight } from "lucide-react";
 import { TIERS, formatPrice, formatGuestLimit } from "@/lib/catalog";
 import Reveal from "@/components/ui/Reveal";
-import { Section } from "@/components/ui/Section";
+import SplitText from "@/components/ui/SplitText";
 import styles from "./Pricing.module.css";
 
+/**
+ * Empat paket, dibaca langsung dari katalog.
+ *
+ * Kartunya masuk dengan gerakan terlempar yang sama dengan tumpukan foto di
+ * hero — pengulangan yang disengaja, supaya halaman ini terasa punya satu
+ * bahasa gerak dan bukan kumpulan seksi yang masing-masing beranimasi sendiri.
+ */
 export default function Pricing() {
   return (
-    <Section id="harga" tone="tinted">
+    <section id="harga" className={styles.section}>
       <div className="container">
-        <Reveal className={styles.head}>
-          <h2 className={styles.title}>Bayar sekali per album</h2>
-        </Reveal>
+        <div className={styles.head}>
+          <p className={styles.eyebrow}>Harga</p>
+          <h2 className={styles.title}>
+            <SplitText by="word" delay={80}>
+              Bayar sekali per album
+            </SplitText>
+          </h2>
+          <p className={styles.lede}>
+            <SplitText by="word" direction="up" delay={160}>
+              Tanpa langganan dan tanpa biaya berulang. Fotonya milikmu selamanya.
+            </SplitText>
+          </p>
+        </div>
 
-        <Reveal delay={100} className={styles.lede}>
-          <p>Bayar sekali per album, tanpa biaya berulang. Fotonya milikmu selamanya.</p>
-        </Reveal>
-
-
-        <div className={styles.grid}>
+        <ul className={styles.grid}>
           {TIERS.map((plan, i) => (
             <Reveal
               key={plan.id}
-              delay={i * 90}
+              as="li"
+              direction="throw"
+              delay={i * 110}
               className={`${styles.card} ${plan.recommended ? styles.cardBest : ""}`}
             >
-              {plan.recommended && (
-                <div className={styles.bestBadge}>
-                  <Star size={12} />
-                  <span>Rekomendasi</span>
-                </div>
-              )}
+              {plan.recommended && <p className={styles.badge}>Rekomendasi</p>}
 
               <h3 className={styles.planName}>{plan.name}</h3>
               <p className={styles.planTagline}>{plan.tagline}</p>
 
-              <div className={styles.priceBlock}>
+              <p className={styles.priceBlock}>
                 {plan.wasPrice && (
                   <span className={styles.wasPrice}>{formatPrice(plan.wasPrice)}</span>
                 )}
                 <span className={styles.price}>{formatPrice(plan.price)}</span>
-              </div>
+              </p>
 
               <p className={styles.guests}>
                 {formatGuestLimit(plan.maxGuests)} &middot; {plan.shotsPerGuest} jepretan/tamu
               </p>
 
               <ul className={styles.features}>
-                {plan.features.map((feature, j) => (
-                  <li key={j} className={styles.featureItem}>
-                    <Check size={14} strokeWidth={2} className={styles.featureCheck} />
+                {plan.features.map((feature) => (
+                  <li key={feature} className={styles.featureItem}>
+                    <Check size={14} strokeWidth={2.5} className={styles.featureCheck} />
                     <span>{feature}</span>
                   </li>
                 ))}
@@ -59,13 +68,13 @@ export default function Pricing() {
                 href="/login"
                 className={`${styles.planBtn} ${plan.recommended ? styles.planBtnBest : ""}`}
               >
-                {plan.price === 0 ? "Mulai Gratis" : "Pilih Paket"}
-                <ArrowRight size={16} />
+                {plan.price === 0 ? "Mulai gratis" : "Pilih paket"}
+                <ArrowRight size={15} />
               </Link>
             </Reveal>
           ))}
-        </div>
+        </ul>
       </div>
-    </Section>
+    </section>
   );
 }

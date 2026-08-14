@@ -1,0 +1,50 @@
+/* ===========================================================================
+   Baris bergeser tanpa ujung
+   =========================================================================== */
+
+.viewport {
+  width: 100%;
+  overflow: hidden;
+}
+
+.track {
+  display: flex;
+  /* `max-content` wajib: tanpa ini trek menyusut ke lebar induk dan geseran
+     -50% tidak lagi sama dengan satu lebar salinan. */
+  width: max-content;
+  animation-name: marquee-left;
+  animation-duration: 40s;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  will-change: transform;
+}
+
+.trackRight {
+  animation-name: marquee-right;
+}
+
+.group {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+/*
+ * Gerakan terus-menerus di tepi pandangan justru yang paling memicu mabuk
+ * gerak. Animasinya dimatikan, dan sebagai gantinya barisnya dibuat bisa
+ * digulir manual — isinya tetap bisa dijangkau, bukan terpotong.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .track {
+    animation: none;
+  }
+
+  .viewport {
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .viewport::-webkit-scrollbar {
+    display: none;
+  }
+}

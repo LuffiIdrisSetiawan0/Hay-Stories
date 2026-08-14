@@ -1,8 +1,8 @@
 import Navbar from "@/components/ui/Navbar";
 import Hero from "@/components/landing/Hero";
-import EventTypes from "@/components/landing/EventTypes";
-import ProblemSection from "@/components/landing/ProblemSection";
+import WhySection from "@/components/landing/WhySection";
 import StatsBand from "@/components/landing/StatsBand";
+import EventShowcase from "@/components/landing/EventShowcase";
 import FilmShowcase from "@/components/landing/FilmShowcase";
 import HowItWorks from "@/components/landing/HowItWorks";
 import Pricing from "@/components/landing/Pricing";
@@ -10,30 +10,24 @@ import FAQ from "@/components/landing/FAQ";
 import Footer from "@/components/landing/Footer";
 
 /**
- * Susunan halaman mengikuti pola situs agensi: pintu masuk per kategori tepat
- * setelah hero, lalu "kenapa", angka bukti, carousel penawaran, dan cara kerja.
+ * Susunan halaman: buka dengan pernyataan, lalu alasan, lalu bukti, baru
+ * penawaran. Pintu per jenis acara datang setelah bukti — bukan sebelum —
+ * karena pengunjung baru mau memilih pintu setelah percaya ada isinya.
  *
- * Dua seksi lama dihapus, bukan dipindah. `Testimonials` dan `SocialProof`
- * keduanya berisi kutipan dan logo karangan — README proyek ini sendiri
- * menandainya harus diganti sebelum dipromosikan. Referensinya membangun
- * kredibilitas lewat angka yang bisa diperiksa, bukan lewat testimoni, dan
- * angka yang bisa diperiksa memang kita punya. Testimoni asli yang mengganti
- * keduanya nanti jauh lebih kuat daripada yang dikarang sekarang.
- *
- * Ritme terang/gelap: hero GELAP → krem → krem → bernuansa → GELAP (showcase)
- * → krem → krem → krem. Band gelap tunggal itu memberi jeda sekaligus
- * menempatkan foto pada latar yang membuatnya paling bagus.
+ * Ritme terang/gelap: hero GELAP → krem → GELAP → GELAP → GELAP → krem → krem
+ * → krem → GELAP. Tiga seksi gelap berturut-turut di tengah bukan kelalaian:
+ * ketiganya soal foto, dan foto tampil paling bagus di atas hitam. Yang
+ * memisahkan mereka pergantian bentuk — angka, slide menempel, etalase — bukan
+ * pergantian warna latar.
  */
 export default function HomePage() {
   return (
     <main>
-      {/* Pil mengambang di atas hero gelap. `overHero` tidak dipakai bersama
-          `pill`: pilnya sendiri sudah terang, jadi teksnya harus tetap gelap. */}
-      <Navbar pill />
+      <Navbar overHero />
       <Hero />
-      <EventTypes />
-      <ProblemSection />
+      <WhySection />
       <StatsBand />
+      <EventShowcase />
       <FilmShowcase />
       <HowItWorks />
       <Pricing />

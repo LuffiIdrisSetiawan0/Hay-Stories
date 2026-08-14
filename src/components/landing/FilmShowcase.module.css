@@ -1,15 +1,18 @@
 /* ===========================================================================
-   Seksi roll film: daftar bernomor di samping, satu contoh besar di sebelahnya.
-
-   Bentuknya sengaja berbeda dari seksi lain di halaman ini. Yang dipilih di
-   sini bukan sekadar dibaca — daftar yang bisa ditekan membuat pengunjung
-   membandingkan roll satu per satu, dan itu tujuan seksinya.
+   Etalase roll film
    =========================================================================== */
 
 .inner {
-  max-width: 82rem;
-  margin: 0 auto;
-  padding: 0 clamp(1rem, 4vw, 2rem);
+  width: 100%;
+  max-width: var(--max-width);
+  margin-inline: auto;
+  padding-inline: 1.5rem;
+}
+
+@media (min-width: 640px) {
+  .inner {
+    padding-inline: 2rem;
+  }
 }
 
 /* ===== Kepala ===== */
@@ -18,9 +21,8 @@
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: 1.5rem;
-  padding-bottom: 1.1rem;
-  margin-bottom: clamp(2rem, 5vw, 3.5rem);
+  gap: 1rem;
+  padding-bottom: 1.25rem;
   border-bottom: 1px solid var(--color-border);
 }
 
@@ -29,141 +31,123 @@
   font-size: 0.6875rem;
   letter-spacing: 0.3em;
   text-transform: uppercase;
-  color: var(--color-halation);
+  color: var(--color-accent);
 }
 
 .counter {
   font-family: var(--font-mono);
-  font-size: clamp(1.25rem, 3vw, 2rem);
+  font-size: 0.8125rem;
+  letter-spacing: 0.12em;
   color: var(--color-text-primary);
   font-variant-numeric: tabular-nums;
-  line-height: 1;
 }
 
 .counterTotal {
-  font-size: 0.5em;
-  color: var(--color-text-muted);
+  color: var(--color-text-faint);
 }
 
-/* ===== Tata letak dua kolom ===== */
+.title {
+  margin-top: clamp(1.5rem, 4vw, 2.25rem);
+  max-width: 14em;
+  font-size: var(--text-display-5);
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 1.1;
+  color: var(--color-text-primary);
+  text-wrap: balance;
+}
+
+/* ===== Tata letak ===== */
 
 .layout {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: clamp(1.75rem, 4vw, 3rem);
+  gap: clamp(2rem, 5vw, 3.5rem);
+  margin-top: clamp(2.25rem, 5vw, 3.5rem);
 }
 
-@media (min-width: 880px) {
+@media (min-width: 900px) {
   .layout {
-    grid-template-columns: minmax(0, 15rem) minmax(0, 1fr);
-    gap: clamp(2.5rem, 5vw, 4.5rem);
+    /* Daftar sengaja lebih sempit: contoh fotonya yang harus jadi pusat
+       perhatian, bukan menu di sebelahnya. */
+    grid-template-columns: 0.8fr 1.2fr;
     align-items: start;
   }
 }
 
-/* ===== Daftar bernomor ===== */
+/* ===== Daftar roll ===== */
 
 .list {
-  display: flex;
-  gap: 0.5rem;
-  overflow-x: auto;
-  scrollbar-width: none;
-  padding-bottom: 0.25rem;
+  border-top: 1px solid var(--color-border);
 }
 
-.list::-webkit-scrollbar {
-  display: none;
-}
-
-/* Di ponsel daftarnya bergulir mendatar; begitu ada ruang ia jadi kolom tegak
-   dengan garis pemisah, dan barulah bentuk "daftar" itu terbaca. */
-@media (min-width: 880px) {
-  .list {
-    flex-direction: column;
-    gap: 0;
-    overflow: visible;
-  }
+.list li {
+  border-bottom: 1px solid var(--color-border);
 }
 
 .listItem {
   display: flex;
-  align-items: baseline;
-  gap: 0.85rem;
+  align-items: center;
+  gap: 1rem;
   width: 100%;
-  padding: 0.7rem 0.9rem;
-  border-radius: var(--radius-full);
-  border: 1px solid var(--color-border);
+  padding-block: 0.95rem;
+  text-align: left;
   color: var(--color-text-muted);
-  white-space: nowrap;
-  transition: color var(--transition-base), border-color var(--transition-base),
-    background-color var(--transition-base);
-}
-
-@media (min-width: 880px) {
-  .listItem {
-    border: none;
-    border-radius: 0;
-    border-bottom: 1px solid var(--color-border);
-    padding: 0.95rem 0.25rem;
-  }
+  transition:
+    color var(--transition-slow),
+    padding-left var(--transition-slow);
 }
 
 .listItem:hover {
   color: var(--color-text-primary);
+  padding-left: 0.5rem;
 }
 
 .listItemActive {
   color: var(--color-text-primary);
-  border-color: var(--color-text-primary);
-}
-
-@media (min-width: 880px) {
-  .listItemActive {
-    border-bottom-color: var(--color-text-primary);
-  }
+  padding-left: 0.5rem;
 }
 
 .listNumber {
   font-family: var(--font-mono);
   font-size: 0.6875rem;
   letter-spacing: 0.12em;
-  color: var(--color-halation);
+  color: var(--color-text-faint);
+}
+
+.listItemActive .listNumber {
+  color: var(--color-accent);
 }
 
 .listName {
-  font-family: var(--font-serif);
-  font-size: clamp(0.9375rem, 1.5vw, 1.125rem);
+  font-size: var(--text-title-3);
   font-weight: 600;
 }
 
 /* ===== Contoh besar ===== */
 
-.feature {
-  display: grid;
-  gap: clamp(1.25rem, 3vw, 1.75rem);
-}
-
 .frame {
   position: relative;
-  aspect-ratio: 3 / 2;
-  border-radius: var(--radius-md);
+  display: grid;
+  aspect-ratio: 4 / 3;
+  border-radius: var(--radius-lg);
   overflow: hidden;
-  background: var(--color-bg-secondary);
+  background: #1f1b16;
+  box-shadow: var(--shadow-lg);
 }
 
 /*
- * Keenam kanvas ditumpuk dan hanya dipudarkan. Menampilkan yang aktif dengan
- * merender ulang elemennya akan melepas kanvas yang sedang dipegang konteks
- * WebGL, dan hasilnya kosong.
+ * Keenam kanvas tetap ada di DOM sepanjang waktu dan menempati sel grid yang
+ * sama; berpindah roll hanya memudarkan yang aktif ke depan. Tidak ada yang
+ * dilepas — melepasnya membuat React memasang elemen baru sementara konteks
+ * WebGL masih memegang kanvas lama, dan yang tampil jadi kosong.
  */
 .canvas {
-  position: absolute;
-  inset: 0;
+  grid-area: 1 / 1;
   width: 100%;
   height: 100%;
   object-fit: cover;
   opacity: 0;
-  transition: opacity var(--transition-base);
+  transition: opacity 0.5s var(--ease-ref);
 }
 
 .canvasActive {
@@ -171,33 +155,38 @@
 }
 
 .fallback {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  padding: 1.5rem;
+  grid-area: 1 / 1;
+  align-self: center;
+  padding: 2rem;
   text-align: center;
-  font-size: 0.875rem;
-  color: var(--color-text-muted);
+  font-size: var(--text-title-3);
+  color: var(--color-text-secondary);
+}
+
+.featureMeta {
+  margin-top: 1.5rem;
 }
 
 .featureName {
-  font-family: var(--font-serif);
-  font-size: clamp(1.5rem, 3vw, 2.25rem);
-  font-weight: 600;
-  letter-spacing: -0.01em;
+  font-size: var(--text-display-6);
+  font-weight: 700;
+  letter-spacing: -0.03em;
   color: var(--color-text-primary);
 }
 
 .featureCharacter {
-  margin-top: 0.3rem;
-  font-size: clamp(0.9375rem, 1.5vw, 1.0625rem);
-  line-height: 1.7;
+  margin-top: 0.5rem;
+  font-size: var(--text-title-3);
+  line-height: 1.6;
   color: var(--color-text-secondary);
+  text-wrap: pretty;
 }
 
 .footnote {
-  margin-top: 0.9rem;
-  font-size: 0.8125rem;
+  margin-top: 1rem;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  line-height: 1.7;
   color: var(--color-text-muted);
 }

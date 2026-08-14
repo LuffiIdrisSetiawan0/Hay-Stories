@@ -81,6 +81,37 @@
   /* Easing — pelan di akhir, terasa mahal daripada linear */
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 
+  /*
+   * Easing tunggal untuk seluruh animasi masuk landing. Nyaris identik dengan
+   * --ease-out-expo di atas, tapi sengaja dipisah: yang ini milik bahasa gerak
+   * landing dan boleh disetel tanpa ikut menggeser transisi dashboard/kamera
+   * yang sudah dikalibrasi ke --ease-out-expo.
+   */
+  --ease-ref: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* Jeda antar item dalam satu kelompok bertahap (kata, kartu, baris). */
+  --stagger-step: 45ms;
+
+  /*
+   * Skala tipe fluid.
+   *
+   * Semua pakai clamp() tiga-nilai supaya tidak ada satu pun breakpoint yang
+   * perlu ditulis manual — ukurannya menyapu mulus dari 360px ke 1920px.
+   * `display` untuk kata/judul raksasa, `title` untuk judul biasa ke bawah.
+   */
+  --text-display-1: clamp(3.25rem, 1.2rem + 9.1vw, 9rem);
+  --text-display-2: clamp(2.75rem, 1.35rem + 6.2vw, 6.75rem);
+  --text-display-3: clamp(2.25rem, 1.3rem + 4.2vw, 5rem);
+  --text-display-4: clamp(2rem, 1.35rem + 2.9vw, 4rem);
+  --text-display-5: clamp(1.75rem, 1.3rem + 2vw, 3.1rem);
+  --text-display-6: clamp(1.5rem, 1.2rem + 1.35vw, 2.4rem);
+
+  --text-title-1: clamp(1.375rem, 1.2rem + 0.8vw, 1.875rem);
+  --text-title-2: clamp(1.1875rem, 1.09rem + 0.44vw, 1.5rem);
+  --text-title-3: clamp(1.0625rem, 1rem + 0.28vw, 1.25rem);
+  --text-title-4: clamp(0.9375rem, 0.9rem + 0.18vw, 1.0625rem);
+  --text-title-5: clamp(0.8125rem, 0.79rem + 0.11vw, 0.875rem);
+
   /* Layout */
   --max-width: 72rem;
   --nav-height: 4rem;
@@ -434,8 +465,16 @@ ul, ol {
 .reveal {
   opacity: 0;
   transition:
-    opacity 0.9s var(--ease-out-expo),
-    transform 0.9s var(--ease-out-expo);
+    opacity 0.9s var(--ease-ref),
+    transform 0.9s var(--ease-ref),
+    filter 0.9s var(--ease-ref),
+    clip-path 0.9s var(--ease-ref);
+  /*
+   * Jeda bertahap dibaca dari --i, yang dipasang sebagai inline style oleh
+   * pemanggilnya (lihat SplitText). Nol kalau tidak disetel, jadi elemen
+   * tunggal tidak perlu tahu apa-apa soal ini.
+   */
+  transition-delay: calc(var(--i, 0) * var(--stagger-step));
   will-change: opacity, transform;
 }
 
@@ -445,22 +484,88 @@ ul, ol {
 .reveal-scale { transform: scale(0.96); }
 .reveal-none { transform: none; }
 
+/* Naik sambil menajam — dipakai judul raksasa, dipecah per kata. */
+.reveal-blur {
+  transform: translateY(0.45em);
+  filter: blur(8px);
+}
+
+/*
+ * Tersingkap dari kiri ke kanan. Opacity dibiarkan penuh: yang menyembunyikan
+ * elemennya clip-path, dan memudarkan sekaligus memotong membuat tepi sapuannya
+ * terlihat lembek.
+ */
+.reveal-clip {
+  opacity: 1;
+  transform: none;
+  clip-path: inset(0 100% 0 0);
+}
+
+/* Garis yang memanjang dari kiri. Sama seperti clip: tanpa fade. */
+.reveal-sweep {
+  opacity: 1;
+  transform: scaleX(0);
+  transform-origin: left center;
+}
+
+/*
+ * Kartu terlempar naik ke tempatnya. Titik putarnya di bawah supaya rotasinya
+ * berayun seperti benda yang dijatuhkan, bukan berputar di tengah.
+ */
+.reveal-throw {
+  transform: translateY(150px) scale(1.12) rotate(-10deg);
+  transform-origin: bottom center;
+  transition-duration: 1.05s;
+}
+
 .reveal-visible {
   opacity: 1;
   transform: none;
+  filter: none;
+  clip-path: inset(0);
   will-change: auto;
+}
+
+/* Sapuan harus mendarat di scaleX(1), bukan `none` — `none` juga scaleX(1),
+   tapi menuliskannya eksplisit menahan varian ini kalau basisnya berubah. */
+.reveal-sweep.reveal-visible {
+  transform: scaleX(1);
+}
+
+/* ===== Marquee ===== */
+
+/*
+ * Trek digandakan tepat 2× oleh komponennya, jadi menggeser separuh lebar
+ * membawa salinan kedua persis ke posisi awal salinan pertama — sambungannya
+ * tidak pernah terlihat.
+ */
+@keyframes marquee-left {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+@keyframes marquee-right {
+  from { transform: translateX(-50%); }
+  to { transform: translateX(0); }
 }
 
 /*
  * Hormati permintaan pengurangan animasi. Bukan sekadar kesopanan: konten yang
  * dimulai dari opacity 0 akan hilang sepenuhnya bagi siapa pun yang animasinya
- * tidak pernah berjalan.
+ * tidak pernah berjalan — begitu juga yang dimulai dari clip-path terpotong
+ * penuh atau scaleX(0).
  */
 @media (prefers-reduced-motion: reduce) {
   .reveal {
     opacity: 1;
     transform: none;
+    filter: none;
+    clip-path: none;
     transition: none;
+  }
+
+  .reveal-sweep {
+    transform: scaleX(1);
   }
 }
 

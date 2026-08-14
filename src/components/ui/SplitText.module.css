@@ -1,0 +1,43 @@
+/* ===========================================================================
+   Teks yang dipecah jadi potongan bertahap
+   =========================================================================== */
+
+.wrap {
+  /* Warisi tipografi induknya — komponen ini soal gerak, bukan soal gaya. */
+  font: inherit;
+  color: inherit;
+}
+
+/*
+ * Kotak per kata. Ada di kedua mode, termasuk mode `char`: tanpa ini baris bisa
+ * patah di tengah kata karena tiap karakter jadi kotak yang bisa dibungkus
+ * sendiri-sendiri.
+ */
+.word {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+/*
+ * `transform` dan `filter` tidak berlaku pada elemen inline, jadi tiap potongan
+ * harus jadi inline-block.
+ *
+ * Jedanya menimpa aturan di `.reveal` supaya jeda kelompok (--group-delay, dari
+ * pembungkus) bisa ditumpuk di atas tangga antar potongan (--i).
+ */
+.piece {
+  display: inline-block;
+  transition-delay: calc(var(--group-delay, 0ms) + var(--i, 0) * var(--stagger-step));
+  /*
+   * Huruf berkait bawah (g, j, y) dan aksen atas terpotong kalau kotaknya pas
+   * badan huruf. Padding negatif memberi ruang tanpa menggeser tata letak.
+   */
+  padding-block: 0.08em;
+  margin-block: -0.08em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .piece {
+    transition-delay: 0ms;
+  }
+}

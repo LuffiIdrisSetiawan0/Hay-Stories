@@ -94,7 +94,7 @@ export default function FilmShowcase() {
       <div ref={sectionRef} className={styles.inner}>
         <div className={styles.head}>
           <p className={styles.eyebrow}>Roll Film</p>
-          <p className={styles.counter}>
+          <p className={styles.counter} aria-hidden="true">
             {String(active + 1).padStart(2, "0")}
             <span className={styles.counterTotal}>
               {" / "}
@@ -102,6 +102,8 @@ export default function FilmShowcase() {
             </span>
           </p>
         </div>
+
+        <h2 className={styles.title}>Enam roll, enam kondisi acara</h2>
 
         <div className={styles.layout}>
           {/* Daftar bernomor; menekan salah satunya mengganti contoh di sebelah. */}

@@ -1,222 +1,192 @@
+/* ===========================================================================
+   Footer
+   =========================================================================== */
+
 .footer {
-  border-top: 1px solid var(--color-border);
+  padding-top: var(--section-py);
+  overflow: hidden;
 }
 
-/* Final CTA */
-.finalCta {
-  text-align: center;
-  padding: 6rem 1.5rem;
-  background: linear-gradient(180deg, rgba(181, 136, 99, 0.06) 0%, rgba(181, 136, 99, 0.12) 100%);
-  border-top: 1px solid rgba(181, 136, 99, 0.15);
-  border-bottom: 1px solid rgba(181, 136, 99, 0.15);
+/* ===== Ajakan besar ===== */
+
+.cta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+  padding-bottom: clamp(1.5rem, 4vw, 2.5rem);
+  border-bottom: 1px solid var(--color-border);
 }
 
-.frameLabel {
-  font-family: var(--font-mono);
-  font-size: 0.625rem;
-  color: var(--color-text-faint);
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  margin-bottom: 2rem;
-}
-
-.finalTitle {
-  font-family: var(--font-serif);
-  font-size: clamp(2.25rem, 5vw, 3.5rem);
+.ctaTitle {
+  font-size: var(--text-display-3);
   font-weight: 700;
-  line-height: 1.1;
-  letter-spacing: -0.02em;
+  line-height: 1.08;
+  letter-spacing: -0.04em;
+  color: var(--color-text-primary);
 }
 
-.finalTitleItalic {
-  font-style: italic;
+.ctaAccent {
   color: var(--color-accent);
 }
 
-.finalSubtitle {
-  font-size: 1rem;
-  color: var(--color-text-muted);
-  margin: 1.25rem 0 2rem;
+/*
+ * Wadah setinggi-lebar panah, dengan isi yang meluber disembunyikan — itulah
+ * yang membuat panah pertama benar-benar "keluar dari layar" alih-alih terlihat
+ * melayang di sebelah judul.
+ */
+.arrowBox {
+  position: relative;
+  flex-shrink: 0;
+  display: block;
+  width: clamp(2.5rem, 5vw, 4rem);
+  height: clamp(2.5rem, 5vw, 4rem);
+  overflow: hidden;
+  color: var(--color-text-primary);
 }
 
-.finalNote {
+.arrowOut,
+.arrowIn {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.45s var(--ease-ref);
+}
+
+.arrowIn {
+  transform: translateX(-100%);
+}
+
+.cta:hover .arrowOut,
+.cta:focus-visible .arrowOut {
+  transform: translateX(100%);
+}
+
+.cta:hover .arrowIn,
+.cta:focus-visible .arrowIn {
+  transform: none;
+}
+
+.ctaNote {
+  margin-top: 1.25rem;
   font-size: 0.8125rem;
-  color: var(--color-text-faint);
-  margin-top: 1rem;
+  color: var(--color-text-muted);
 }
 
-/* Footer content */
-.footerContent {
-  padding: 2rem 1.5rem 2rem;
-  max-width: var(--max-width);
-  margin: 0 auto;
+/* ===== Kolom keterangan ===== */
+
+.grid {
+  display: grid;
+  gap: 2.5rem;
+  margin-top: clamp(3rem, 8vw, 5rem);
 }
 
 @media (min-width: 640px) {
-  .footerContent {
-    padding: 3rem 2rem;
+  .grid {
+    grid-template-columns: repeat(3, 1fr);
   }
 }
 
-.footerGrid {
-  display: grid;
-  gap: 2rem;
-}
-
-@media (min-width: 768px) {
-  .footerGrid {
-    grid-template-columns: 1.4fr 1fr 1fr 1fr;
-    gap: 2.5rem;
+@media (min-width: 900px) {
+  .grid {
+    /* Kolom brand dua kali lebar kolom tautan — di dalamnya ada kalimat, bukan
+       daftar satu kata. */
+    grid-template-columns: 1.6fr 1fr 1fr 1fr;
+    gap: 2rem;
   }
 }
 
-/* Brand column */
-.brandCol {
-  /* takes more space */
-}
-
-.footerLogo {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.75rem;
-}
-
-.logoText {
-  font-family: var(--font-serif);
+.brandName {
+  font-size: var(--text-title-1);
   font-weight: 700;
-  font-size: 1.25rem;
   letter-spacing: -0.02em;
+  color: var(--color-text-primary);
 }
 
 .tagline {
-  font-family: var(--font-serif);
-  font-style: italic;
+  margin-top: 0.65rem;
+  max-width: 22em;
   font-size: 0.875rem;
-  color: var(--color-text-muted);
-  max-width: 16rem;
-}
-
-.socials {
-  display: flex;
-  gap: 0.625rem;
-  margin-top: 1.25rem;
-}
-
-.socialBtn {
-  width: 36px;
-  height: 36px;
-  border-radius: var(--radius-xl);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--color-bg-hover);
-  border: 1px solid var(--color-border);
-  color: var(--color-text-muted);
-  transition: color var(--transition-fast), background var(--transition-fast);
-}
-
-.socialBtn:hover {
-  color: var(--color-accent);
-  background: var(--color-border);
+  line-height: 1.7;
+  color: var(--color-text-secondary);
+  text-wrap: pretty;
 }
 
 .contact {
   margin-top: 1.25rem;
+  font-size: 0.8125rem;
+  line-height: 1.9;
+  color: var(--color-text-secondary);
 }
 
-.contactLabel {
-  font-size: 0.6875rem;
+.contact a:hover {
+  color: var(--color-text-primary);
+}
+
+.socials {
+  display: flex;
+  gap: 1.25rem;
+  margin-top: 1.25rem;
+  font-size: 0.75rem;
   font-weight: 600;
-  letter-spacing: 0.15em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--color-text-muted);
-  margin-bottom: 0.625rem;
 }
 
-.contactLink {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.875rem;
-  color: var(--color-text-muted);
-  transition: color var(--transition-fast);
-  margin-bottom: 0.5rem;
-}
-
-.contactLink:hover {
+.socials a:hover {
   color: var(--color-accent);
-}
-
-/* Link columns */
-.linkCol {
-  display: none;
-}
-
-@media (min-width: 768px) {
-  .linkCol {
-    display: block;
-  }
 }
 
 .colTitle {
-  font-size: 0.6875rem;
-  font-weight: 600;
-  letter-spacing: 0.15em;
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.24em;
   text-transform: uppercase;
-  color: var(--color-text-muted);
-  margin-bottom: 0.75rem;
+  color: var(--color-text-faint);
+  margin-bottom: 1rem;
 }
 
-.linkList {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.linkList li a {
+.linkCol li {
+  margin-bottom: 0.65rem;
   font-size: 0.875rem;
-  color: var(--color-text-muted);
-  transition: color var(--transition-fast);
+  color: var(--color-text-secondary);
 }
 
-.linkList li a:hover {
-  color: var(--color-accent);
+.linkCol a {
+  transition: color var(--transition-base);
 }
 
-/* Bottom bar */
-.bottomBar {
-  display: flex;
-  flex-direction: column-reverse;
-  align-items: center;
-  gap: 0.75rem;
-  padding-top: 1.25rem;
-  margin-top: 1.25rem;
-}
-
-@media (min-width: 640px) {
-  .bottomBar {
-    flex-direction: row;
-    justify-content: space-between;
-  }
+.linkCol a:hover {
+  color: var(--color-text-primary);
 }
 
 .copyright {
+  margin-top: clamp(2.5rem, 6vw, 4rem);
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--color-border);
   font-size: 0.75rem;
   color: var(--color-text-faint);
 }
 
-.legalLinks {
-  display: flex;
-  gap: 1rem;
-}
+/* ===== Wordmark penutup ===== */
 
-.legalLinks a {
-  font-size: 0.75rem;
-  color: var(--color-text-muted);
-  transition: color var(--transition-fast);
-}
-
-.legalLinks a:hover {
-  color: var(--color-accent);
+/*
+ * Sengaja melebar melewati tepi layar dan terpotong. Yang dicari bukan
+ * keterbacaannya — namanya sudah disebut di kolom brand — melainkan bobot
+ * tipografi yang menutup halaman.
+ */
+.bigMark {
+  margin-top: clamp(2.5rem, 6vw, 4rem);
+  margin-bottom: -0.14em;
+  text-align: center;
+  white-space: nowrap;
+  font-size: clamp(3.5rem, 15.5vw, 15rem);
+  font-weight: 700;
+  line-height: 0.85;
+  letter-spacing: -0.05em;
+  color: var(--color-text-primary);
+  opacity: 0.09;
+  user-select: none;
 }

@@ -13,12 +13,25 @@
 .reflection {
   font-family: var(--font-sans);
   /* Sengaja sangat besar: kata ini menggantikan seluruh blok judul seksi. */
-  font-size: clamp(4.5rem, 17vw, 13rem);
+  font-size: var(--text-display-1);
   font-weight: 700;
   letter-spacing: -0.045em;
   text-transform: uppercase;
   color: var(--color-text-primary);
   user-select: none;
+}
+
+/*
+ * Wadah definisi filter. Harus ikut dirender di dalam alur dokumen agar
+ * `url(#…)` bisa menemukannya, tapi tidak boleh memakan ruang sedikit pun —
+ * karena itu nol dimensi, bukan `display: none` (yang membuat sebagian browser
+ * membuang isinya).
+ */
+.defs {
+  position: absolute;
+  width: 0;
+  height: 0;
+  pointer-events: none;
 }
 
 /*

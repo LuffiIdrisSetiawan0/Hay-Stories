@@ -1,6 +1,8 @@
 import { FILM_PRESETS, getTier } from '@/lib/catalog'
-import { Section, StatRow } from '@/components/ui/Section'
 import Reveal from '@/components/ui/Reveal'
+import SplitText from '@/components/ui/SplitText'
+import Counter from '@/components/ui/Counter'
+import Marquee from '@/components/ui/Marquee'
 import styles from './StatsBand.module.css'
 
 const STARTER = getTier('starter')!
@@ -20,34 +22,58 @@ const STARTER = getTier('starter')!
  * Ganti seksi ini dengan metrik acara sungguhan begitu ada — itu bukti yang
  * jauh lebih kuat.
  */
+
+/** Baris kompatibilitas: menegaskan cakupan tanpa menambah klaim baru. */
+const REACH = [
+  'iPhone',
+  'Android',
+  'Desktop',
+  'Tanpa aplikasi',
+  'Tanpa akun',
+  'Browser apa saja',
+] as const
+
 export default function StatsBand() {
   const stats = [
-    { value: '0', label: 'Aplikasi diunduh tamu' },
-    { value: String(FILM_PRESETS.length), label: 'Roll film untuk dipilih' },
-    { value: String(STARTER.shotsPerGuest), label: 'Jepretan gratis per tamu' },
-    { value: `${STARTER.retentionDays}`, label: 'Hari foto tersimpan' },
+    { value: 0, suffix: '', label: 'Aplikasi diunduh tamu' },
+    { value: FILM_PRESETS.length, suffix: '', label: 'Roll film untuk dipilih' },
+    { value: STARTER.shotsPerGuest, suffix: '', label: 'Jepretan gratis per tamu' },
+    { value: STARTER.retentionDays ?? 0, suffix: ' hari', label: 'Foto tersimpan' },
   ] as const
 
   return (
-    <Section id="angka" tone="tinted">
+    <section id="angka" className={`${styles.section} surface-dark`}>
       <div className="container">
-        <Reveal className={styles.head}>
-          <h2 className={styles.title}>
+        <Reveal>
+          <p className={styles.eyebrow}>Yang bisa diperiksa</p>
+        </Reveal>
+
+        <h2 className={styles.title}>
+          <SplitText by="word" delay={80}>
             Tamu memindai satu QR code, lalu langsung memotret.
-          </h2>
-        </Reveal>
+          </SplitText>
+        </h2>
 
-        <StatRow stats={stats} />
-
-        {/* Baris kanal: menegaskan cakupan tanpa menambah klaim baru. */}
-        <Reveal delay={200} className={styles.channels}>
-          {['iPhone', 'Android', 'Desktop', 'Tanpa Aplikasi', 'Tanpa Akun'].map((c) => (
-            <span key={c} className={styles.channel}>
-              {c}
-            </span>
+        <ul className={styles.grid}>
+          {stats.map((stat, i) => (
+            <Reveal key={stat.label} as="li" delay={i * 110} className={styles.cell}>
+              <span className={styles.value}>
+                <Counter to={stat.value} suffix={stat.suffix} />
+              </span>
+              <span className={styles.label}>{stat.label}</span>
+            </Reveal>
           ))}
-        </Reveal>
+        </ul>
       </div>
-    </Section>
+
+      <Marquee className={styles.reachBand} speed={38} direction="right" label="Jangkauan perangkat">
+        {REACH.map((item) => (
+          <span key={item} className={styles.reachItem}>
+            {item}
+            <span className={styles.reachDot} aria-hidden="true" />
+          </span>
+        ))}
+      </Marquee>
+    </section>
   )
 }

@@ -1,278 +1,292 @@
+/* ===========================================================================
+   Navbar + panel menu
+   =========================================================================== */
+
+.header {
+  position: sticky;
+  top: 0;
+  /* Di atas panel menu, supaya tombol Tutup tetap bisa dijangkau saat terbuka. */
+  z-index: 80;
+  transition: background-color var(--transition-slow), border-color var(--transition-slow);
+  border-bottom: 1px solid transparent;
+}
+
+.bar {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  max-width: var(--max-width);
+  margin-inline: auto;
+  height: var(--nav-height);
+  padding-inline: 1.5rem;
+}
+
+@media (min-width: 640px) {
+  .bar {
+    padding-inline: 2rem;
+  }
+}
+
 /*
- * Nav transparan mengambang di atas foto hero, memadat jadi krem saat scroll —
- * pola Ludmila Borosova.
- *
- * Saat transparan, nav berada di atas foto gelap, jadi warna teksnya harus
- * TERANG. Token `--color-text-*` bernilai gelap dan hanya benar setelah latar
- * krem muncul. Karena itu keadaan transparan memakai warna eksplisit, bukan
- * token, dan token baru dipakai kembali pada `.scrolled`.
- */
-/*
- * Default aman: teks gelap, benar di atas latar krem. Halaman seperti /harga
- * yang tidak punya hero foto memakai keadaan ini apa adanya.
+ * Bawaan: halaman terang. Bilahnya sudah berlatar sejak awal karena di halaman
+ * seperti /harga tidak ada hero gelap yang menahannya.
  */
 .header {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 50;
-  border-bottom: 1px solid transparent;
-  background: transparent;
-  transition: background var(--transition-slow), border-color var(--transition-slow),
-    color var(--transition-slow);
-
-  --nav-fg: var(--color-text-primary);
-  --nav-fg-muted: var(--color-text-muted);
-  --nav-rule: var(--color-border);
-  --nav-accent: var(--color-accent);
-}
-
-/*
- * Hanya saat nav mengambang di atas foto hero gelap DAN belum di-scroll.
- * Warnanya eksplisit, bukan token: token `--color-text-*` bernilai gelap dan
- * baru benar setelah latar krem muncul di belakang bar.
- */
-.overHero:not(.scrolled) {
-  --nav-fg: #f7f4ee;
-  --nav-fg-muted: rgba(247, 244, 238, 0.72);
-  --nav-rule: rgba(247, 244, 238, 0.35);
-  --nav-accent: #e8c99a;
-}
-
-.scrolled {
-  background: rgba(253, 251, 247, 0.85);
+  background-color: color-mix(in srgb, var(--color-bg-primary) 88%, transparent);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border-bottom-color: var(--color-border);
+  color: var(--color-text-primary);
 }
 
-.container {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  max-width: 1300px;
-  margin: 0 auto;
-  padding: 1.5rem;
+/* Di atas hero gelap: mulai tanpa latar, teks terang. */
+.overHero {
+  background-color: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border-bottom-color: transparent;
+  color: #f5f2ec;
+
+  /*
+   * Menarik konten sesudahnya naik setinggi bilah ini, jadi hero mulai di y=0
+   * dan bilahnya benar-benar MENUMPANG di atas hero.
+   *
+   * Tanpa baris ini bilahnya tetap memakan 64px sendiri di aliran dokumen —
+   * dan karena latarnya transparan, yang tampil di belakangnya adalah latar
+   * <body> yang krem. Teks bilah ini krem juga, jadi hasilnya krem di atas
+   * krem: "Menu" dan wordmark-nya praktis tidak terlihat sementara pil CTA
+   * tetap terbaca karena teksnya gelap.
+   *
+   * Margin negatif, bukan `position: fixed`: sticky menjaga bilahnya tetap
+   * ikut menggulir di dalam <main> tanpa mencabutnya dari aliran, yang penting
+   * karena panel menu di bawahnya mengandalkan tinggi bilah yang sebenarnya.
+   */
+  margin-bottom: calc(var(--nav-height) * -1);
 }
 
-@media (min-width: 640px) {
-  .container {
-    padding: 2rem 1.5rem;
-  }
+.overHero.scrolled {
+  background-color: rgba(12, 11, 9, 0.72);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom-color: rgba(255, 255, 255, 0.1);
 }
 
-/* Logo */
-.logo {
-  display: flex;
+/* ===== Isi bilah ===== */
+
+.menuBtn {
+  display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  text-decoration: none;
-}
-
-.logoIcon {
-  color: var(--nav-accent);
-  font-size: 1.125rem;
-}
-
-.logoText {
-  font-family: var(--font-serif);
-  font-weight: 500;
-  font-size: 1.25rem;
-  letter-spacing: 0.05em;
-  color: var(--nav-fg);
+  justify-self: start;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
+  color: inherit;
+  transition: opacity var(--transition-base);
 }
 
-/* Desktop Links */
-.navLinks {
-  display: none;
-  align-items: center;
-  gap: 3rem;
+.menuBtn:hover {
+  opacity: 0.65;
 }
 
-@media (min-width: 768px) {
-  .navLinks {
-    display: flex;
-  }
+.wordmark {
+  font-size: var(--text-title-3);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: inherit;
+  white-space: nowrap;
 }
 
-.link {
-  font-family: var(--font-sans);
+.cta {
+  justify-self: end;
+  padding: 0.6rem 1.25rem;
+  border-radius: var(--radius-full);
   font-size: 0.8125rem;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--nav-fg-muted);
-  text-decoration: none;
-  transition: color 0.3s ease;
-  position: relative;
+  font-weight: 600;
+  white-space: nowrap;
+  background: var(--color-text-primary);
+  color: var(--color-bg-primary);
+  transition: opacity var(--transition-base);
 }
 
-.link:hover {
-  color: var(--nav-fg);
+.overHero .cta {
+  background: #f5f2ec;
+  color: #14120f;
 }
 
-.link::after {
-  content: '';
-  position: absolute;
-  bottom: -4px;
-  left: 0;
-  width: 0;
-  height: 1px;
-  background-color: var(--nav-accent);
-  transition: width 0.3s ease;
+.cta:hover {
+  opacity: 0.85;
 }
 
-.link:hover::after {
-  width: 100%;
-}
-
-/* Actions */
-.actions {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.loginBtn {
-  font-family: var(--font-sans);
-  font-size: 0.8125rem;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--nav-fg);
-  text-decoration: none;
-  padding: 0.5rem 0;
-  border-bottom: 1px solid var(--nav-rule);
-  transition: border-color 0.3s ease, color 0.3s ease;
-  display: none;
-}
-
-@media (min-width: 640px) {
-  .loginBtn {
-    display: inline-block;
+/* Label tombol menu memakan lebar yang tidak ada di ponsel. */
+@media (max-width: 520px) {
+  .menuBtn span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
   }
-}
-
-.loginBtn:hover {
-  border-color: var(--nav-accent);
-  color: var(--nav-accent);
-}
-
-.mobileMenuBtn {
-  background: none;
-  border: none;
-  color: var(--nav-fg);
-  cursor: pointer;
-  padding: 0.5rem;
-  margin-right: -0.5rem;
-}
-
-/*
- * Menu mobile adalah lapisan krem penuh layar, bukan bagian dari bar
- * transparan — di sini token `--color-*` yang gelap justru benar.
- */
-
-@media (min-width: 768px) {
-  .mobileMenuBtn {
-    display: none;
-  }
-}
-
-/* Mobile Menu */
-.mobileMenu {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100vh;
-  background: var(--color-bg-primary);
-  z-index: 40;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.4s ease, transform 0.4s ease;
-  transform: translateY(-20px);
-}
-
-.mobileMenuOpen {
-  opacity: 1;
-  pointer-events: auto;
-  transform: translateY(0);
-}
-
-.mobileNavLinks {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2rem;
-}
-
-.mobileLink {
-  font-family: var(--font-serif);
-  font-size: 2rem;
-  color: var(--color-text-primary);
-  text-decoration: none;
-  transition: color 0.3s ease;
-}
-
-.mobileLink:hover {
-  color: var(--color-accent);
-}
-
-.mobileLoginBtn {
-  margin-top: 2rem;
-  font-family: var(--font-sans);
-  font-size: 1rem;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: #fff;
-  background: var(--color-accent);
-  padding: 1rem 2rem;
-  text-decoration: none;
 }
 
 /* ===========================================================================
-   Varian pil mengambang
-
-   Bar tidak lagi selebar layar; isinya mengapung sebagai satu bilah membulat.
-   Dipakai di atas hero gelap, jadi pilnya terang dan teksnya tetap gelap —
-   `overHero` justru tidak boleh dipasang bersamanya.
+   Panel menu
    =========================================================================== */
 
-.pill {
-  background: transparent;
-  border-bottom: none;
-  padding-top: clamp(0.75rem, 2vw, 1.35rem);
+.panel {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: flex;
+  align-items: center;
+  overflow-y: auto;
+  background: #0c0b09;
+  color: #f5f2ec;
+
+  /*
+   * `visibility` mencabut panel dari urutan Tab sekaligus dari pembaca layar
+   * saat tertutup. Tanpa itu, keempat belas tautan di dalamnya tetap bisa
+   * dijangkau keyboard walau tidak terlihat siapa pun.
+   */
+  visibility: hidden;
+  opacity: 0;
+  transition:
+    opacity 0.45s var(--ease-ref),
+    visibility 0.45s;
 }
 
-.pill .container {
-  max-width: 62rem;
-  padding: 0.55rem 0.65rem 0.55rem 1.5rem;
-  border-radius: var(--radius-full);
-  background: rgba(247, 244, 238, 0.96);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.28);
-  /* Token warna navbar dipaksa ke skema gelap-di-atas-terang, apa pun keadaan
-     gulirnya — pilnya selalu terang. */
-  --nav-fg: #1a1a1a;
-  --nav-fg-muted: rgba(26, 26, 26, 0.62);
-  --nav-rule: rgba(0, 0, 0, 0.12);
-  --nav-accent: var(--color-accent);
+.panelOpen {
+  visibility: visible;
+  opacity: 1;
 }
 
-/* Tombol kanan jadi pil gelap yang kontras di dalam pil terang. */
-.pill .loginBtn {
-  padding: 0.6rem 1.25rem;
-  border-radius: var(--radius-full);
-  background: #1a1a1a;
-  color: #f7f4ee;
-  border: none;
+.panel:focus {
+  outline: none;
 }
 
-.pill .loginBtn:hover {
-  background: #000;
+.panelInner {
+  width: 100%;
+  max-width: var(--max-width);
+  margin-inline: auto;
+  padding: calc(var(--nav-height) + 2.5rem) 1.5rem 3rem;
+}
+
+@media (min-width: 640px) {
+  .panelInner {
+    padding-inline: 2rem;
+  }
+}
+
+.groupLabel {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: rgba(245, 242, 236, 0.45);
+  margin-bottom: 1.25rem;
+}
+
+/* ===== Daftar acara ===== */
+
+.eventList {
+  display: grid;
+  gap: 1.25rem;
+  margin-bottom: 3rem;
+}
+
+@media (min-width: 768px) {
+  .eventList {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2rem;
+  }
+}
+
+.eventLink {
+  display: flex;
+  gap: 0.9rem;
+  align-items: flex-start;
+}
+
+.eventIndex {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.12em;
+  color: var(--color-halation);
+  padding-top: 0.4em;
+}
+
+.eventBody {
+  display: block;
+}
+
+.eventLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: var(--text-title-2);
+  font-weight: 600;
+}
+
+.eventArrow {
+  opacity: 0;
+  transform: translateX(-5px);
+  transition:
+    opacity var(--transition-base),
+    transform var(--transition-base);
+}
+
+.eventLink:hover .eventArrow,
+.eventLink:focus-visible .eventArrow {
+  opacity: 1;
+  transform: none;
+}
+
+.eventLine {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  color: rgba(245, 242, 236, 0.6);
+}
+
+/* ===== Daftar jelajah ===== */
+
+.exploreList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem 2.5rem;
+  padding-top: 2rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.exploreLink {
+  font-size: var(--text-title-1);
+  font-weight: 500;
+  transition: color var(--transition-base);
+}
+
+.exploreLink:hover {
+  color: var(--color-halation);
+}
+
+.panelFoot {
+  margin-top: 3rem;
+  font-size: 0.8125rem;
+  color: rgba(245, 242, 236, 0.55);
+}
+
+.panelFoot a:hover {
+  color: #f5f2ec;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel,
+  .eventArrow,
+  .header {
+    transition: none;
+  }
 }

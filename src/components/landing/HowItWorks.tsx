@@ -1,13 +1,14 @@
 import Reveal from "@/components/ui/Reveal";
+import SplitText from "@/components/ui/SplitText";
 import BigWord from "@/components/ui/BigWord";
 import styles from "./HowItWorks.module.css";
 
 /**
  * Tiga langkah, rata tengah, dipimpin satu kata raksasa.
  *
- * Versi sebelumnya memakai lingkaran ikon dan tata letak berselang-seling
- * kiri-kanan dengan garis penghubung. Ramai untuk sesuatu yang isinya cuma tiga
- * kalimat; sekarang angkanya yang jadi penanda dan sisanya ruang kosong.
+ * Angkanya yang jadi penanda dan sisanya ruang kosong — tidak ada lingkaran
+ * ikon dan tidak ada garis penghubung. Untuk sesuatu yang isinya cuma tiga
+ * kalimat, keduanya cuma menambah ramai.
  */
 const steps = [
   {
@@ -34,21 +35,26 @@ export default function HowItWorks() {
   return (
     <section id="cara-kerja" className={styles.section}>
       <div className="container">
-        <Reveal className={styles.head}>
-          <BigWord>Caranya</BigWord>
+        <Reveal className={styles.head} direction="blur">
+          <BigWord as="h2">Caranya</BigWord>
         </Reveal>
 
-        <Reveal delay={100} className={styles.lede}>
-          <p>Tiga langkah, dan tamumu tidak perlu dijelaskan satu pun.</p>
-        </Reveal>
+        <p className={styles.lede}>
+          <SplitText by="word" delay={100}>
+            Tiga langkah, dan tamumu tidak perlu dijelaskan satu pun.
+          </SplitText>
+        </p>
 
         <ol className={styles.steps}>
           {steps.map((step, index) => (
-            <Reveal key={step.number} delay={index * 130} as="li" className={styles.step}>
-              <span className={styles.number}>{step.number}</span>
-              <h3 className={styles.title}>{step.title}</h3>
-              <p className={styles.desc}>{step.description}</p>
-            </Reveal>
+            <li key={step.number} className={styles.step}>
+              <Reveal direction="sweep" delay={index * 130} className={styles.rule} />
+              <Reveal delay={index * 130 + 90}>
+                <span className={styles.number}>{step.number}</span>
+                <h3 className={styles.title}>{step.title}</h3>
+                <p className={styles.desc}>{step.description}</p>
+              </Reveal>
+            </li>
           ))}
         </ol>
       </div>

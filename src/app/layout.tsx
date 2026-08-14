@@ -76,7 +76,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           kontennya tetap terbaca.
         */}
         <noscript>
-          <style>{`.reveal { opacity: 1 !important; transform: none !important; }`}</style>
+          <style>{`.reveal { opacity: 1 !important; transform: none !important; filter: none !important; clip-path: none !important; transition: none !important; } .reveal-sweep { transform: scaleX(1) !important; }`}</style>
         </noscript>
         {children}
       </body>

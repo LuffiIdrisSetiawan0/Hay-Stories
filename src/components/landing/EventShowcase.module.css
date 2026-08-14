@@ -1,0 +1,274 @@
+/* ===========================================================================
+   Jenis acara — seksi menempel
+
+   Bawaan berkas ini adalah mode DAFTAR (ponsel, dan siapa pun yang meminta
+   animasi dikurangi). Mode menempel ditambahkan belakangan di satu blok media
+   query di bawah. Urutan itu disengaja: kalau media query-nya tidak pernah
+   cocok, yang tersisa tetap seksi yang utuh dan bisa dibaca — bukan sisa-sisa
+   tata letak yang bergantung pada pinning.
+   =========================================================================== */
+
+.pin {
+  padding-block: var(--section-py);
+}
+
+.inner {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ===== Kepala ===== */
+
+.head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+}
+
+/* Penanda posisi hanya punya arti saat slide-nya berganti satu per satu. */
+.counter {
+  display: none;
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  letter-spacing: 0.12em;
+  font-variant-numeric: tabular-nums;
+}
+
+.counterNow {
+  color: var(--color-text-primary);
+}
+
+.counterTotal {
+  color: var(--color-text-faint);
+}
+
+/* ===== Slide ===== */
+
+.stage {
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+  margin-top: clamp(2rem, 5vw, 3rem);
+}
+
+.slideTitle {
+  font-size: var(--text-display-4);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  color: var(--color-text-primary);
+}
+
+.slideLine {
+  margin-top: 0.9rem;
+  max-width: 24em;
+  font-size: var(--text-title-2);
+  line-height: 1.55;
+  color: var(--color-text-primary);
+  text-wrap: pretty;
+}
+
+.slideDetail {
+  margin-top: 0.75rem;
+  max-width: 32em;
+  font-size: var(--text-title-4);
+  line-height: 1.7;
+  color: var(--color-text-secondary);
+  text-wrap: pretty;
+}
+
+.slideLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+  padding: 0.7rem 1.5rem;
+  border: 1px solid var(--color-border-hover);
+  border-radius: var(--radius-full);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  transition:
+    background-color var(--transition-base),
+    color var(--transition-base),
+    border-color var(--transition-base);
+}
+
+.slideLink:hover {
+  background: var(--color-text-primary);
+  border-color: var(--color-text-primary);
+  color: #14120f;
+}
+
+.slideLink svg {
+  transition: transform var(--transition-base);
+}
+
+.slideLink:hover svg {
+  transform: translateX(3px);
+}
+
+/* ===== Tab ===== */
+
+/* Di mode daftar, keempat slide sudah tampil penuh — tab jadi salinan kedua
+   dari daftar yang sama persis di atasnya. */
+.tabs {
+  display: none;
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  padding-block: 0.9rem;
+  text-align: left;
+  color: var(--color-text-muted);
+  transition: color var(--transition-slow);
+}
+
+.tab:hover {
+  color: var(--color-text-primary);
+}
+
+.tabActive {
+  color: var(--color-text-primary);
+}
+
+.tabIndex {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.12em;
+  color: var(--color-text-faint);
+}
+
+.tabActive .tabIndex {
+  color: var(--color-accent);
+}
+
+.tabLabel {
+  font-size: var(--text-title-2);
+  font-weight: 600;
+}
+
+.tabArrow {
+  margin-left: auto;
+  opacity: 0;
+  transform: translateX(-6px);
+  transition:
+    opacity var(--transition-base),
+    transform var(--transition-base);
+}
+
+.tab:hover .tabArrow,
+.tabActive .tabArrow {
+  opacity: 1;
+  transform: none;
+}
+
+/* ===========================================================================
+   Mode menempel
+   =========================================================================== */
+
+@media (min-width: 768px) and (prefers-reduced-motion: no-preference) {
+  /*
+   * Satu layar penuh per slide. Pembungkusnya yang tinggi; anaknya menempel di
+   * dalamnya, jadi jarak gulir inilah yang jadi "durasi" seksi ini.
+   */
+  .wrap {
+    height: 400vh;
+  }
+
+  .pin {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    padding-block: 0;
+  }
+
+  .inner {
+    width: 100%;
+  }
+
+  .counter {
+    display: block;
+  }
+
+  /*
+   * Slide ditumpuk di satu tempat. Tingginya dipatok karena isinya keluar dari
+   * alur dokumen — tanpa itu, wadahnya mengempis jadi nol dan tab di bawahnya
+   * melompat ke tengah layar.
+   */
+  .stage {
+    position: relative;
+    display: block;
+    min-height: clamp(17rem, 36vh, 23rem);
+    margin-top: clamp(2.5rem, 5vh, 4rem);
+  }
+
+  .slide {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    /*
+     * `visibility` dan bukan `aria-hidden`: ini ikut mencabut slide tak aktif
+     * dari pembaca layar DAN dari urutan tab keyboard, dan karena aturannya ada
+     * di dalam media query ini, mode daftar tidak mungkin ikut terkena.
+     */
+    visibility: hidden;
+    transform: translateY(28px);
+    transition:
+      opacity 0.6s var(--ease-ref),
+      transform 0.6s var(--ease-ref),
+      visibility 0.6s;
+  }
+
+  .slide[data-active="true"] {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+  }
+
+  .tabs {
+    display: block;
+    margin-top: clamp(2rem, 4vh, 3rem);
+    border-top: 1px solid var(--color-border);
+  }
+
+  .tabs li {
+    border-bottom: 1px solid var(--color-border);
+  }
+}
+
+/* ===========================================================================
+   Mode daftar — pembeda antar kartu
+
+   Hanya berlaku saat seksinya TIDAK menempel, jadi ditulis sebagai kebalikan
+   persis dari media query di atas.
+   =========================================================================== */
+
+@media (max-width: 767px), (prefers-reduced-motion: reduce) {
+  .slide {
+    padding-bottom: 2.5rem;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .stage > .slide:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+}

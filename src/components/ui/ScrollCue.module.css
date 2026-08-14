@@ -1,0 +1,56 @@
+/* ===========================================================================
+   Penanda gulir — teks melingkar + panah
+   =========================================================================== */
+
+.cue {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 6.5rem;
+  height: 6.5rem;
+  color: var(--color-text-muted);
+  transition: color var(--transition-base);
+}
+
+.cue:hover,
+.cue:focus-visible {
+  color: var(--color-text-primary);
+}
+
+.ring {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  animation: spin 22s linear infinite;
+}
+
+.ringText {
+  fill: currentColor;
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+}
+
+.arrow {
+  /* Naik-turun pelan supaya arahnya terbaca walau cincinnya berhenti. */
+  animation: cue-bob 2.4s ease-in-out infinite;
+}
+
+@keyframes cue-bob {
+  0%,
+  100% {
+    transform: translateY(-2px);
+  }
+  50% {
+    transform: translateY(3px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ring,
+  .arrow {
+    animation: none;
+  }
+}
