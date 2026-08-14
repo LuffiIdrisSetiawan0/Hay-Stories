@@ -98,7 +98,7 @@ export default function Navbar({ overHero = false }: NavbarProps) {
 
   return (
     <>
-      {/* Backdrop overlay */}
+      {/* Dim backdrop when mega-menu is open */}
       <div
         className={`${styles.backdrop} ${open ? styles.backdropOpen : ""}`}
         onClick={close}
@@ -106,7 +106,7 @@ export default function Navbar({ overHero = false }: NavbarProps) {
       />
 
       <header className={styles.header}>
-        {/* Floating Morphing Capsule Menu (Y-Vision White Pill) */}
+        {/* Floating Morphing Capsule Menu (Y-Vision Exact Shape) */}
         <div
           ref={capsuleRef}
           className={`${styles.capsule} ${open ? styles.capsuleOpen : ""}`}
@@ -116,7 +116,7 @@ export default function Navbar({ overHero = false }: NavbarProps) {
         >
           {/* Top Capsule Bar */}
           <div className={styles.bar}>
-            {/* Animated Hamburger Button (Left) */}
+            {/* Animated Hamburger / Close Button */}
             <button
               ref={triggerRef}
               type="button"
@@ -130,7 +130,7 @@ export default function Navbar({ overHero = false }: NavbarProps) {
                 <span className={`${styles.line} ${styles.line2}`} />
                 <span className={`${styles.line} ${styles.line3}`} />
               </div>
-              <span className={styles.menuLabel}>{open ? "TUTUP" : "MENU"}</span>
+              <span className={styles.menuLabel}>{open ? "Tutup" : "Menu"}</span>
             </button>
 
             {/* Centered Brand Logo */}
@@ -138,85 +138,87 @@ export default function Navbar({ overHero = false }: NavbarProps) {
               HAY STORIES
             </Link>
 
-            {/* Pill CTA Button (Right) */}
+            {/* Pill Action Button */}
             <Link href="/login" className={styles.ctaBtn} onClick={close}>
               Buat album
             </Link>
           </div>
 
-          {/* Mega Menu Expandable Drawer */}
+          {/* Collapsible Mega Menu Drawer */}
           <div
             id="mega-menu-content"
-            className={`${styles.menuDrawer} ${open ? styles.menuDrawerOpen : ""}`}
+            className={`${styles.drawer} ${open ? styles.drawerOpen : ""}`}
             aria-hidden={!open}
           >
-            <div className={styles.menuInner}>
-              {/* Section 1: Fitur & Roll Film */}
-              <nav aria-label="Fitur & Roll Film">
-                <p className={styles.sectionHeading}>Fitur & Layanan</p>
-                <ul className={styles.serviceGrid}>
-                  {SERVICE_ITEMS.map((item, idx) => (
-                    <li
-                      key={item.index}
-                      className={styles.serviceItem}
-                      style={{ "--stagger": `${idx * 45 + 80}ms` } as React.CSSProperties}
-                    >
-                      <Link
-                        href={item.href}
-                        className={styles.serviceLink}
-                        onClick={close}
+            <div className={styles.drawerInner}>
+              <div className={styles.menuContent}>
+                {/* Section 1: Fitur & Roll Film */}
+                <nav aria-label="Fitur & Layanan">
+                  <p className={styles.sectionHeading}>Fitur & Layanan</p>
+                  <ul className={styles.serviceGrid}>
+                    {SERVICE_ITEMS.map((item, idx) => (
+                      <li
+                        key={item.index}
+                        className={styles.serviceItem}
+                        style={{ "--stagger": `${idx * 45 + 80}ms` } as React.CSSProperties}
                       >
-                        <span className={styles.serviceIndex}>{item.index}</span>
-                        <div className={styles.serviceInfo}>
-                          <span className={styles.serviceTitle}>
-                            {item.title}
-                            <ArrowUpRight size={17} className={styles.arrowIcon} />
-                          </span>
-                          <span className={styles.serviceDesc}>{item.desc}</span>
-                        </div>
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </nav>
+                        <Link
+                          href={item.href}
+                          className={styles.serviceLink}
+                          onClick={close}
+                        >
+                          <span className={styles.serviceIndex}>{item.index}</span>
+                          <div className={styles.serviceInfo}>
+                            <span className={styles.serviceTitle}>
+                              {item.title}
+                              <ArrowUpRight size={17} className={styles.arrowIcon} />
+                            </span>
+                            <span className={styles.serviceDesc}>{item.desc}</span>
+                          </div>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </nav>
 
-              {/* Section 2: Jelajahi */}
-              <nav aria-label="Jelajahi" className={styles.exploreNav}>
-                <p className={styles.sectionHeading}>Jelajahi</p>
-                <ul className={styles.exploreList}>
-                  {EXPLORE_ITEMS.map((link, idx) => (
-                    <li
-                      key={link.label}
-                      className={styles.exploreItem}
-                      style={{ "--stagger": `${idx * 35 + 240}ms` } as React.CSSProperties}
-                    >
-                      <Link
-                        href={link.href}
-                        className={styles.exploreLink}
-                        onClick={close}
+                {/* Section 2: Jelajahi */}
+                <nav aria-label="Jelajahi" className={styles.exploreNav}>
+                  <p className={styles.sectionHeading}>Jelajahi</p>
+                  <ul className={styles.exploreList}>
+                    {EXPLORE_ITEMS.map((link, idx) => (
+                      <li
+                        key={link.label}
+                        className={styles.exploreItem}
+                        style={{ "--stagger": `${idx * 35 + 240}ms` } as React.CSSProperties}
                       >
-                        {link.label}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </nav>
+                        <Link
+                          href={link.href}
+                          className={styles.exploreLink}
+                          onClick={close}
+                        >
+                          {link.label}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </nav>
 
-              {/* Section 3: Footer bar info */}
-              <div className={styles.menuFooter}>
-                <p className={styles.footerBrand}>
-                  HAY Stories · Digital Disposable Camera untuk Acara Spesial
-                </p>
-                <div className={styles.footerLinks}>
-                  <a href="mailto:hello@haystories.id">hello@haystories.id</a>
-                  <span aria-hidden="true" className={styles.dot}>·</span>
-                  <a
-                    href="https://wa.me/6281234567890"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    WhatsApp
-                  </a>
+                {/* Section 3: Footer bar info */}
+                <div className={styles.menuFooter}>
+                  <p className={styles.footerBrand}>
+                    HAY Stories · Digital Disposable Camera untuk Acara Spesial
+                  </p>
+                  <div className={styles.footerLinks}>
+                    <a href="mailto:hello@haystories.id">hello@haystories.id</a>
+                    <span aria-hidden="true" className={styles.dot}>·</span>
+                    <a
+                      href="https://wa.me/6281234567890"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      WhatsApp
+                    </a>
+                  </div>
                 </div>
               </div>
             </div>
