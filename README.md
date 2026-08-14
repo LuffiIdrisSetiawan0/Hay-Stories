@@ -51,8 +51,13 @@ Collection, CC BY-SA 4.0). Atribusinya **wajib** — lihat
 ```bash
 node scripts/build-luts.mjs             # bangun ulang tekstur LUT preset
 node scripts/generate-test-chart.mjs    # gambar uji untuk menilai grading
-node scripts/generate-hero-placeholder.mjs
+node scripts/generate-hero-scenes.mjs   # enam ilustrasi adegan untuk kartu hero
 ```
+
+Keenam adegan di `public/img/scenes/` adalah **ilustrasi**, bukan foto — sengaja,
+karena stok foto orang lain akan menjanjikan sesuatu yang bukan milik kita.
+Ganti dengan foto acara asli begitu ada; lihat `SCENES` di
+`src/components/landing/Hero.tsx`.
 
 Buka `/dev/film` saat `next dev` untuk melihat keenam preset dirender melalui
 pipeline WebGL yang sama dengan kamera tamu. Halaman ini 404 di produksi.

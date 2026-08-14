@@ -45,11 +45,11 @@
 
 .headline {
   margin-top: 1.5rem;
-  max-width: 16em;
+  max-width: 16ch;
   font-family: var(--font-sans);
-  font-size: var(--text-display-2);
+  font-size: clamp(2.25rem, 4.2vw + 0.5rem, 3.85rem);
   font-weight: 600;
-  line-height: 1.02;
+  line-height: 1.06;
   letter-spacing: -0.035em;
   color: var(--color-text-primary);
   text-wrap: balance;
@@ -58,27 +58,29 @@
 /* ===== Tumpukan kartu ===== */
 
 .deck {
-  --card-w: clamp(7.5rem, 15vw, 12rem);
+  --card-w: clamp(10rem, 19vw, 15.5rem);
   /* Sejauh mana kartu terluar bergeser dari pusat, sebagai satuan dasar.
      Faktor per kartu dikalikan ke sini lewat --x / --y. */
-  --spread: clamp(2.2rem, 6.5vw, 6rem);
+  --spread: clamp(2.8rem, 7vw, 6.8rem);
 
   display: grid;
   place-items: center;
   width: 100%;
-  min-height: calc(var(--card-w) * 1.55);
-  margin-block: clamp(2.5rem, 6vw, 4.5rem);
+  min-height: calc(var(--card-w) * 1.52);
+  margin-block: clamp(2.5rem, 5vw, 4.5rem);
 }
 
+/*
+ * Pembungkus luar. Hanya mengurus DI MANA kartu berada: posisi kipas dan
+ * animasi terlempar saat masuk. Tidak ada gaya visual di sini — semuanya di
+ * lapis dalam, supaya bayangannya ikut membesar saat kartunya membesar.
+ */
 .card {
   /* Keenam kartu menempati sel yang sama — inilah yang membuat keadaan awalnya
      benar-benar setumpuk, bukan berjajar lalu dirapatkan. */
   grid-area: 1 / 1;
   width: var(--card-w);
-  padding: 0.5rem 0.5rem 0;
-  border-radius: var(--radius-md);
-  background: #14120f;
-  box-shadow: var(--shadow-lg);
+  z-index: var(--z, 0);
 
   transform-origin: bottom center;
   opacity: 0;
@@ -93,31 +95,107 @@
 .deckDealt .card {
   opacity: 1;
   transform: translate(calc(var(--x) * var(--spread)), calc(var(--y) * var(--spread)))
-    rotate(var(--r)) scale(1);
+    rotate(var(--r));
   will-change: auto;
 }
 
-.canvas {
+/*
+ * Lapis dalam. Mengurus RUPA kartu dan seluruh reaksi hover-nya, dengan
+ * transisinya sendiri yang jauh lebih pendek daripada animasi masuk di atas.
+ */
+.cardInner {
   display: block;
+  padding: 0.5rem 0.5rem 0;
+  border-radius: var(--radius-md);
+  background: #14120f;
+  box-shadow: var(--shadow-lg);
+  transform-origin: bottom center;
+  transition:
+    transform 0.4s var(--ease-ref),
+    box-shadow 0.4s var(--ease-ref),
+    filter 0.35s var(--ease-ref);
+}
+
+.cardMedia {
+  position: relative;
   width: 100%;
   aspect-ratio: 3 / 4;
-  object-fit: cover;
   border-radius: calc(var(--radius-md) - 0.25rem);
-  /* Sebelum WebGL selesai, kanvasnya kosong dan transparan — tanpa latar ini
-     yang terlihat cuma bingkai melayang tanpa isi. */
+  overflow: hidden;
   background: #1f1b16;
+}
+
+.cardImg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+}
+
+.canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+  pointer-events: none;
 }
 
 .tag {
   padding-block: 0.5rem 0.55rem;
   font-family: var(--font-mono);
-  font-size: 0.5rem;
+  font-size: 0.55rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--color-text-muted);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  transition: color 0.35s var(--ease-ref);
+}
+
+/* ===========================================================================
+   Hover kartu
+
+   Seluruhnya dikurung dalam `hover: hover`. Di layar sentuh tidak ada kursor,
+   dan tanpa kurungan ini sekali sentuh akan meninggalkan satu kartu terkunci
+   dalam keadaan membesar sampai ada yang disentuh berikutnya.
+   =========================================================================== */
+
+@media (hover: hover) {
+  /* Kartu yang disentuh naik ke paling depan, melewati z-index kartu lainnya */
+  .card:hover {
+    z-index: 100 !important;
+  }
+
+  /*
+   * Yang lain tetap 100% solid/opaque (TIDAK tembus pandang), hanya diredupkan
+   * secara elegan melalui brightness & saturation.
+   */
+  .deck:has(.card:hover) .cardInner {
+    filter: brightness(0.65) saturate(0.85);
+  }
+
+  .card:hover .cardInner {
+    filter: brightness(1.05) saturate(1.05);
+    box-shadow: 0 32px 64px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(255, 255, 255, 0.15);
+  }
+
+  .card:hover .tag {
+    color: var(--color-text-primary);
+  }
+}
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .card:hover .cardInner {
+    /*
+     * Rotasi dibatalkan lebih dulu, baru diangkat tegak ke atas.
+     */
+    transform: rotate(calc(var(--r) * -1)) translateY(-0.85rem) scale(1.15);
+    box-shadow: 0 40px 80px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(255, 255, 255, 0.2);
+  }
 }
 
 /* ===== Lede & tombol ===== */
@@ -220,6 +298,16 @@
     opacity: 1;
     transform: translate(calc(var(--x) * var(--spread)), calc(var(--y) * var(--spread)))
       rotate(var(--r));
+    transition: none;
+  }
+
+  /*
+   * Kartu tidak lagi membesar saat disentuh kursor — blok transform-nya memang
+   * dikurung di `prefers-reduced-motion: no-preference`. Yang tersisa cuma
+   * terang-redup, dan itu pun langsung tanpa transisi.
+   */
+  .cardInner,
+  .tag {
     transition: none;
   }
 }

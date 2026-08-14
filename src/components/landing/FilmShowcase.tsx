@@ -7,7 +7,12 @@ import { Section } from "@/components/ui/Section";
 import { useInView } from "@/components/ui/useInView";
 import styles from "./FilmShowcase.module.css";
 
-const SAMPLE = "/img/hero-placeholder.jpg";
+/*
+ * Satu adegan untuk keenam roll — di sini itu memang yang benar. Seksi ini soal
+ * MEMBANDINGKAN roll, dan perbandingan hanya berarti kalau yang dibandingkan
+ * sama. Hero yang memakai enam adegan berbeda; tugasnya berbeda.
+ */
+const SAMPLE = "/img/scenes/01-pelaminan.jpg";
 
 /**
  * Daftar roll bernomor di samping, satu contoh besar di sebelahnya.
