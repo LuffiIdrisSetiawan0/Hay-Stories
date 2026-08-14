@@ -47,10 +47,10 @@
   margin-top: 1.5rem;
   max-width: 16ch;
   font-family: var(--font-sans);
-  font-size: clamp(2.25rem, 4.2vw + 0.5rem, 3.85rem);
-  font-weight: 600;
-  line-height: 1.06;
-  letter-spacing: -0.035em;
+  font-size: clamp(2.35rem, 4.5vw + 0.5rem, 4.25rem);
+  font-weight: 800;
+  line-height: 1.08;
+  letter-spacing: -0.04em;
   color: var(--color-text-primary);
   text-wrap: balance;
 }

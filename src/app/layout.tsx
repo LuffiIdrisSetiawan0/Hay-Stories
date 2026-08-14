@@ -68,6 +68,14 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="id">
+      <head>
+        <link
+          rel="stylesheet"
+          as="style"
+          crossOrigin="anonymous"
+          href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css"
+        />
+      </head>
       <body className={`${cormorant.variable} ${montserrat.variable} ${mono.variable}`}>
         {/*
           Animasi masuk mulai dari opacity 0 dan baru dilepas oleh
