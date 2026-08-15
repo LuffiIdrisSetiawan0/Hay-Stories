@@ -21,7 +21,7 @@
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: clamp(6.5rem, 11vw, 8.5rem) 1.25rem 4rem;
+  padding: clamp(6.5rem, 11vw, 8.5rem) 1.25rem 4.5rem;
 }
 
 .imageBox {
@@ -194,7 +194,10 @@
   box-shadow: 0 10px 0 #0c0b09;
 }
 
-/* Floating Stickers Layer */
+/* ===========================================================================
+   Floating Stickers Layer
+   =========================================================================== */
+
 .stickersLayer {
   position: absolute;
   inset: 0;
@@ -225,26 +228,82 @@
   z-index: 20;
 }
 
+/* Desktop Positions */
+.stickerSupport {
+  top: 14%;
+  left: 10%;
+  --base-rot: -12deg;
+}
+
+.stickerConnection {
+  top: 13%;
+  right: 10%;
+  --base-rot: 14deg;
+}
+
+.stickerLove {
+  bottom: 15%;
+  left: 12%;
+  --base-rot: -8deg;
+}
+
+.stickerHappy {
+  bottom: 15%;
+  right: 12%;
+  --base-rot: 10deg;
+}
+
 @keyframes floatBounce {
   0% {
-    transform: translateY(0px) rotate(var(--rot, -6deg));
+    transform: translateY(0px) rotate(var(--base-rot, 0deg));
   }
   100% {
-    transform: translateY(-14px) rotate(var(--rot, 6deg));
+    transform: translateY(-12px) rotate(calc(var(--base-rot, 0deg) + 4deg));
   }
 }
 
+/* ===========================================================================
+   Mobile Responsive Adjustments
+   =========================================================================== */
+
 @media (max-width: 768px) {
   .visualWrapper {
-    padding-top: 7rem;
-    padding-bottom: 3.5rem;
+    padding-top: 5.5rem;
+    padding-bottom: 4.5rem;
   }
+
   .floatingSticker {
     font-size: 0.72rem;
     padding: 0.3rem 0.65rem;
     border-width: 2px;
     box-shadow: 0 3px 0 #0c0b09;
   }
+
+  /* Safe coordinates on mobile: 2 at top in the sky, 2 at the bottom below buttons */
+  .stickerSupport {
+    top: 9.5%;
+    left: 4%;
+    --base-rot: -10deg;
+  }
+
+  .stickerConnection {
+    top: 9.5%;
+    right: 4%;
+    --base-rot: 10deg;
+  }
+
+  .stickerLove {
+    bottom: 2%;
+    left: 4%;
+    --base-rot: -6deg;
+  }
+
+  .stickerHappy {
+    bottom: 2%;
+    right: 4%;
+    --base-rot: 8deg;
+  }
+
   .popTitle {
     -webkit-text-stroke: 3.5px #0c0b09;
     text-shadow: 4px 4px 0px #0c0b09;
@@ -256,8 +315,30 @@
     flex-direction: column;
     width: 100%;
   }
+
   .primaryBtn,
   .secondaryBtn {
     width: 100%;
+  }
+
+  /* Ensure plenty of breathing space on small phones */
+  .stickerSupport {
+    top: 9%;
+    left: 3%;
+  }
+
+  .stickerConnection {
+    top: 9%;
+    right: 3%;
+  }
+
+  .stickerLove {
+    bottom: 1.5%;
+    left: 3%;
+  }
+
+  .stickerHappy {
+    bottom: 1.5%;
+    right: 3%;
   }
 }

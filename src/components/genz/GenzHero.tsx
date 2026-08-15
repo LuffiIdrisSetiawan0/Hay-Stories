@@ -6,10 +6,30 @@ import { Sparkles, ArrowUpRight } from "lucide-react";
 import styles from "./GenzHero.module.css";
 
 const STICKERS = [
-  { id: "support", text: "Support 🤝", color: "#FF6B6B", top: "12%", left: "14%", rotate: "-12deg" },
-  { id: "connection", text: "Connection ⚡", color: "#FFD93D", top: "10%", right: "14%", rotate: "14deg" },
-  { id: "love", text: "Love 💖", color: "#C084FC", bottom: "24%", left: "18%", rotate: "-8deg" },
-  { id: "happy", text: "Happy 😃", color: "#60A5FA", bottom: "26%", right: "18%", rotate: "10deg" },
+  {
+    id: "support",
+    text: "Support 🤝",
+    color: "#FF6B6B",
+    className: styles.stickerSupport,
+  },
+  {
+    id: "connection",
+    text: "Connection ⚡",
+    color: "#FFD93D",
+    className: styles.stickerConnection,
+  },
+  {
+    id: "love",
+    text: "Love 💖",
+    color: "#C084FC",
+    className: styles.stickerLove,
+  },
+  {
+    id: "happy",
+    text: "Happy 😃",
+    color: "#60A5FA",
+    className: styles.stickerHappy,
+  },
 ];
 
 export default function GenzHero() {
@@ -57,20 +77,13 @@ export default function GenzHero() {
           </div>
         </div>
 
-        {/* Floating Colorful Stickers */}
+        {/* Floating Colorful Stickers (Positioned Safely) */}
         <div className={styles.stickersLayer}>
           {STICKERS.map((s) => (
             <div
               key={s.id}
-              className={styles.floatingSticker}
-              style={{
-                top: s.top,
-                bottom: s.bottom,
-                left: s.left,
-                right: s.right,
-                backgroundColor: s.color,
-                transform: `rotate(${s.rotate})`,
-              }}
+              className={`${styles.floatingSticker} ${s.className}`}
+              style={{ backgroundColor: s.color }}
             >
               {s.text}
             </div>
