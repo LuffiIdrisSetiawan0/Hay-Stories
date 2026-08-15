@@ -21,7 +21,7 @@
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: clamp(6.5rem, 11vw, 8.5rem) 1.25rem 4.5rem;
+  padding: clamp(5.5rem, 10vw, 7.5rem) 1.25rem 3.5rem;
 }
 
 .imageBox {
@@ -46,11 +46,22 @@
   );
 }
 
+/* Center Wrapper (Anchors the Central Content + Snug Floating Badges) */
+.centerWrapper {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  max-width: 620px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
 /* Center Content */
 .centerContent {
   position: relative;
-  z-index: 10;
-  max-width: 860px;
+  width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -87,7 +98,7 @@
 /* Chunky Pop 3D Bubbly Title (Zaply style) */
 .popTitle {
   font-family: var(--font-sans);
-  font-size: clamp(3rem, 10vw, 7.5rem);
+  font-size: clamp(3.25rem, 10vw, 7.5rem);
   font-weight: 900;
   letter-spacing: -0.04em;
   color: #ffe600;
@@ -129,7 +140,7 @@
   border-radius: 16px;
   border: 2px solid #0c0b09;
   box-shadow: 0 4px 0 #0c0b09;
-  margin-top: 0.35rem;
+  margin-top: 0.25rem;
 }
 
 /* Action Buttons */
@@ -195,62 +206,59 @@
 }
 
 /* ===========================================================================
-   Floating Stickers Layer
+   Floating Stickers (Positioned Snug Near the Center Content)
    =========================================================================== */
-
-.stickersLayer {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 15;
-}
 
 .floatingSticker {
   position: absolute;
-  pointer-events: auto;
-  padding: 0.5rem 1.15rem;
+  z-index: 25;
+  padding: 0.45rem 1rem;
   border: 2.5px solid #0c0b09;
   border-radius: 9999px;
   color: #0c0b09;
   font-family: var(--font-sans);
-  font-size: 0.95rem;
+  font-size: 0.875rem;
   font-weight: 900;
-  box-shadow: 0 6px 0 #0c0b09;
+  box-shadow: 0 5px 0 #0c0b09;
   cursor: grab;
   user-select: none;
-  animation: floatBounce 4s ease-in-out infinite alternate;
+  animation: floatBounce 3.5s ease-in-out infinite alternate;
   transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .floatingSticker:hover {
-  transform: scale(1.2) rotate(0deg) !important;
-  box-shadow: 0 10px 0 #0c0b09;
-  z-index: 20;
+  transform: scale(1.15) rotate(0deg) !important;
+  box-shadow: 0 8px 0 #0c0b09;
+  z-index: 30;
 }
 
-/* Desktop Positions */
+/* Desktop Coordinates (Snug around center block) */
 .stickerSupport {
-  top: 14%;
-  left: 10%;
+  top: -16px;
+  left: -20px;
+  background-color: #ff6b6b;
   --base-rot: -12deg;
 }
 
 .stickerConnection {
-  top: 13%;
-  right: 10%;
-  --base-rot: 14deg;
+  top: -16px;
+  right: -20px;
+  background-color: #ffd93d;
+  --base-rot: 12deg;
 }
 
 .stickerLove {
-  bottom: 15%;
-  left: 12%;
+  bottom: -18px;
+  left: -25px;
+  background-color: #c084fc;
   --base-rot: -8deg;
 }
 
 .stickerHappy {
-  bottom: 15%;
-  right: 12%;
-  --base-rot: 10deg;
+  bottom: -18px;
+  right: -25px;
+  background-color: #60a5fa;
+  --base-rot: 8deg;
 }
 
 @keyframes floatBounce {
@@ -258,50 +266,50 @@
     transform: translateY(0px) rotate(var(--base-rot, 0deg));
   }
   100% {
-    transform: translateY(-12px) rotate(calc(var(--base-rot, 0deg) + 4deg));
+    transform: translateY(-8px) rotate(calc(var(--base-rot, 0deg) + 3deg));
   }
 }
 
 /* ===========================================================================
-   Mobile Responsive Adjustments
+   Mobile Responsive Adjustments (Tucked Snug on Phones)
    =========================================================================== */
 
 @media (max-width: 768px) {
   .visualWrapper {
-    padding-top: 5.5rem;
-    padding-bottom: 4.5rem;
+    padding-top: 5rem;
+    padding-bottom: 3.5rem;
   }
 
   .floatingSticker {
-    font-size: 0.72rem;
-    padding: 0.3rem 0.65rem;
+    font-size: 0.75rem;
+    padding: 0.3rem 0.75rem;
     border-width: 2px;
-    box-shadow: 0 3px 0 #0c0b09;
+    box-shadow: 0 3.5px 0 #0c0b09;
   }
 
-  /* Safe coordinates on mobile: 2 at top in the sky, 2 at the bottom below buttons */
+  /* Close, snug position right around the title & buttons on mobile */
   .stickerSupport {
-    top: 9.5%;
-    left: 4%;
+    top: -16px;
+    left: 8px;
     --base-rot: -10deg;
   }
 
   .stickerConnection {
-    top: 9.5%;
-    right: 4%;
+    top: -16px;
+    right: 8px;
     --base-rot: 10deg;
   }
 
   .stickerLove {
-    bottom: 2%;
-    left: 4%;
+    bottom: -16px;
+    left: 12px;
     --base-rot: -6deg;
   }
 
   .stickerHappy {
-    bottom: 2%;
-    right: 4%;
-    --base-rot: 8deg;
+    bottom: -16px;
+    right: 12px;
+    --base-rot: 6deg;
   }
 
   .popTitle {
@@ -321,24 +329,23 @@
     width: 100%;
   }
 
-  /* Ensure plenty of breathing space on small phones */
   .stickerSupport {
-    top: 9%;
-    left: 3%;
+    top: -18px;
+    left: 4px;
   }
 
   .stickerConnection {
-    top: 9%;
-    right: 3%;
+    top: -18px;
+    right: 4px;
   }
 
   .stickerLove {
-    bottom: 1.5%;
-    left: 3%;
+    bottom: -14px;
+    left: 6px;
   }
 
   .stickerHappy {
-    bottom: 1.5%;
-    right: 3%;
+    bottom: -14px;
+    right: 6px;
   }
 }
