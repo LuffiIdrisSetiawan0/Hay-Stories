@@ -1,0 +1,174 @@
+/* ===========================================================================
+   Gen-Z Vibes Split Section (Soft Pastel Blue + Neo-Brutalist Layout)
+   =========================================================================== */
+
+.section {
+  position: relative;
+  width: 100%;
+  background-color: #cde7fe;
+  padding: clamp(5rem, 8vw, 8rem) 1.5rem;
+  overflow: hidden;
+  border-top: 3px solid #0c0b09;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 3.5rem;
+  align-items: center;
+}
+
+@media (min-width: 900px) {
+  .container {
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+  }
+}
+
+/* Left Column */
+.leftCol {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 1rem;
+  background: #ff6b6b;
+  color: #ffffff;
+  border: 2px solid #0c0b09;
+  border-radius: 9999px;
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  box-shadow: 0 3px 0 #0c0b09;
+  align-self: flex-start;
+}
+
+.heading {
+  font-family: var(--font-sans);
+  font-size: clamp(2.25rem, 4.5vw, 3.65rem);
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  line-height: 1.1;
+  color: #0c0b09;
+  margin: 0;
+}
+
+.subtext {
+  font-size: clamp(1rem, 1.5vw, 1.15rem);
+  font-weight: 600;
+  line-height: 1.6;
+  color: #243c5a;
+  margin: 0;
+}
+
+/* Feature List */
+.featureList {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  margin-top: 0.5rem;
+}
+
+.featureItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.15rem;
+  background: #ffffff;
+  border: 2.5px solid #0c0b09;
+  border-radius: 20px;
+  padding: 1.15rem 1.35rem;
+  box-shadow: 0 5px 0 #0c0b09;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.featureItem:hover {
+  transform: translateX(6px) translateY(-2px);
+  box-shadow: 0 8px 0 #0c0b09;
+}
+
+.iconSquare {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: #ffe600;
+  border: 2px solid #0c0b09;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #0c0b09;
+  flex-shrink: 0;
+}
+
+.featureText h3 {
+  font-family: var(--font-sans);
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #0c0b09;
+  margin: 0 0 0.25rem;
+}
+
+.featureText p {
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.5;
+  color: #555555;
+  margin: 0;
+}
+
+/* Right Column (Photo Card) */
+.rightCol {
+  position: relative;
+  display: flex;
+  justify-content: center;
+}
+
+.photoFrame {
+  position: relative;
+  width: 100%;
+  max-width: 520px;
+  aspect-ratio: 4 / 3.4;
+  border-radius: 32px;
+  border: 3.5px solid #0c0b09;
+  background: #ffffff;
+  overflow: hidden;
+  box-shadow:
+    0 16px 36px rgba(0, 0, 0, 0.2),
+    0 8px 0 #0c0b09;
+  transform: rotate(2deg);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.photoFrame:hover {
+  transform: rotate(0deg) scale(1.02);
+}
+
+.splitPhoto {
+  object-fit: cover;
+}
+
+.photoSticker {
+  position: absolute;
+  bottom: 1.25rem;
+  left: 1.25rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1.15rem;
+  background: #ffe600;
+  border: 2px solid #0c0b09;
+  border-radius: 9999px;
+  box-shadow: 0 4px 0 #0c0b09;
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  font-weight: 900;
+  color: #0c0b09;
+  transform: rotate(-4deg);
+}

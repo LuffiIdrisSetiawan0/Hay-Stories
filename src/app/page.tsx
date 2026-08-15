@@ -8,6 +8,7 @@ import HowItWorks from "@/components/landing/HowItWorks";
 import Pricing from "@/components/landing/Pricing";
 import FAQ from "@/components/landing/FAQ";
 import Footer from "@/components/landing/Footer";
+import VersionSwitcher from "@/components/ui/VersionSwitcher";
 
 /**
  * Susunan halaman: buka dengan pernyataan, lalu alasan, lalu bukti, baru
@@ -33,6 +34,7 @@ export default function HomePage() {
       <Pricing />
       <FAQ />
       <Footer />
+      <VersionSwitcher />
     </main>
   );
 }
