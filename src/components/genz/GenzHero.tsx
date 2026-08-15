@@ -22,15 +22,16 @@ export default function GenzHero() {
           <div className={styles.imageOverlay} />
         </div>
 
-        {/* Center Container with Snug Floating Stickers */}
+        {/* Center Container with Non-Overlapping Structured Stickers */}
         <div className={styles.centerWrapper}>
-          {/* Top Floating Stickers (Close to Title) */}
-          <div className={`${styles.floatingSticker} ${styles.stickerSupport}`}>
-            Support 🤝
-          </div>
-
-          <div className={`${styles.floatingSticker} ${styles.stickerConnection}`}>
-            Connection ⚡
+          {/* Top Stickers Row: Located above the badge with safe clearance */}
+          <div className={styles.topStickersRow}>
+            <div className={`${styles.floatingSticker} ${styles.stickerSupport}`}>
+              Support 🤝
+            </div>
+            <div className={`${styles.floatingSticker} ${styles.stickerConnection}`}>
+              Connection ⚡
+            </div>
           </div>
 
           {/* Centerpiece 3D Bubble Pop Logo & Headline */}
@@ -61,13 +62,14 @@ export default function GenzHero() {
             </div>
           </div>
 
-          {/* Bottom Floating Stickers (Close to Buttons) */}
-          <div className={`${styles.floatingSticker} ${styles.stickerLove}`}>
-            Love 💖
-          </div>
-
-          <div className={`${styles.floatingSticker} ${styles.stickerHappy}`}>
-            Happy 😃
+          {/* Bottom Stickers Row: Located below the buttons with safe clearance */}
+          <div className={styles.bottomStickersRow}>
+            <div className={`${styles.floatingSticker} ${styles.stickerLove}`}>
+              Love 💖
+            </div>
+            <div className={`${styles.floatingSticker} ${styles.stickerHappy}`}>
+              Happy 😃
+            </div>
           </div>
         </div>
       </div>
