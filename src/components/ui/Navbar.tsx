@@ -37,6 +37,10 @@ const SERVICE_ITEMS = [
 ] as const;
 
 const EXPLORE_ITEMS = [
+  { label: "Pernikahan 💍", href: "/pernikahan" },
+  { label: "Ulang Tahun 🎂", href: "/ulang-tahun" },
+  { label: "Pesta & Nightout 🎉", href: "/pesta" },
+  { label: "Acara Kantor 🏢", href: "/acara-kantor" },
   { label: "Cara Kerja", href: "/#cara-kerja" },
   { label: "Preset Film", href: "/#preset" },
   { label: "Daftar Harga", href: "/harga" },
@@ -183,7 +187,7 @@ export default function Navbar({ overHero = false }: NavbarProps) {
 
                 {/* Section 2: Jelajahi */}
                 <nav aria-label="Jelajahi" className={styles.exploreNav}>
-                  <p className={styles.sectionHeading}>Jelajahi</p>
+                  <p className={styles.sectionHeading}>Jelajahi Acara & Menu</p>
                   <ul className={styles.exploreList}>
                     {EXPLORE_ITEMS.map((link, idx) => (
                       <li

@@ -2,38 +2,19 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Sparkles, ArrowUpRight, Camera } from "lucide-react";
+import { Sparkles, ArrowUpRight } from "lucide-react";
 import styles from "./GenzHero.module.css";
 
 const STICKERS = [
-  { id: "support", text: "Support 🤝", color: "#FF6B6B", top: "12%", left: "18%", rotate: "-12deg" },
-  { id: "connection", text: "Connection ⚡", color: "#FFD93D", top: "10%", right: "18%", rotate: "14deg" },
-  { id: "love", text: "Love 💖", color: "#C084FC", bottom: "24%", left: "22%", rotate: "-8deg" },
-  { id: "happy", text: "Happy 😃", color: "#60A5FA", bottom: "26%", right: "22%", rotate: "10deg" },
+  { id: "support", text: "Support 🤝", color: "#FF6B6B", top: "12%", left: "14%", rotate: "-12deg" },
+  { id: "connection", text: "Connection ⚡", color: "#FFD93D", top: "10%", right: "14%", rotate: "14deg" },
+  { id: "love", text: "Love 💖", color: "#C084FC", bottom: "24%", left: "18%", rotate: "-8deg" },
+  { id: "happy", text: "Happy 😃", color: "#60A5FA", bottom: "26%", right: "18%", rotate: "10deg" },
 ];
 
 export default function GenzHero() {
   return (
     <section className={styles.heroSection}>
-      {/* Top Floating Mini Navbar */}
-      <header className={styles.topNav}>
-        <div className={styles.navBar}>
-          <Link href="/v2" className={styles.miniLogo}>
-            <span className={styles.logoDot} />
-            HAY STORIES
-          </Link>
-          <div className={styles.navActions}>
-            <Link href="/" className={styles.switchPill} title="Lihat Versi Classic">
-              ✨ Classic (v1)
-            </Link>
-            <Link href="/login" className={styles.ctaPill}>
-              <Camera size={15} />
-              <span>Buat Album</span>
-            </Link>
-          </div>
-        </div>
-      </header>
-
       {/* Hero Visual Container with 360 Circle Group Image */}
       <div className={styles.visualWrapper}>
         <div className={styles.imageBox}>

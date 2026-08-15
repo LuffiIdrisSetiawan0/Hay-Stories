@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import GenzNavbar from "@/components/genz/GenzNavbar";
 import GenzHero from "@/components/genz/GenzHero";
 import GenzPhoneMockups from "@/components/genz/GenzPhoneMockups";
 import GenzVibesSplit from "@/components/genz/GenzVibesSplit";
@@ -15,6 +16,9 @@ export const metadata: Metadata = {
 export default function GenZLandingPage() {
   return (
     <main style={{ backgroundColor: "#fbf9f3", minHeight: "100vh", overflowX: "hidden" }}>
+      {/* 0. Gen-Z Animated Pop Navbar */}
+      <GenzNavbar />
+
       {/* 1. Hero 360 Circle Perspective */}
       <GenzHero />
 

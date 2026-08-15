@@ -1,0 +1,551 @@
+/* ===========================================================================
+   Gen-Z Pop Navigation Menu & Morphing Mega Drawer
+   =========================================================================== */
+
+/* Backdrop overlay */
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 85;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.backdropOpen {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Header (Fixed Top Center) */
+.header {
+  position: fixed;
+  top: 0.85rem;
+  left: 0;
+  right: 0;
+  z-index: 95;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: none;
+  padding-inline: 1rem;
+}
+
+/* 
+ * Top Bar (Neo-brutalist Capsule Bar)
+ */
+.bar {
+  pointer-events: auto;
+  position: relative;
+  width: 100%;
+  max-width: 1120px;
+  height: 56px;
+  background: #ffffff;
+  border: 2.5px solid #0c0b09;
+  border-radius: 9999px;
+  box-shadow: 0 6px 0 #0c0b09;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-inline: 1rem 0.6rem;
+  transition: max-width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (min-width: 640px) {
+  .bar {
+    height: 60px;
+    padding-inline: 1.35rem 0.75rem;
+  }
+}
+
+/* Animated Hamburger / Close Button */
+.menuBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #0c0b09;
+  cursor: pointer;
+  padding: 0.4rem 0.65rem;
+  border-radius: 9999px;
+  background: #ffe600;
+  border: 2px solid #0c0b09;
+  box-shadow: 0 3px 0 #0c0b09;
+  transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.menuBtn:hover {
+  transform: translateY(-2px);
+  background: #fff066;
+}
+
+.iconWrapper {
+  position: relative;
+  width: 16px;
+  height: 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.line {
+  display: block;
+  width: 100%;
+  height: 2px;
+  background-color: #0c0b09;
+  border-radius: 2px;
+  transition:
+    transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.25s ease;
+  transform-origin: center;
+}
+
+/* Morphing hamburger lines into 'X' */
+.menuBtnActive .line1 {
+  transform: translateY(5px) rotate(45deg);
+}
+
+.menuBtnActive .line2 {
+  opacity: 0;
+  transform: scaleX(0);
+}
+
+.menuBtnActive .line3 {
+  transform: translateY(-5px) rotate(-45deg);
+}
+
+.menuLabel {
+  display: inline-block;
+  user-select: none;
+}
+
+@media (max-width: 380px) {
+  .menuLabel {
+    display: none;
+  }
+}
+
+/* Centered Brand Wordmark */
+.brandLogo {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  color: #0c0b09;
+  text-transform: uppercase;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.logoDot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background-color: #ffe600;
+  border: 1.5px solid #0c0b09;
+}
+
+@media (min-width: 640px) {
+  .brandLogo {
+    font-size: 1.05rem;
+  }
+}
+
+/* Right Actions */
+.rightActions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.versionBtn {
+  display: none;
+  align-items: center;
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding: 0.4rem 0.85rem;
+  border-radius: 9999px;
+  background: #f4f0e6;
+  color: #0c0b09;
+  border: 1.5px solid #0c0b09;
+  transition: transform 0.2s ease, background-color 0.2s ease;
+  text-decoration: none;
+}
+
+.versionBtn:hover {
+  background: #ffe600;
+  transform: translateY(-2px);
+}
+
+@media (min-width: 768px) {
+  .versionBtn {
+    display: inline-flex;
+  }
+}
+
+.ctaBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 1.15rem;
+  border-radius: 9999px;
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  font-weight: 900;
+  white-space: nowrap;
+  background: #0c0b09;
+  color: #ffffff;
+  border: 2px solid #0c0b09;
+  box-shadow: 0 3px 0 #0c0b09;
+  transition: transform 0.2s ease, background-color 0.2s ease;
+  text-decoration: none;
+}
+
+.ctaBtn:hover {
+  background: #ffe600;
+  color: #0c0b09;
+  transform: translateY(-2px);
+}
+
+/* ===========================================================================
+   Mega Pop Drawer (Collapsible Drawer with 0-height Collapse)
+   =========================================================================== */
+
+.drawer {
+  pointer-events: auto;
+  width: 100%;
+  max-width: 1120px;
+  margin-top: 0.65rem;
+  background: #ffffff;
+  border: 3px solid #0c0b09;
+  border-radius: 28px;
+  box-shadow:
+    0 32px 80px rgba(0, 0, 0, 0.75),
+    0 10px 0 #0c0b09;
+  overflow: hidden;
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transform: translateY(-8px);
+  transition:
+    grid-template-rows 0.42s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.3s ease,
+    transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.drawerOpen {
+  grid-template-rows: 1fr;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.drawerInner {
+  overflow: hidden;
+  min-height: 0;
+}
+
+.drawerContent {
+  max-height: calc(100svh - 6.5rem);
+  overflow-y: auto;
+  padding: 1.5rem 1.5rem 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+@media (min-width: 768px) {
+  .drawerContent {
+    padding: 2rem 2.5rem 2.5rem;
+    gap: 2.25rem;
+  }
+}
+
+/* Section Header */
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.sectionTitle {
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #0c0b09;
+  margin: 0;
+}
+
+.sectionPill {
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding: 0.25rem 0.75rem;
+  background: #ffe600;
+  border: 1.5px solid #0c0b09;
+  border-radius: 9999px;
+  color: #0c0b09;
+}
+
+/* Event Grid (4 Colorful Cards) */
+.eventGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+@media (min-width: 640px) {
+  .eventGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .eventGrid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.eventCard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  padding: 1.15rem;
+  background: #fbf9f3;
+  border: 2px solid #0c0b09;
+  border-radius: 18px;
+  box-shadow: 0 4px 0 #0c0b09;
+  text-decoration: none;
+  color: #0c0b09;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.eventCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 0 #0c0b09;
+  background: #ffffff;
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.iconBox {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  border: 2px solid #0c0b09;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #0c0b09;
+}
+
+.cardTag {
+  font-family: var(--font-sans);
+  font-size: 0.6875rem;
+  font-weight: 800;
+  background: #ffffff;
+  border: 1.5px solid #0c0b09;
+  border-radius: 9999px;
+  padding: 0.2rem 0.55rem;
+}
+
+.cardInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.cardTitle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--font-sans);
+  font-size: 1.05rem;
+  font-weight: 900;
+  color: #0c0b09;
+}
+
+.cardArrow {
+  transition: transform 0.2s ease;
+}
+
+.eventCard:hover .cardArrow {
+  transform: translate(2px, -2px);
+}
+
+.cardDesc {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 1.45;
+  color: #555555;
+}
+
+/* Section Row (Quick Links & Host Box) */
+.sectionRow {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  border-top: 2px solid rgba(12, 11, 9, 0.1);
+  padding-top: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .sectionRow {
+    grid-template-columns: 1.4fr 1fr;
+    gap: 2rem;
+  }
+}
+
+.quickLinksCol {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.quickLinksGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem 1.25rem;
+}
+
+.quickLinkItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #0c0b09;
+  text-decoration: none;
+  padding: 0.35rem 0.65rem;
+  border-radius: 8px;
+  transition: background-color 0.2s ease;
+}
+
+.quickLinkItem:hover {
+  background-color: #ffe600;
+}
+
+.quickIcon {
+  color: #0c0b09;
+}
+
+/* Host Card */
+.hostCard {
+  background: #f4f0e6;
+  border: 2px solid #0c0b09;
+  border-radius: 18px;
+  padding: 1.25rem;
+  box-shadow: 0 4px 0 #0c0b09;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.hostCardTitle {
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  font-weight: 900;
+  color: #0c0b09;
+  margin: 0;
+}
+
+.hostCardSub {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 1.45;
+  color: #666666;
+  margin: 0 0 0.5rem;
+}
+
+.hostLoginBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.25rem;
+  background: #0c0b09;
+  color: #ffffff;
+  border-radius: 9999px;
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  font-weight: 800;
+  text-decoration: none;
+  border: 1.5px solid #0c0b09;
+  box-shadow: 0 3px 0 #0c0b09;
+  transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.hostLoginBtn:hover {
+  background: #ffe600;
+  color: #0c0b09;
+  transform: translateY(-2px);
+}
+
+/* Drawer Footer */
+.drawerFooter {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  border-top: 2px solid rgba(12, 11, 9, 0.1);
+  padding-top: 1.25rem;
+  font-size: 0.8125rem;
+  color: #777777;
+}
+
+@media (min-width: 640px) {
+  .drawerFooter {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.footerBrand {
+  margin: 0;
+  font-weight: 600;
+}
+
+.footerLinks {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.footerLinks a {
+  color: #0c0b09;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.footerLinks a:hover {
+  text-decoration: underline;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .drawer,
+  .backdrop,
+  .line,
+  .eventCard,
+  .menuBtn {
+    transition: none !important;
+  }
+}
