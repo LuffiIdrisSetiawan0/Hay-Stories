@@ -46,7 +46,7 @@
   );
 }
 
-/* Center Wrapper (Anchors the Central Content + Snug Floating Badges) */
+/* Center Wrapper (Anchors the Central Content + Scattered Badges) */
 .centerWrapper {
   position: relative;
   z-index: 10;
@@ -58,26 +58,30 @@
   align-items: center;
 }
 
-/* Top Stickers Row: Positioned safely above badge */
-.topStickersRow {
+/* ===========================================================================
+   Organic Asymmetrical Scatter Areas (Non-Parallel / Acak)
+   =========================================================================== */
+
+.topStickersScatter {
   width: 100%;
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  padding-inline: 0.5rem;
-  margin-bottom: 0.85rem;
+  align-items: flex-start;
+  padding-inline: 0.25rem;
+  margin-bottom: 0.65rem;
   pointer-events: none;
+  min-height: 52px;
 }
 
-/* Bottom Stickers Row: Positioned safely below buttons */
-.bottomStickersRow {
+.bottomStickersScatter {
   width: 100%;
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  padding-inline: 0.5rem;
-  margin-top: 1rem;
+  align-items: flex-end;
+  padding-inline: 0.25rem;
+  margin-top: 0.85rem;
   pointer-events: none;
+  min-height: 52px;
 }
 
 /* Center Content */
@@ -229,7 +233,7 @@
 }
 
 /* ===========================================================================
-   Floating Stickers (Positioned In Non-Overlapping Top & Bottom Rows)
+   Floating Stickers (Asymmetrical, Staggered, Acak & Organik)
    =========================================================================== */
 
 .floatingSticker {
@@ -246,7 +250,6 @@
   box-shadow: 0 5px 0 #0c0b09;
   cursor: grab;
   user-select: none;
-  animation: floatBounce 3.5s ease-in-out infinite alternate;
   transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -255,36 +258,69 @@
   box-shadow: 0 8px 0 #0c0b09;
 }
 
+/* 1. Support (Top-Left: Higher position, tilted -14deg) */
 .stickerSupport {
   background-color: #ff6b6b;
-  --base-rot: -8deg;
-  transform: rotate(-8deg);
+  transform: translateY(-8px) rotate(-14deg);
+  animation: floatSupport 3.4s ease-in-out infinite alternate;
 }
 
-.stickerConnection {
-  background-color: #ffd93d;
-  --base-rot: 8deg;
-  transform: rotate(8deg);
-}
-
-.stickerLove {
-  background-color: #c084fc;
-  --base-rot: -6deg;
-  transform: rotate(-6deg);
-}
-
-.stickerHappy {
-  background-color: #60a5fa;
-  --base-rot: 6deg;
-  transform: rotate(6deg);
-}
-
-@keyframes floatBounce {
+@keyframes floatSupport {
   0% {
-    transform: translateY(0px) rotate(var(--base-rot, 0deg));
+    transform: translateY(-8px) rotate(-14deg);
   }
   100% {
-    transform: translateY(-8px) rotate(calc(var(--base-rot, 0deg) + 3deg));
+    transform: translateY(-16px) rotate(-10deg);
+  }
+}
+
+/* 2. Connection (Top-Right: Lower staggered position, tilted +12deg) */
+.stickerConnection {
+  background-color: #ffd93d;
+  transform: translateY(12px) rotate(12deg);
+  margin-right: 0.5rem;
+  animation: floatConnection 4.2s ease-in-out 0.4s infinite alternate;
+}
+
+@keyframes floatConnection {
+  0% {
+    transform: translateY(12px) rotate(12deg);
+  }
+  100% {
+    transform: translateY(4px) rotate(16deg);
+  }
+}
+
+/* 3. Love (Bottom-Left: Higher position close to button, tilted -8deg) */
+.stickerLove {
+  background-color: #c084fc;
+  transform: translateY(-6px) rotate(-8deg);
+  margin-left: 0.5rem;
+  animation: floatLove 3.8s ease-in-out 0.8s infinite alternate;
+}
+
+@keyframes floatLove {
+  0% {
+    transform: translateY(-6px) rotate(-8deg);
+  }
+  100% {
+    transform: translateY(-14px) rotate(-4deg);
+  }
+}
+
+/* 4. Happy (Bottom-Right: Lower staggered position, tilted +15deg) */
+.stickerHappy {
+  background-color: #60a5fa;
+  transform: translateY(14px) rotate(15deg);
+  animation: floatHappy 4.6s ease-in-out 0.2s infinite alternate;
+}
+
+@keyframes floatHappy {
+  0% {
+    transform: translateY(14px) rotate(15deg);
+  }
+  100% {
+    transform: translateY(6px) rotate(11deg);
   }
 }
 
@@ -305,14 +341,21 @@
     box-shadow: 0 3.5px 0 #0c0b09;
   }
 
-  .topStickersRow {
-    padding-inline: 0.25rem;
-    margin-bottom: 0.75rem;
+  /* Distinct staggered offsets on mobile to keep organic asymmetry */
+  .stickerSupport {
+    transform: translateY(-6px) rotate(-12deg);
   }
 
-  .bottomStickersRow {
-    padding-inline: 0.25rem;
-    margin-top: 0.85rem;
+  .stickerConnection {
+    transform: translateY(10px) rotate(10deg);
+  }
+
+  .stickerLove {
+    transform: translateY(-4px) rotate(-7deg);
+  }
+
+  .stickerHappy {
+    transform: translateY(12px) rotate(13deg);
   }
 
   .popTitle {

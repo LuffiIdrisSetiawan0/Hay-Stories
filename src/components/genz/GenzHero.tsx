@@ -22,10 +22,10 @@ export default function GenzHero() {
           <div className={styles.imageOverlay} />
         </div>
 
-        {/* Center Container with Non-Overlapping Structured Stickers */}
+        {/* Center Container with Organically Scattered & Asymmetrical Stickers */}
         <div className={styles.centerWrapper}>
-          {/* Top Stickers Row: Located above the badge with safe clearance */}
-          <div className={styles.topStickersRow}>
+          {/* Top Asymmetrical Stickers Area (Organic Staggered Heights) */}
+          <div className={styles.topStickersScatter}>
             <div className={`${styles.floatingSticker} ${styles.stickerSupport}`}>
               Support 🤝
             </div>
@@ -62,8 +62,8 @@ export default function GenzHero() {
             </div>
           </div>
 
-          {/* Bottom Stickers Row: Located below the buttons with safe clearance */}
-          <div className={styles.bottomStickersRow}>
+          {/* Bottom Asymmetrical Stickers Area (Organic Staggered Heights) */}
+          <div className={styles.bottomStickersScatter}>
             <div className={`${styles.floatingSticker} ${styles.stickerLove}`}>
               Love 💖
             </div>
