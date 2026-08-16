@@ -9,30 +9,22 @@ const EVENTS = [
   {
     href: "/pernikahan",
     label: "Pernikahan",
-    line: "Momen haru, tawa di meja, dan dansa spontan yang terlewatkan fotografer.",
-    detail:
-      "Fotografer resmi berdiri di depan pelaminan. Tamu Anda memotret kehangatan reuni keluarga dan tawa sahabat dari seratus meja resepsi.",
+    line: "Abadikan momen haru, tawa di meja tamu, dan dansa spontan yang tak tertangkap fotografer.",
   },
   {
     href: "/ulang-tahun",
     label: "Ulang Tahun",
-    line: "Dari tiup lilin hingga canda tawa, tanpa perlu antre di mesin photobooth.",
-    detail:
-      "Cukup tempel kartu QR di meja kue atau cafe. Setiap teman memegang kamera analog di ponselnya untuk merekam momen otentik pesta Anda.",
+    line: "Rekam tiup lilin bersama sahabat dan keseruan pesta, bebas antre photobooth.",
   },
   {
     href: "/pesta",
     label: "Pesta & Nightout",
-    line: "Lampu neon, direct flash candid, dan energi malam tanpa rasa jaim.",
-    detail:
-      "Preset Neon Night 1600 menangkap pendar lampu malam dan kegilaan lantai dansa, langsung tayang di layar panggung secara real-time.",
+    line: "Direct flash 90s dan live slideshow proyektor untuk menangkap energi malam tanpa jaim.",
   },
   {
     href: "/acara-kantor",
-    label: "Acara Kantor & Gathering",
-    line: "Cairkan kebekuan tim, pererat bonding di setiap meja tanpa canggung.",
-    detail:
-      "Satu link untuk seluruh karyawan. Tanpa perlu download aplikasi atau akun, abadikan keseruan gala dinner dan team building tahunan.",
+    label: "Acara Kantor",
+    line: "Cairkan suasana dan rekam momen bonding tim secara spontan di annual gathering.",
   },
 ] as const;
 
@@ -93,10 +85,9 @@ export default function EventShowcase() {
               >
                 <h2 className={styles.name}>{event.label}</h2>
                 <p className={styles.line}>{event.line}</p>
-                <p className={styles.detail}>{event.detail}</p>
                 <Link href={event.href} className={styles.cta}>
                   Pelajari paket {event.label.toLowerCase()}
-                  <ArrowRight size={17} />
+                  <ArrowRight size={16} />
                 </Link>
               </article>
             ))}
