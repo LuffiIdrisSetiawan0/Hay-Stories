@@ -31,7 +31,6 @@ export default function PageTransition() {
       setDisplayLocation(currentFull);
 
       if (status === "entering" || status === "holding") {
-        // Small hold to ensure DOM updates, then slide curtain away up to -100%
         setStatus("exiting");
         window.scrollTo(0, 0);
 
@@ -39,12 +38,12 @@ export default function PageTransition() {
         timeoutRef.current = setTimeout(() => {
           setStatus("idle");
           pendingHrefRef.current = null;
-        }, 580);
+        }, 650);
       }
     }
   }, [pathname, searchParams, displayLocation, status]);
 
-  // Navigate with curtain slide animation
+  // Navigate with calibrated 1-second curtain transition
   const navigateWithTransition = useCallback(
     (href: string) => {
       if (status !== "idle") return;
@@ -58,23 +57,28 @@ export default function PageTransition() {
       pendingHrefRef.current = href;
       setStatus("entering");
 
-      // Slide up takes 520ms, then push route
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
+
+      // 1. Curtain slides up (takes 600ms)
       timeoutRef.current = setTimeout(() => {
         setStatus("holding");
-        startTransition(() => {
-          router.push(href);
-        });
 
-        // Safety fallback in case route navigation stalls
+        // 2. Hold for exactly 1.0 second (1000ms) while brand & loading reveal
         timeoutRef.current = setTimeout(() => {
-          setStatus("exiting");
+          startTransition(() => {
+            router.push(href);
+          });
+
+          // Safety fallback in case route navigation stalls
           timeoutRef.current = setTimeout(() => {
-            setStatus("idle");
-            pendingHrefRef.current = null;
-          }, 580);
-        }, 1500);
-      }, 540);
+            setStatus("exiting");
+            timeoutRef.current = setTimeout(() => {
+              setStatus("idle");
+              pendingHrefRef.current = null;
+            }, 650);
+          }, 2000);
+        }, 1000);
+      }, 600);
     },
     [router, status]
   );
@@ -103,7 +107,6 @@ export default function PageTransition() {
         href.startsWith("tel:") ||
         href.startsWith("javascript:")
       ) {
-        // If external link is same origin, we can still transition
         try {
           const url = new URL(href, window.location.href);
           if (url.origin !== window.location.origin) {
@@ -150,7 +153,7 @@ export default function PageTransition() {
       aria-hidden="true"
     >
       <div className={styles.curtain}>
-        {/* Subtle SVG Film Grain Overlay */}
+        {/* Subtle SVG Film Noise Backdrop */}
         <div className={styles.noise} />
 
         {/* Viewfinder Corners */}
@@ -161,10 +164,13 @@ export default function PageTransition() {
           <span className={styles.cornerBR} />
         </div>
 
-        {/* Centered Brand Mark */}
+        {/* Centered Brand Mark & 1s Cinematic Indicator */}
         <div className={styles.brand}>
           <span className={styles.logoText}>HAY STORIES</span>
           <span className={styles.tagline}>DIGITAL DISPOSABLE CAMERA</span>
+          <div className={styles.loaderBar}>
+            <div className={styles.loaderProgress} />
+          </div>
         </div>
       </div>
     </div>

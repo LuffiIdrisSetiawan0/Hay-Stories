@@ -1,5 +1,5 @@
 /* ===========================================================================
-   Page Transition Curtain (Y-Vision Style)
+   Page Transition Curtain (Y-Vision Style with 1s Calibrated Hold)
    =========================================================================== */
 
 .overlay {
@@ -22,19 +22,19 @@
   justify-content: center;
 }
 
-/* Entering: Slide up from bottom (100% -> 0%) */
+/* Entering: Slide up from bottom (100% -> 0%) in 0.6s */
 .entering .curtain {
-  animation: slideUpEnter 0.54s cubic-bezier(0.76, 0, 0.24, 1) forwards;
+  animation: slideUpEnter 0.6s cubic-bezier(0.76, 0, 0.24, 1) forwards;
 }
 
-/* Holding: Stay covering the screen */
+/* Holding: Stay covering the screen during 1s navigation load */
 .holding .curtain {
   transform: translateY(0%);
 }
 
-/* Exiting: Slide up off the top (0% -> -100%) */
+/* Exiting: Slide up off the top (0% -> -100%) in 0.6s */
 .exiting .curtain {
-  animation: slideUpExit 0.54s cubic-bezier(0.76, 0, 0.24, 1) forwards;
+  animation: slideUpExit 0.6s cubic-bezier(0.76, 0, 0.24, 1) forwards;
 }
 
 @keyframes slideUpEnter {
@@ -114,7 +114,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.65rem;
+  gap: 0.75rem;
   user-select: none;
   text-align: center;
   padding-inline: 1rem;
@@ -136,4 +136,39 @@
   letter-spacing: 0.32em;
   text-transform: uppercase;
   color: var(--color-accent);
+}
+
+/* 1-Second Cinematic Loading Line */
+.loaderBar {
+  width: 120px;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-full);
+  margin-top: 0.5rem;
+  overflow: hidden;
+  position: relative;
+}
+
+.loaderProgress {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 0%;
+  background: var(--color-accent);
+  border-radius: var(--radius-full);
+  box-shadow: 0 0 8px var(--color-accent);
+}
+
+.holding .loaderProgress {
+  animation: load1s 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes load1s {
+  0% {
+    width: 0%;
+  }
+  100% {
+    width: 100%;
+  }
 }
