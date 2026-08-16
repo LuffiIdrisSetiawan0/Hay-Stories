@@ -6,9 +6,9 @@ import BigWord from "@/components/ui/BigWord";
 import styles from "./WhySection.module.css";
 
 const LINES = [
-  "Foto terbaik acaramu tersimpan di HP tamu, tapi jarang sempat terkirim.",
-  "Kamera disposable fisik mahal dan repot dicuci, grup chat menurunkan kualitas foto.",
-  "HAY Stories mengumpulkan seluruh momen candid dalam satu album beresolusi penuh.",
+  "Foto terbaik acaramu ada di HP tamu.",
+  "Tanpa minta satu per satu, tanpa kompresi kualitas.",
+  "Semua momen candid terkumpul otomatis di satu album.",
 ] as const;
 
 export default function WhySection() {
@@ -22,17 +22,17 @@ export default function WhySection() {
         <div className={styles.body}>
           {LINES.map((line, i) => (
             <p key={line} className={i === LINES.length - 1 ? styles.lineLast : styles.line}>
-              <SplitText by="char" direction="blur" delay={i * 180}>
+              <SplitText by="char" direction="blur" delay={i * 140}>
                 {line}
               </SplitText>
             </p>
           ))}
         </div>
 
-        <Reveal delay={320} className={styles.actionWrap}>
+        <Reveal delay={280} className={styles.actionWrap}>
           <Link href="#cara-kerja" className={styles.outlineBtn}>
             Lihat Cara Kerjanya
-            <ArrowRight size={17} />
+            <ArrowRight size={16} />
           </Link>
         </Reveal>
       </div>

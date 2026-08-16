@@ -9,32 +9,32 @@ import styles from "./FAQ.module.css";
 const faqs = [
   {
     q: "Apa itu HAY Stories?",
-    a: "HAY Stories adalah kamera analog disposable digital untuk acara. Tuan rumah cukup meletakkan QR code di meja. Tamu memindai QR dan langsung memotret di browser dengan filter roll film otentik. Semua foto terkumpul otomatis di satu galeri.",
+    a: "Kamera analog digital untuk acara. Tamu scan QR di meja, langsung motret di browser, dan semua foto candid terkumpul otomatis di satu album.",
   },
   {
     q: "Apakah tamu harus install aplikasi di HP?",
-    a: "Sama sekali tidak. Tamu cukup scan QR code lewat kamera HP bawaan (iPhone atau Android). Kamera web HAY Stories langsung terbuka di browser dalam hitungan detik tanpa perlu download atau registrasi akun.",
+    a: "Tidak perlu. Cukup scan QR code lewat kamera HP, langsung memotret tanpa unduh aplikasi atau bikin akun.",
   },
   {
     q: "Bagaimana cara menampilkan Live Slideshow di proyektor?",
-    a: "Buka link Live Slideshow dari laptop di venue dan aktifkan mode Full Screen. Setiap kali tamu menjepret foto baru, fotonya akan otomatis tayang di layar proyektor atau TV venue secara real-time.",
+    a: "Buka tautan slideshow di laptop venue. Setiap foto baru dari tamu akan langsung tayang di layar proyektor secara real-time.",
   },
   {
     q: "Preset roll film apa saja yang tersedia?",
-    a: "Ada 6 roll film analog: Golden Hour 400 (kulit hangat), Pastel 400 (lembut & dreamy), Sunday Chrome (warna pop cerah), Noir 400 (hitam putih klasik), Neon Night 1600 (flash pesta malam), dan Everyday 100 (warna natural).",
+    a: "Tersedia 6 preset film analog 35mm otentik yang cocok untuk segala kondisi cahaya—dari outdoor cerah hingga pesta malam.",
   },
   {
-    q: "Berapa lama foto tersimpan dan bagaimana cara mengunduhnya?",
-    a: "Foto tersimpan aman di cloud selama 1 tahun penuh. Anda bisa mengunduh foto satuan atau mengunduh seluruh album dalam format file ZIP beresolusi tinggi siap cetak kapan saja.",
+    q: "Berapa lama foto tersimpan dan cara mengunduhnya?",
+    a: "Foto tersimpan 1 tahun dan bisa diunduh kapan saja, satuan maupun sekaligus dalam file ZIP resolusi penuh.",
   },
   {
     q: "Apakah ada paket gratis?",
-    a: "Ada! Anda bisa mencoba gratis hingga 5 tamu untuk merasakan serunya kamera analog digital HAY Stories sebelum memesan paket acara yang lebih besar.",
+    a: "Ada. Paket Starter gratis untuk 5 tamu tanpa perlu kartu kredit.",
   },
 ];
 
 export default function FAQ() {
-  const [openIndex, setOpenIndex] = useState<number | null>(0);
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   return (
     <section id="faq" className={styles.section}>
@@ -52,7 +52,7 @@ export default function FAQ() {
           {faqs.map((faq, i) => {
             const open = openIndex === i;
             return (
-              <Reveal key={faq.q} as="li" delay={i * 70} className={styles.item}>
+              <Reveal key={faq.q} as="li" delay={i * 60} className={styles.item}>
                 <h3>
                   <button
                     type="button"
