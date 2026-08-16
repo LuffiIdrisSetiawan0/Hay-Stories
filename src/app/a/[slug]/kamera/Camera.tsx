@@ -37,6 +37,12 @@ interface Props {
   shotsLimit: number
 }
 
+interface FocusPoint {
+  x: number
+  y: number
+  time: number
+}
+
 const EXPOSURE_OPTIONS = [
   { label: 'Redup -0.5 EV', val: -0.5 },
   { label: 'Normal 0 EV', val: 0.0 },
@@ -74,6 +80,7 @@ export default function Camera({
   const [exposure, setExposure] = useState<number>(0.0)
   const [sharpness, setSharpness] = useState<number>(0.45)
   const [activeDrawer, setActiveDrawer] = useState<'none' | 'exposure' | 'sharpness'>('none')
+  const [focusPoint, setFocusPoint] = useState<FocusPoint | null>(null)
 
   const [shotsUsed, setShotsUsed] = useState(initialShotsUsed)
   const [busy, setBusy] = useState(false)
@@ -88,6 +95,13 @@ export default function Camera({
     const timer = setTimeout(() => setNotice(null), 2200)
     return () => clearTimeout(timer)
   }, [notice])
+
+  // Clear focus reticle after animation completes
+  useEffect(() => {
+    if (!focusPoint) return
+    const timer = setTimeout(() => setFocusPoint(null), 1400)
+    return () => clearTimeout(timer)
+  }, [focusPoint])
 
   const remaining = Math.max(0, shotsLimit - shotsUsed)
   const rollEmpty = remaining === 0
@@ -163,7 +177,8 @@ export default function Camera({
             facingMode: { ideal: facing },
             width: { ideal: STREAM_WIDTH },
             height: { ideal: STREAM_HEIGHT },
-          },
+            ...({ focusMode: { ideal: 'continuous' } } as Record<string, unknown>),
+          } as MediaTrackConstraints,
           audio: false,
         })
 
@@ -188,6 +203,19 @@ export default function Camera({
         const w = settings?.width ?? video.videoWidth
         const h = settings?.height ?? video.videoHeight
         if (w && h) setVideoSize({ w, h })
+
+        // Check if track supports continuous focus capabilities
+        if (track && 'getCapabilities' in track) {
+          try {
+            const capabilities = (track as unknown as { getCapabilities: () => { focusMode?: string[] } }).getCapabilities()
+            if (capabilities.focusMode && Array.isArray(capabilities.focusMode) && capabilities.focusMode.includes('continuous')) {
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              await (track as any).applyConstraints({ advanced: [{ focusMode: 'continuous' }] })
+            }
+          } catch {
+            // Ignore focus capability errors
+          }
+        }
 
         const canvas = canvasRef.current
         if (canvas) {
@@ -233,6 +261,51 @@ export default function Camera({
       streamRef.current = null
     }
   }, [facing, startLoop, stopLoop])
+
+  // --- Tap to Focus --------------------------------------------------------
+
+  const handleTapToFocus = useCallback(
+    async (e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>) => {
+      if (phase.kind !== 'live' || busy) return
+
+      const target = e.currentTarget.getBoundingClientRect()
+      const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
+      const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY
+
+      const x = ((clientX - target.left) / target.width) * 100
+      const y = ((clientY - target.top) / target.height) * 100
+
+      setFocusPoint({ x, y, time: Date.now() })
+
+      // Subtle haptic feedback
+      if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+        try {
+          navigator.vibrate(20)
+        } catch {
+          // Ignore vibrate errors
+        }
+      }
+
+      // Hardware focus request if supported
+      const track = streamRef.current?.getVideoTracks()[0]
+      if (track) {
+        try {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          await (track as any).applyConstraints({
+            advanced: [
+              {
+                focusMode: 'continuous',
+                pointsOfInterest: [{ x: x / 100, y: y / 100 }],
+              },
+            ],
+          })
+        } catch {
+          // Fallback or ignore
+        }
+      }
+    },
+    [busy, phase.kind]
+  )
 
   // --- Mengganti preset ----------------------------------------------------
 
@@ -428,7 +501,7 @@ export default function Camera({
 
   return (
     <main className={styles.page}>
-      <div className={styles.stage}>
+      <div className={styles.stage} onClick={handleTapToFocus}>
         {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
         <video ref={videoRef} playsInline muted className={styles.video} />
 
@@ -437,6 +510,19 @@ export default function Camera({
           style={framePreview?.containerStyle}
         >
           <canvas ref={canvasRef} className={styles.canvas} />
+
+          {/* Tap-to-Focus Animated Reticle */}
+          {focusPoint && (
+            <div
+              key={focusPoint.time}
+              className={styles.focusReticle}
+              style={{ left: `${focusPoint.x}%`, top: `${focusPoint.y}%` }}
+            >
+              <div className={styles.focusBox}>
+                <div className={styles.focusCenterDot} />
+              </div>
+            </div>
+          )}
 
           {framePreview?.frame.sprockets && (
             <>
