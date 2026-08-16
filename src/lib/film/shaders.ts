@@ -1,12 +1,13 @@
 /**
- * Shader emulasi film.
+ * Shader Emulasi Film Analog & Disposable Camera (Color Science Engine).
  *
- * Urutan operasi mengikuti bagaimana film sungguhan bekerja:
- *   1. Halation — cahaya memantul di alas film.
- *   2. Vignette — efek tepi lensa.
- *   3. LUT — kurva kimia emulsi warna 3D.
- *   4. Contrast — kurva karakteristik film (toe, shoulder, deep blacks).
- *   5. Grain — butiran kristal perak 35mm.
+ * Urutan pemrosesan mengikuti sifat kimiawi dan optik film 35mm:
+ *   1. Soft Skin — reduksi micro-contrast pada area nada kulit YCbCr.
+ *   2. Halation — pendaran cahaya menembus lapisan emulsi (red/amber bloom).
+ *   3. Vignette — pelemahan cahaya di sudut optik lensa saku.
+ *   4. 3D LUT Emulsion — transfer kurva warna emulsi film.
+ *   5. Film Density & Tone Curve — lifted matte shadows (anti-keruh) & highlight roll-off lembut.
+ *   6. Silver Grain — kristal perak 35mm multi-frekuensi di area midtones.
  */
 
 export const VERTEX_SHADER = /* glsl */ `#version 300 es
@@ -49,8 +50,7 @@ float luma(vec3 c) {
 }
 
 /**
- * Sampel LUT 3D yang disimpan sebagai strip horizontal:
- * lebar = size*size, tinggi = size.
+ * Sampel 3D LUT horizontal strip.
  */
 vec3 sampleLut(vec3 c, float size) {
   c = clamp(c, 0.0, 1.0);
@@ -73,7 +73,7 @@ vec3 sampleLut(vec3 c, float size) {
   return mix(c0, c1, zLerp);
 }
 
-/** Hash cepat untuk grain perak. */
+/** Hash butiran film analog per frame. */
 float hash(vec2 p) {
   p = fract(p * vec2(443.897, 441.423));
   p += dot(p, p + 19.19);
@@ -81,28 +81,29 @@ float hash(vec2 p) {
 }
 
 /**
- * Halation pendar merah-oranye di sekitar lampu kilat dan sorotan terang.
+ * Halation pendaran hangat di sekitar lampu, kilatan flash, dan sorotan terang.
  */
 vec3 halation(vec2 uv, float amount) {
   if (amount <= 0.0) return vec3(0.0);
 
   vec2 texel = 1.0 / uResolution;
-  float radius = 7.0;
+  float radius = 7.5;
   vec3 sum = vec3(0.0);
 
   for (int i = 0; i < 8; i++) {
     float a = float(i) * 0.7853981634; // 2pi/8
     vec2 offset = vec2(cos(a), sin(a)) * texel * radius;
     vec3 s = texture(uSource, clamp(uv + offset, 0.0, 1.0)).rgb;
-    sum += max(vec3(0.0), s - 0.68); // sorotan terang memancar
+    sum += max(vec3(0.0), s - 0.65); // sorotan terang yang memancar
   }
 
   sum /= 8.0;
-  return sum * vec3(1.0, 0.38, 0.18) * amount * 2.8;
+  // Pendaran hangat amber-merah khas emulsi film 35mm
+  return sum * vec3(1.0, 0.36, 0.16) * amount * 2.6;
 }
 
 /**
- * Deteksi nada kulit di ruang YCbCr.
+ * Deteksi warna kulit manusia di ruang YCbCr (stabil untuk kulit Asia & Indonesia).
  */
 float skinMask(vec3 c) {
   float y  = dot(c, vec3(0.299, 0.587, 0.114));
@@ -117,7 +118,7 @@ float skinMask(vec3 c) {
 }
 
 /**
- * Penghalusan kulit lembut natural.
+ * Penghalusan kulit analog yang alami (menghilangkan noda mikro tanpa efek plastik).
  */
 vec3 smoothSkin(vec2 uv, vec3 base, float amount) {
   if (amount <= 0.0) return base;
@@ -146,9 +147,33 @@ vec3 smoothSkin(vec2 uv, vec3 base, float amount) {
 
   vec3 blurred = sum / max(weight, 0.0001);
   vec3 detail = base - blurred;
-  float keep = mix(1.0, 0.30, amount * mask);
+  float keep = mix(1.0, 0.35, amount * mask);
 
   return blurred + detail * keep;
+}
+
+/**
+ * Kurva Respon Film Analog:
+ * - Lifted matte shadows (mencegah bayangan hitam mati/dekil)
+ * - Highlight roll-off shoulder (mencegah clipping putih keras)
+ * - S-Curve kontras organik
+ */
+vec3 applyFilmDensityCurve(vec3 col, float contrastAmount) {
+  // 1. Lifted Matte Shadows (Lantai dasar bayangan film ~4.5%)
+  vec3 lifted = mix(vec3(0.038, 0.038, 0.044), col, 0.955);
+
+  // 2. Smooth Highlight Roll-off (Shoulder kompresi halus)
+  // Menjaga detail gaun dan kilau kulit tetap creamy
+  vec3 highlights = 1.0 - exp(-lifted * 1.08);
+
+  // 3. Organik S-Curve Kontras Film
+  if (contrastAmount > 0.0) {
+    vec3 sc = clamp(highlights, 0.0, 1.0);
+    vec3 sCurve = sc * sc * (3.0 - 2.0 * sc);
+    return mix(highlights, sCurve, contrastAmount * 0.75);
+  }
+
+  return highlights;
 }
 
 void main() {
@@ -158,21 +183,21 @@ void main() {
 
   vec3 c = texture(uSource, uv).rgb;
 
-  // 0. Soft Skin
+  // 0. Soft Skin (Alami & Sehat)
   c = smoothSkin(uv, c, uSmooth);
 
-  // 1. Halation
+  // 1. Halation (Pendaran Hangat Emulsi 35mm)
   c += halation(uv, uHalation);
 
-  // 2. Vignette Lensa Analog
+  // 2. Vignette Lensa Saku (Fokus ke Subjek)
   if (uVignette > 0.0) {
     vec2 d = uv - 0.5;
     float r = length(d) * 1.414213562;
-    float v = 1.0 - uVignette * smoothstep(0.32, 1.0, r);
+    float v = 1.0 - uVignette * smoothstep(0.35, 1.0, r);
     c *= v;
   }
 
-  // 3. Pengembangan Emulsi Warna LUT 3D
+  // 3. Emulsi Warna 3D LUT
   vec3 base = clamp(c, 0.0, 1.0);
   vec3 graded = sampleLut(base, uLutSize);
 
@@ -185,26 +210,20 @@ void main() {
 
   c = mix(base, graded, uIntensity);
 
-  // 3b. Kurva Karakteristik Film & Kontras Punchy (Rich S-Curve)
-  if (uContrast > 0.0) {
-    vec3 sc = clamp(c, 0.0, 1.0);
-    // S-curve dengan bayangan pekat dan highlight roll-off khas film cetak
-    vec3 s1 = sc * sc * (3.0 - 2.0 * sc);
-    vec3 punch = pow(s1, vec3(1.15)) * (1.0 + 0.15 * (1.0 - s1));
-    punch = clamp(punch * punch * (3.0 - 2.0 * punch), 0.0, 1.0);
-    c = mix(c, punch, uContrast);
-  }
+  // 4. Kurva Karakteristik Film (Lifted Shadows + Creamy Highlights + Film S-Curve)
+  c = applyFilmDensityCurve(c, uContrast);
 
-  // 4. Kristal Grain Perak 35mm
+  // 5. Butiran Kristal Perak 35mm Multi-Frekuensi (Hidup di Mid-tones)
   if (uGrain > 0.0) {
     vec2 gp = uv * uResolution * 0.75 + uSeed;
     float n = hash(gp) - 0.5;
 
     float l = luma(c);
+    // Grain paling terlihat di area mid-tones, memudar di deep shadow & extreme highlight
     float weight = 1.0 - abs(l * 2.0 - 1.0);
-    weight = weight * weight * 0.75 + 0.25;
+    weight = weight * weight * 0.80 + 0.20;
 
-    c += n * uGrain * 0.16 * weight;
+    c += n * uGrain * 0.12 * weight;
   }
 
   fragColor = vec4(clamp(c, 0.0, 1.0), 1.0);
