@@ -1,24 +1,5 @@
 import type { Metadata } from "next";
-import { Cormorant_Garamond, Montserrat, Share_Tech_Mono } from "next/font/google";
 import "./globals.css";
-
-const cormorant = Cormorant_Garamond({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-serif",
-});
-
-const montserrat = Montserrat({
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600"],
-  variable: "--font-sans",
-});
-
-const mono = Share_Tech_Mono({
-  subsets: ["latin"],
-  weight: ["400"],
-  variable: "--font-mono",
-});
 
 export const metadata: Metadata = {
   title: {
@@ -76,7 +57,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css"
         />
       </head>
-      <body className={`${cormorant.variable} ${montserrat.variable} ${mono.variable}`}>
+      <body>
         {/*
           Animasi masuk mulai dari opacity 0 dan baru dilepas oleh
           IntersectionObserver. Tanpa JavaScript, observer itu tidak pernah
