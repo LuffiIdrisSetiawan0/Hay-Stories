@@ -11,7 +11,9 @@ import SplitText from "@/components/ui/SplitText";
 import ScrollCue from "@/components/ui/ScrollCue";
 import styles from "./Hero.module.css";
 
-const SCENES: Record<PresetId, { src: string; alt: string }> = {
+const HERO_PRESETS = FILM_PRESETS.slice(0, 6);
+
+const SCENES: Record<string, { src: string; alt: string }> = {
   "golden-hour-400": {
     src: "/img/scenes/01-pelaminan.jpg",
     alt: "pasangan pengantin Indonesia tersenyum bahagia dalam busana pernikahan putih",
@@ -75,8 +77,9 @@ export default function Hero() {
 
         renderer = new FilmRenderer(glCanvas);
 
-        for (const preset of FILM_PRESETS) {
+        for (const preset of HERO_PRESETS) {
           const scene = SCENES[preset.id];
+          if (!scene) continue;
           const target = targetsRef.current.get(preset.id);
           if (!target) continue;
 
@@ -129,40 +132,44 @@ export default function Hero() {
           className={`${styles.deck} ${dealt ? styles.deckDealt : ""}`}
           aria-label="Contoh roll film analog HAY Stories"
         >
-          {FILM_PRESETS.map((preset, i) => (
-            <figure
-              key={preset.id}
-              className={styles.card}
-              style={
-                {
-                  "--i": i,
-                  "--x": FAN[i].x,
-                  "--y": FAN[i].y,
-                  "--r": `${FAN[i].r}deg`,
-                  "--z": FAN[i].z,
-                } as CSSProperties
-              }
-            >
-              <span className={styles.cardInner}>
-                <div className={styles.cardMedia}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={SCENES[preset.id].src}
-                    alt={SCENES[preset.id].alt}
-                    className={styles.cardImg}
-                    loading="eager"
-                  />
-                  <canvas
-                    ref={(el) => registerTarget(preset.id, el)}
-                    className={styles.canvas}
-                    aria-label={`Ilustrasi ${SCENES[preset.id].alt}, dirender dengan roll ${preset.name}`}
-                    role="img"
-                  />
-                </div>
-                <figcaption className={styles.tag}>{preset.name}</figcaption>
-              </span>
-            </figure>
-          ))}
+          {HERO_PRESETS.map((preset, i) => {
+            const scene = SCENES[preset.id];
+            if (!scene) return null;
+            return (
+              <figure
+                key={preset.id}
+                className={styles.card}
+                style={
+                  {
+                    "--i": i,
+                    "--x": FAN[i].x,
+                    "--y": FAN[i].y,
+                    "--r": `${FAN[i].r}deg`,
+                    "--z": FAN[i].z,
+                  } as CSSProperties
+                }
+              >
+                <span className={styles.cardInner}>
+                  <div className={styles.cardMedia}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={scene.src}
+                      alt={scene.alt}
+                      className={styles.cardImg}
+                      loading="eager"
+                    />
+                    <canvas
+                      ref={(el) => registerTarget(preset.id, el)}
+                      className={styles.canvas}
+                      aria-label={`Ilustrasi ${scene.alt}, dirender dengan roll ${preset.name}`}
+                      role="img"
+                    />
+                  </div>
+                  <figcaption className={styles.tag}>{preset.name}</figcaption>
+                </span>
+              </figure>
+            );
+          })}
         </div>
 
         <p className={styles.lede}>

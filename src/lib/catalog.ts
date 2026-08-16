@@ -40,7 +40,7 @@ export const TIERS: readonly Tier[] = [
     retentionDays: 90,
     features: [
       '1 album acara',
-      '6 preset analog',
+      '12 preset film analog',
       'Galeri interaktif',
       'Unduhan resolusi penuh',
     ],
@@ -115,10 +115,16 @@ export function formatGuestLimit(maxGuests: number | null): string {
 export type PresetId =
   | 'golden-hour-400'
   | 'pastel-400'
+  | 'everyday-100'
+  | 'neon-night-1600'
   | 'sunday-chrome'
   | 'noir-400'
-  | 'neon-night-1600'
-  | 'everyday-100'
+  | 'fuji-velvia-50'
+  | 'kodachrome-64'
+  | 'kodak-ektachrome-100'
+  | 'fuji-astia-100'
+  | 'kodak-ektar-100'
+  | 'kodak-tri-x-400'
 
 export interface FilmPreset {
   id: PresetId
@@ -212,6 +218,78 @@ export const FILM_PRESETS: readonly FilmPreset[] = [
     contrast: 0.60,
     grain: 0.45,
     vignette: 0.30,
+    halation: 0.0,
+  },
+  {
+    id: 'fuji-velvia-50',
+    name: 'Fujifilm Velvia 50',
+    character: 'Saturasi warna ultra-vibrant, hijau emerald hidup, warna lanskap pop',
+    lut: '/luts/fuji-velvia-50.png',
+    strength: 1.0,
+    lumaLock: 0.0,
+    contrast: 0.58,
+    grain: 0.16,
+    vignette: 0.22,
+    halation: 0.14,
+  },
+  {
+    id: 'kodachrome-64',
+    name: 'Kodak Kodachrome 64',
+    character: 'Slide film legendaris era 70-80an, warna merah & kuning hangat nostalgia',
+    lut: '/luts/kodachrome-64.png',
+    strength: 1.0,
+    lumaLock: 0.0,
+    contrast: 0.50,
+    grain: 0.20,
+    vignette: 0.22,
+    halation: 0.18,
+  },
+  {
+    id: 'kodak-ektachrome-100',
+    name: 'Kodak Ektachrome 100',
+    character: 'Kontras tajam dengan cool blues dan saturasi jernih khas slide film modern',
+    lut: '/luts/kodak-ektachrome-100.png',
+    strength: 1.0,
+    lumaLock: 0.0,
+    contrast: 0.54,
+    grain: 0.18,
+    vignette: 0.20,
+    halation: 0.15,
+  },
+  {
+    id: 'fuji-astia-100',
+    name: 'Fujifilm Astia 100F',
+    character: 'Soft contrast natural, warna kulit halus dan seimbang untuk potret outdoor',
+    lut: '/luts/pastel-400.png',
+    strength: 1.0,
+    lumaLock: 0.0,
+    contrast: 0.40,
+    grain: 0.14,
+    vignette: 0.14,
+    halation: 0.12,
+  },
+  {
+    id: 'kodak-ektar-100',
+    name: 'Kodak Ektar 100',
+    character: 'Grain paling halus di dunia, warna sangat tajam, kaya dan berdimensi',
+    lut: '/luts/sunday-chrome.png',
+    strength: 1.0,
+    lumaLock: 0.0,
+    contrast: 0.52,
+    grain: 0.10,
+    vignette: 0.18,
+    halation: 0.12,
+  },
+  {
+    id: 'kodak-tri-x-400',
+    name: 'Kodak TRI-X 400',
+    character: 'Monokrom jurnalistik klasik, kontras tegas berjiwa dengan silver grain khas',
+    lut: '/luts/noir-400.png',
+    strength: 1.0,
+    lumaLock: 0.0,
+    contrast: 0.65,
+    grain: 0.48,
+    vignette: 0.28,
     halation: 0.0,
   },
 ] as const
