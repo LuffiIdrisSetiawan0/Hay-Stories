@@ -2,19 +2,9 @@ import { FILM_PRESETS, getTier } from "@/lib/catalog";
 import Reveal from "@/components/ui/Reveal";
 import SplitText from "@/components/ui/SplitText";
 import Counter from "@/components/ui/Counter";
-import Marquee from "@/components/ui/Marquee";
 import styles from "./StatsBand.module.css";
 
 const STARTER = getTier("starter")!;
-
-const REACH = [
-  "iPhone & Android",
-  "Tanpa Download App",
-  "Tanpa Registrasi Akun",
-  "Live Slideshow",
-  "Download ZIP HD",
-  "Masa Aktif 1 Tahun",
-] as const;
 
 export default function StatsBand() {
   const stats = [
@@ -49,15 +39,6 @@ export default function StatsBand() {
           ))}
         </ul>
       </div>
-
-      <Marquee className={styles.reachBand} speed={36} direction="right" label="Dukungan perangkat">
-        {REACH.map((item) => (
-          <span key={item} className={styles.reachItem}>
-            {item}
-            <span className={styles.reachDot} aria-hidden="true" />
-          </span>
-        ))}
-      </Marquee>
     </section>
   );
 }

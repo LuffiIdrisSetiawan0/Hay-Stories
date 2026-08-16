@@ -3,12 +3,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import Link from "next/link";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { FILM_PRESETS, type PresetId } from "@/lib/catalog";
 import { FilmRenderer, isFilmSupported } from "@/lib/film";
 import { useInView } from "@/components/ui/useInView";
 import SplitText from "@/components/ui/SplitText";
-import Marquee from "@/components/ui/Marquee";
 import ScrollCue from "@/components/ui/ScrollCue";
 import styles from "./Hero.module.css";
 
@@ -118,11 +117,6 @@ export default function Hero() {
   return (
     <section className={`${styles.hero} surface-dark`}>
       <div className={styles.inner}>
-        <p className={styles.eyebrow}>
-          <Sparkles size={13} style={{ display: "inline-block", verticalAlign: "middle", marginRight: "6px" }} />
-          Digital Disposable Camera untuk Acara
-        </p>
-
         <h1 className={styles.headline}>
           <SplitText by="word" delay={60}>
             Hari Terbaikmu, Terabadikan dari Sudut Pandang Tamu
@@ -189,17 +183,6 @@ export default function Hero() {
 
         <ScrollCue href="#kenapa" label="Gulir ke bawah" />
       </div>
-
-      {/* Film preset bottom ticker */}
-      <Marquee className={styles.rollBand} speed={46} label="Preset Roll Film Tersedia">
-        {FILM_PRESETS.map((preset) => (
-          <span key={preset.id} className={styles.rollItem}>
-            <span className={styles.rollAt}>@</span>
-            {preset.name}
-            <span className={styles.rollDot} aria-hidden="true" />
-          </span>
-        ))}
-      </Marquee>
     </section>
   );
 }
