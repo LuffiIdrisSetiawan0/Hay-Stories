@@ -17,93 +17,11 @@ export const VERTEX_SHADER = /* glsl */ `#version 300 es
 in vec2 aPosition;
 out vec2 vUv;
 
-/**
- * Seberapa "kulit" sebuah warna, 0..1.
- *
- * Dihitung di ruang YCbCr karena di sanalah nada kulit menempati wilayah sempit
- * yang stabil — dari kulit paling terang sampai paling gelap, Cb dan Cr-nya
- * berdekatan, sementara di RGB ketiganya bergerak bersama sehingga tidak ada
- * batas yang bisa dipakai. Ini alasan yang sama kenapa deteksi wajah klasik
- * memakai ruang ini.
- *
- * Tepinya dilembutkan dengan smoothstep, bukan ambang keras: batas tajam antara
- * "kulit" dan "bukan kulit" akan terlihat sebagai bercak di pipi yang setengah
- * terkena cahaya.
- */
-float skinMask(vec3 c) {
-  float y  = dot(c, vec3(0.299, 0.587, 0.114));
-  float cb = (c.b - y) * 0.564 + 0.5;
-  float cr = (c.r - y) * 0.713 + 0.5;
-
-  float inCb = smoothstep(0.28, 0.34, cb) * (1.0 - smoothstep(0.48, 0.54, cb));
-  float inCr = smoothstep(0.50, 0.55, cr) * (1.0 - smoothstep(0.66, 0.72, cr));
-
-  // Bayangan pekat dan sorotan gosong tidak punya informasi kulit yang berguna.
-  float inY = smoothstep(0.12, 0.22, y) * (1.0 - smoothstep(0.92, 0.99, y));
-
-  return inCb * inCr * inY;
-}
-
-/**
- * Menghaluskan kulit tanpa membuat wajah jadi plastik.
- *
- * Prinsipnya bukan blur, melainkan menekan detail BERKONTRAS RENDAH saja.
- * Jerawat, pori, dan bekas noda adalah selisih kecil terhadap kulit di
- * sekitarnya; alis, bulu mata, dan garis bibir adalah selisih besar. Dengan
- * menimbang tiap piksel berdasarkan besar selisihnya, yang pertama meluruh dan
- * yang kedua utuh — itulah beda antara kulit yang bersih dan wajah yang
- * kehilangan bentuk.
- *
- * Radiusnya fraksi dari sisi gambar, bukan hitungan texel tetap. Pelajaran yang
- * sama dengan grain dan halation: radius texel tetap membuat pratinjau 900 px
- * dan simpanan 2560 px menghaluskan pada skala yang berbeda.
- */
-vec3 smoothSkin(vec2 uv, vec3 base, float amount) {
-  if (amount <= 0.0) return base;
-
-  float mask = skinMask(base);
-  if (mask <= 0.001) return base;
-
-  vec2 texel = 1.0 / uResolution;
-  float radius = min(uResolution.x, uResolution.y) * 0.006;
-
-  vec3 sum = vec3(0.0);
-  float weight = 0.0;
-
-  // Dua cincin: satu rapat untuk pori, satu lebar untuk noda yang lebih besar.
-  for (int i = 0; i < 8; i++) {
-    float a = float(i) * 0.7853981634;
-    vec2 dir = vec2(cos(a), sin(a));
-
-    for (int r = 1; r <= 2; r++) {
-      vec3 s = texture(uSource, clamp(uv + dir * texel * radius * float(r), 0.0, 1.0)).rgb;
-
-      // Sampel yang jauh berbeda dari piksel ini hampir pasti bukan kulit yang
-      // sama — mata, rambut, latar. Bobotnya dijatuhkan supaya tepinya tidak
-      // ikut luntur.
-      float diff = length(s - base);
-      float w = exp(-diff * diff * 90.0) / float(r);
-
-      sum += s * w;
-      weight += w;
-    }
-  }
-
-  vec3 blurred = sum / max(weight, 0.0001);
-
-  // Detail dikembalikan sebagian: nol berarti plastik, satu berarti tidak ada
-  // yang berubah. Yang dicari ada di antaranya.
-  vec3 detail = base - blurred;
-  float keep = mix(1.0, 0.25, amount * mask);
-
-  return blurred + detail * keep;
-}
-
 void main() {
   vUv = aPosition * 0.5 + 0.5;
   gl_Position = vec4(aPosition, 0.0, 1.0);
 }
-`
+`;
 
 export const FRAGMENT_SHADER = /* glsl */ `#version 300 es
 precision highp float;
@@ -366,4 +284,4 @@ void main() {
 
   fragColor = vec4(clamp(c, 0.0, 1.0), 1.0);
 }
-`
+`;
