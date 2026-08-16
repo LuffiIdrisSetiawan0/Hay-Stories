@@ -46,7 +46,7 @@ export default function PernikahanPage() {
         {
           step: "02",
           title: "Tamu Scan & Motret",
-          desc: "Tamu langsung masuk ke kamera web analog dengan batas 10-25 roll jepretan per orang.",
+          desc: "Tamu langsung masuk ke kamera web analog dengan batas jepretan yang Anda tentukan.",
         },
         {
           step: "03",
@@ -56,53 +56,53 @@ export default function PernikahanPage() {
       ]}
       presets={[
         {
-          name: "Warm Gold 200",
+          name: "Golden Hour 400",
           desc: "Tone hangat bernuansa senja untuk resepsi outdoor & intimate garden",
           tag: "Outdoor Vibes",
         },
         {
-          name: "Portra Soft 400",
-          desc: "Warna kulit natural bercahaya, ideal untuk ballroom & gaun pengantin",
+          name: "Pastel 400",
+          desc: "Warna kulit natural bercahaya, ideal untuk ballroom & kebaya pengantin",
           tag: "Bridal Favorite",
         },
         {
-          name: "B&W Noir 400",
+          name: "Noir 400",
           desc: "Kontras monokrom klasik nan emosional untuk momen haru akad & sungkeman",
           tag: "Timeless Emotion",
         },
       ]}
       sampleGallery={[
-        { img: "/img/scenes/01-pelaminan.jpg", caption: "Sapaan Hangat Sahabat" },
-        { img: "/img/scenes/02-akad.jpg", caption: "Haru & Doa Keluarga" },
-        { img: "/img/scenes/03-table-candid.jpg", caption: "Tawa Spontan Meja Tamu" },
+        { img: "/img/scenes/01-pelaminan.jpg", caption: "Senyum Bahagia Bersama Pengantin" },
+        { img: "/img/scenes/02-meja-dekorasi.jpg", caption: "Kehangatan Meja Jamuan Tamu" },
+        { img: "/img/scenes/06-konfeti.jpg", caption: "Taburan Bunga & Doa Restu Keluarga" },
       ]}
       storyQuote={{
         quote:
-          "Foto terbaik di resepsi kami bukan dari fotografer panggung, tapi selfie candid sepupu dan teman kantor yang kami dapatkan lewat HAY Stories!",
+          "Foto terbaik di resepsi kami bukan cuma dari fotografer panggung, tapi candid hangat teman dan keluarga di meja makan yang kami dapatkan lewat HAY Stories!",
         author: "Dimas & Sarah",
-        role: "Pengantin · Resepsi Jakarta",
+        role: "Resepsi Pernikahan di Jakarta · 300 Tamu",
       }}
       packageHighlight={{
         name: "Paket Pernikahan Pilihan",
-        price: "Rp 349.000",
-        guests: "200 tamu",
+        price: "Rp 299.000",
+        guests: "Hingga 300 Tamu",
         features: [
-          "QR code meja tak terbatas",
-          "Batas jepretan 25 foto / tamu",
-          "Semua filter roll film analog",
-          "Live Slideshow proyektor ballroom",
-          "Custom watermark nama pengantin",
-          "Download ZIP resolusi penuh (1 tahun)",
+          "Akses kamera web instan tanpa download app",
+          "6 Preset roll film analog otentik",
+          "Watermark nama pengantin & tanggal",
+          "Live slideshow ballroom proyektor",
+          "Unduh ZIP seluruh foto resolusi penuh",
+          "Masa aktif album 1 tahun penuh",
         ],
       }}
       faqs={[
         {
-          q: "Bagaimana cara meletakkan QR code di meja resepsi?",
-          a: "Kami menyediakan file PDF cetak berukuran A6 & tenda meja yang siap dicetak di percetakan atau disematkan ke bingkai meja resepsi Anda.",
+          q: "Bagaimana cara meletakkan QR code di resepsi?",
+          a: "Kami menyediakan template kartu QR meja siap cetak yang cantik dan serasi dengan dekorasi meja makan tamu.",
         },
         {
-          q: "Apakah tamu bisa melihat foto orang lain?",
-          a: "Bisa, galeri live bisa dibuka bersama atau Anda dapat mengatur mode privat di mana foto hanya terlihat oleh pengantin & layar utama.",
+          q: "Apakah fotografer utama kami tetap dibutuhkan?",
+          a: "Tentu! Fotografer utama mengurus momen resmi di paminan, sedangkan HAY Stories menangkap sudut pandang candid dari ratusan tamu di meja.",
         },
       ]}
     />

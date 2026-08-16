@@ -14,7 +14,7 @@ export default function UlangTahunPage() {
       badge="Pesta Ulang Tahun & Sweet 17 🎂"
       title="Tiup Lilin Sampai Tawa Terakhir Bersama Circle-mu"
       subtitle="Ulang tahun cuma datang setahun sekali. Abadikan momen pelukan teman terdekat, tawa saat tiup lilin, dan ekspresi konyol dengan roll kamera analog sekali pakai digital."
-      heroImage="/img/genz/phone-3.jpg"
+      heroImage="/img/scenes/03-kue.jpg"
       benefits={[
         {
           title: "Filter Retro Sweet 17",
@@ -60,14 +60,14 @@ export default function UlangTahunPage() {
         { name: "Sunday Chrome", desc: "Saturasi kaya, kontras tajam, warna pop", tag: "Outdoor Picnic" },
       ]}
       sampleGallery={[
-        { img: "/img/genz/phone-3.jpg", caption: "Candid tiup lilin & kue ulang tahun" },
-        { img: "/img/scenes/03-kue.jpg", caption: "Detail kue & dekorasi pesta" },
-        { img: "/img/scenes/06-konfeti.jpg", caption: "Lemparan konfeti dan tawa bersama sahabat" },
+        { img: "/img/scenes/03-kue.jpg", caption: "Tiup lilin & kue ulang tahun bersama sahabat" },
+        { img: "/img/scenes/05-lantai-dansa.jpg", caption: "Keseruan pesta malam & candid tawa" },
+        { img: "/img/scenes/02-meja-dekorasi.jpg", caption: "Suasana santai & toasting di cafe" },
       ]}
       storyQuote={{
-        quote: "Pesta Sweet 17 anak saya jadi seru banget! Teman-temannya heboh foto pakai filter analog dan hasilnya langsung muncul di layar TV cafe.",
+        quote: "Pesta ulang tahun anak saya jadi seru banget! Teman-temannya heboh foto pakai filter analog dan hasilnya langsung muncul di layar TV cafe.",
         author: "Mama Cindy & Cindy",
-        role: "Sweet 17 Party di Bandung · 80 Tamu",
+        role: "Birthday Party di Bandung · 80 Tamu",
       }}
       packageHighlight={{
         name: "Paket Pesta Teman",
@@ -84,16 +84,16 @@ export default function UlangTahunPage() {
       }}
       faqs={[
         {
-          q: "Apakah bisa dipakai untuk acara di cafe atau restoran?",
-          a: "Bisa banget! Anda cukup menaruh standee QR kecil di meja cafe atau menampilkan QR di layar HP/laptop.",
+          q: "Apakah teman-teman harus install aplikasi?",
+          a: "Tidak sama sekali. Cukup scan QR code lewat kamera smartphone, langsung terbuka di browser safari/chrome.",
         },
         {
-          q: "Berapa jatah foto per tamu?",
-          a: "Anda bisa mengatur limit jepretan per orang (misalnya 10 atau 25 jepretan) agar pengalaman terasa persis seperti kamera roll film sekali pakai!",
+          q: "Bisa ditampilin langsung di layar TV/Proyektor cafe?",
+          a: "Bisa banget! Buka link Live Slideshow di laptop cafe, foto teman-teman akan otomatis tayang saat dijepret.",
         },
         {
-          q: "Apakah bisa dibagikan link galerinya ke semua teman setelah pesta?",
-          a: "Bisa! Anda bisa membagikan link galeri lengkap ke semua teman agar mereka bisa mengunduh foto mereka sendiri.",
+          q: "Berapa lama albumnya tersimpan?",
+          a: "Album tersimpan selama 1 tahun penuh dan bisa diunduh dalam file ZIP resolusi tinggi kapan saja.",
         },
       ]}
     />
