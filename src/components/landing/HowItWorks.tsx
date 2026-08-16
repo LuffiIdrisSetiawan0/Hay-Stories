@@ -3,31 +3,24 @@ import SplitText from "@/components/ui/SplitText";
 import BigWord from "@/components/ui/BigWord";
 import styles from "./HowItWorks.module.css";
 
-/**
- * Tiga langkah, rata tengah, dipimpin satu kata raksasa.
- *
- * Angkanya yang jadi penanda dan sisanya ruang kosong — tidak ada lingkaran
- * ikon dan tidak ada garis penghubung. Untuk sesuatu yang isinya cuma tiga
- * kalimat, keduanya cuma menambah ramai.
- */
 const steps = [
   {
     number: "01",
-    title: "Pindai QR",
+    title: "Pasang QR Code",
     description:
-      "Tamu memindai QR code di meja atau layar. Langsung terbuka di browser — tidak ada aplikasi yang perlu diunduh.",
+      "Cetak kartu QR kami di meja tamu atau tampilkan di layar utama acara. Desain siap pakai dan mudah ditempatkan di mana saja.",
   },
   {
     number: "02",
-    title: "Jepret",
+    title: "Tamu Scan & Motret",
     description:
-      "Mereka memilih sendiri roll filmnya dan bisa berganti kapan saja. Jatah jepretan terbatas, persis kamera analog sungguhan.",
+      "Tamu memindai QR dan langsung masuk ke kamera web analog. Bebas memilih filter roll film tanpa perlu download aplikasi atau bikin akun.",
   },
   {
     number: "03",
-    title: "Terungkap Bersama",
+    title: "Terkumpul Otomatis",
     description:
-      "Semua foto terkunci sampai acara usai, lalu terbuka bersamaan — seperti menunggu klise film selesai dicetak.",
+      "Semua foto candid otomatis masuk ke galeri digital pribadi Anda. Siap ditayangkan langsung ke proyektor dan diunduh dalam file ZIP resolusi penuh.",
   },
 ];
 
@@ -41,7 +34,7 @@ export default function HowItWorks() {
 
         <p className={styles.lede}>
           <SplitText by="word" delay={100}>
-            Tiga langkah, dan tamumu tidak perlu dijelaskan satu pun.
+            3 langkah instan dan praktis, tanpa perlu dijelaskan panjang lebar ke tamu.
           </SplitText>
         </p>
 

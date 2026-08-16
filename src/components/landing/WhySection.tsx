@@ -5,24 +5,10 @@ import SplitText from "@/components/ui/SplitText";
 import BigWord from "@/components/ui/BigWord";
 import styles from "./WhySection.module.css";
 
-/**
- * Seksi "kenapa", dibangun di sekitar satu kata raksasa.
- *
- * Bobot seksinya dipikul kata "KENAPA" dan pantulannya, lalu tiga kalimat rata
- * tengah yang membaca seperti argumen — bukan daftar fitur.
- *
- * Tiga masalah aslinya tidak dibuang, hanya dipadatkan jadi satu alur: foto
- * tercecer, kamera fisik mahal, dan momen yang tidak terlihat siapa pun.
- *
- * Kalimatnya dipecah per karakter, bukan per kata. Per kata terlalu cepat
- * selesai untuk tiga baris sependek ini; per karakter membuat argumennya
- * terbaca dengan kecepatan orang membacanya, yang justru intinya.
- */
-
 const LINES = [
-  "Foto terbaik acaramu ada di HP orang lain.",
-  "Tersebar di puluhan ponsel, separuh lupa dikirim, sisanya blur.",
-  "Itulah kenapa kami mengumpulkannya jadi satu album.",
+  "Foto terbaik acaramu tersimpan di HP tamu, tapi jarang sempat terkirim.",
+  "Kamera disposable fisik mahal dan repot dicuci, grup chat menurunkan kualitas foto.",
+  "HAY Stories mengumpulkan seluruh momen candid dalam satu album beresolusi penuh.",
 ] as const;
 
 export default function WhySection() {
@@ -45,7 +31,7 @@ export default function WhySection() {
 
         <Reveal delay={320} className={styles.actionWrap}>
           <Link href="#cara-kerja" className={styles.outlineBtn}>
-            Lihat cara kerjanya
+            Lihat Cara Kerjanya
             <ArrowRight size={17} />
           </Link>
         </Reveal>

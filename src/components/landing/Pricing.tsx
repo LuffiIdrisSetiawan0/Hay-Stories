@@ -5,27 +5,20 @@ import Reveal from "@/components/ui/Reveal";
 import SplitText from "@/components/ui/SplitText";
 import styles from "./Pricing.module.css";
 
-/**
- * Empat paket, dibaca langsung dari katalog.
- *
- * Kartunya masuk dengan gerakan terlempar yang sama dengan tumpukan foto di
- * hero — pengulangan yang disengaja, supaya halaman ini terasa punya satu
- * bahasa gerak dan bukan kumpulan seksi yang masing-masing beranimasi sendiri.
- */
 export default function Pricing() {
   return (
     <section id="harga" className={styles.section}>
       <div className="container">
         <div className={styles.head}>
-          <p className={styles.eyebrow}>Harga</p>
+          <p className={styles.eyebrow}>Paket Harga</p>
           <h2 className={styles.title}>
             <SplitText by="word" delay={80}>
-              Bayar sekali per album
+              Sekali Bayar per Acara
             </SplitText>
           </h2>
           <p className={styles.lede}>
             <SplitText by="word" direction="up" delay={160}>
-              Tanpa langganan dan tanpa biaya berulang. Fotonya milikmu selamanya.
+              Tanpa biaya langganan, tanpa biaya tersembunyi. Semua foto beresolusi penuh milik Anda selamanya.
             </SplitText>
           </p>
         </div>
@@ -39,7 +32,7 @@ export default function Pricing() {
               delay={i * 110}
               className={`${styles.card} ${plan.recommended ? styles.cardBest : ""}`}
             >
-              {plan.recommended && <p className={styles.badge}>Rekomendasi</p>}
+              {plan.recommended && <p className={styles.badge}>Paling Populer</p>}
 
               <h3 className={styles.planName}>{plan.name}</h3>
               <p className={styles.planTagline}>{plan.tagline}</p>
@@ -68,7 +61,7 @@ export default function Pricing() {
                 href="/login"
                 className={`${styles.planBtn} ${plan.recommended ? styles.planBtnBest : ""}`}
               >
-                {plan.price === 0 ? "Mulai gratis" : "Pilih paket"}
+                {plan.price === 0 ? "Mulai Gratis" : "Pilih Paket"}
                 <ArrowRight size={15} />
               </Link>
             </Reveal>
