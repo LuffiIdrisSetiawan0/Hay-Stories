@@ -29,17 +29,18 @@ export default async function GalleryPage(props: PageProps<'/a/[slug]/galeri'>) 
   const event = await findEventBySlug(slug)
   if (!event) notFound()
 
-  // Galeri hanya untuk tamu yang terdaftar. Album bukan tautan publik, dan
-  // slug-nya beredar di grup WhatsApp.
-  const session = await readGuestSession(event.id)
-  if (!session) redirect(`/a/${event.slug}`)
-
-  const guest = await findActiveGuest(session.guestId, event.id)
-  if (!guest) redirect(`/a/${event.slug}`)
-
   const reveal = resolveReveal(event)
   const hostOnly = event.gallery_visibility === 'host_only'
   const open = isEventOpen(event)
+
+  const session = await readGuestSession(event.id)
+  const guest = session ? await findActiveGuest(session.guestId, event.id) : null
+
+  // Jika album BELUM terbuka dan pengunjung belum terdaftar:
+  // arahkan ke halaman utama acara untuk bergabung
+  if (!reveal.revealed && !guest) {
+    redirect(`/a/${event.slug}`)
+  }
 
   const page = Math.max(1, Number(search.hal ?? 1) || 1)
   const visible = reveal.revealed && !hostOnly
@@ -91,7 +92,7 @@ export default async function GalleryPage(props: PageProps<'/a/[slug]/galeri'>) 
             boleh dilihat. Tanpa angka ini, tamu yang menjepret dua belas kali
             hanya melihat layar terkunci dan wajar menyangka jepretannya hilang.
           */}
-          {guest.shots_used > 0 && (
+          {guest && guest.shots_used > 0 && (
             <p className={styles.contribution}>
               Kamu sudah menyumbang <strong>{guest.shots_used}</strong> foto ke album ini.
             </p>
@@ -136,7 +137,7 @@ export default async function GalleryPage(props: PageProps<'/a/[slug]/galeri'>) 
             <PhotoGrid
               photos={photos}
               eventTitle={event.title}
-              currentGuestId={guest.id}
+              currentGuestId={guest?.id}
               onDeletePhoto={deleteGuestPhoto.bind(null, event.slug)}
             />
           </div>

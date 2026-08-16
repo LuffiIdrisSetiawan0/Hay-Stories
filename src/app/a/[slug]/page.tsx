@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
+import { Images } from 'lucide-react'
 import { resolveReveal } from '@/lib/events'
 import { findActiveGuest, findEventBySlug, isEventOpen } from '@/lib/guest/event'
 import { readGuestSession } from '@/lib/guest/session'
@@ -15,8 +16,6 @@ export async function generateMetadata(
 
   return {
     title: event ? event.title : 'Album tidak ditemukan',
-    // Tautan album tersebar lewat QR di meja tamu dan pesan WhatsApp. Tidak ada
-    // alasan halaman ini muncul di hasil pencarian.
     robots: { index: false, follow: false },
   }
 }
@@ -38,26 +37,20 @@ export default async function GuestEntryPage(props: PageProps<'/a/[slug]'>) {
   const reveal = resolveReveal(event)
   const open = isEventOpen(event)
 
-  // Cookie yang sah belum tentu berarti masih boleh masuk — host bisa saja
-  // sudah mengeluarkan perangkat ini sejak token diterbitkan.
   const session = await readGuestSession(event.id)
   const guest = session ? await findActiveGuest(session.guestId, event.id) : null
 
   const renaming = 'ganti' in (await props.searchParams)
 
-  /*
-   * Tamu yang sudah terdaftar tidak punya urusan di halaman ini.
-   *
-   * Kartu perkenalan ini hanya berguna sekali seumur acara. Menahannya di sini
-   * setiap kali tautan dibuka berarti satu ketukan tambahan menuju kamera,
-   * setiap kali. Yang butuh halaman ini cuma orang yang belum punya sesi, atau
-   * yang sengaja datang untuk membetulkan namanya.
-   *
-   * Tidak ada risiko putaran: halaman kamera memantulkan balik ke sini hanya
-   * ketika sesinya tidak ada atau albumnya tertutup — syarat yang justru
-   * membuat cabang ini tidak jalan.
-   */
-  if (open && guest && !renaming) redirect(`/a/${event.slug}/kamera`)
+  // Jika tamu sudah terdaftar dan tidak sedang ganti nama:
+  // arahkan langsung ke kamera jika acara buka, atau ke galeri jika album sudah terbuka
+  if (guest && !renaming) {
+    if (open) {
+      redirect(`/a/${event.slug}/kamera`)
+    } else if (reveal.revealed) {
+      redirect(`/a/${event.slug}/galeri`)
+    }
+  }
 
   return (
     <main className={styles.page}>
@@ -68,7 +61,30 @@ export default async function GuestEntryPage(props: PageProps<'/a/[slug]'>) {
 
         <p className={styles.lede}>Kamera sekali pakai untuk acara ini.</p>
 
-        {!open ? (
+        {reveal.revealed ? (
+          <div
+            className={styles.notice}
+            style={{
+              background: 'rgba(255, 199, 44, 0.12)',
+              borderColor: 'rgba(255, 199, 44, 0.45)',
+            }}
+          >
+            <p className={styles.noticeTitle} style={{ color: '#d97706' }}>
+              🎉 Album Foto Sudah Dibuka!
+            </p>
+            <p className={styles.noticeBody}>
+              Semua foto jepretan dari acara ini sudah dibuka dan siap dilihat.
+            </p>
+            <Link
+              href={`/a/${event.slug}/galeri`}
+              className="btn btn-primary"
+              style={{ width: '100%', marginTop: '1rem' }}
+            >
+              <Images size={16} />
+              Buka Galeri Foto
+            </Link>
+          </div>
+        ) : !open ? (
           <div className={styles.notice}>
             <p className={styles.noticeTitle}>Album ini sudah ditutup</p>
             <p className={styles.noticeBody}>
@@ -76,16 +92,24 @@ export default async function GuestEntryPage(props: PageProps<'/a/[slug]'>) {
               ke yang punya acara.
             </p>
           </div>
-        ) : (
-          <>
+        ) : null}
+
+        {open && (
+          <div style={{ marginTop: reveal.revealed ? '1.5rem' : '0' }}>
+            {reveal.revealed && (
+              <p
+                style={{
+                  fontSize: '0.85rem',
+                  fontWeight: 600,
+                  marginBottom: '0.75rem',
+                  color: 'rgba(245, 242, 236, 0.85)',
+                }}
+              >
+                Mau ikut menjepret foto juga?
+              </p>
+            )}
             <JoinForm slug={event.slug} defaultName={guest?.display_name ?? ''} />
 
-            {/*
-              Satu baris, di bawah tombol, bukan daftar di atasnya. Jatah
-              jepretan sudah terpampang di penghitung kamera begitu masuk;
-              yang tidak terlihat di mana pun sampai terlambat adalah kapan
-              fotonya boleh dilihat — itu saja yang perlu disampaikan di sini.
-            */}
             <p className={styles.fine}>
               {reveal.revealed
                 ? 'Fotomu langsung muncul di galeri.'
@@ -93,7 +117,7 @@ export default async function GuestEntryPage(props: PageProps<'/a/[slug]'>) {
                   ? `Semua foto terbuka bersamaan ${formatDateTime(event.reveal_at)}.`
                   : 'Semua foto tersembunyi sampai host membukanya.'}
             </p>
-          </>
+          </div>
         )}
       </div>
 

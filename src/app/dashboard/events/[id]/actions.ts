@@ -29,7 +29,7 @@ export async function revealNow(
 
   const { data, error } = await supabase
     .from('events')
-    .update({ is_revealed: true, status: 'revealed' })
+    .update({ is_revealed: true })
     .eq('id', eventId)
     .select('id')
 
