@@ -87,7 +87,16 @@ export default function Camera({
   const [exposure, setExposure] = useState<number>(0.0)
   const [sharpness, setSharpness] = useState<number>(0.45)
   const [activeDrawer, setActiveDrawer] = useState<'none' | 'exposure' | 'sharpness'>('none')
+  
+  // Focus & Gesture Exposure states
   const [focusPoint, setFocusPoint] = useState<FocusPoint | null>(null)
+  const [isDraggingExposure, setIsDraggingExposure] = useState(false)
+  const dragRef = useRef<{ startY: number; startExp: number; active: boolean; pointerId: number | null }>({
+    startY: 0,
+    startExp: 0,
+    active: false,
+    pointerId: null,
+  })
 
   const [shotsUsed, setShotsUsed] = useState(initialShotsUsed)
   const [flash, setFlash] = useState(false)
@@ -105,12 +114,12 @@ export default function Camera({
     return () => clearTimeout(timer)
   }, [notice])
 
-  // Clear focus reticle after animation completes
+  // Clear focus reticle after delay when not dragging
   useEffect(() => {
-    if (!focusPoint) return
-    const timer = setTimeout(() => setFocusPoint(null), 1400)
+    if (!focusPoint || isDraggingExposure) return
+    const timer = setTimeout(() => setFocusPoint(null), 2600)
     return () => clearTimeout(timer)
-  }, [focusPoint])
+  }, [focusPoint, isDraggingExposure])
 
   const remaining = Math.max(0, shotsLimit - shotsUsed)
   const rollEmpty = remaining === 0
@@ -280,28 +289,29 @@ export default function Camera({
     }
   }, [facing, startLoop, stopLoop])
 
-  // --- Tap to Focus --------------------------------------------------------
+  // --- Tap-to-Focus & Drag Exposure Gesture --------------------------------
 
-  const handleTapToFocus = useCallback(
-    async (e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>) => {
+  const handlePointerDown = useCallback(
+    async (e: React.PointerEvent<HTMLDivElement>) => {
       if (phase.kind !== 'live') return
 
       const target = e.currentTarget.getBoundingClientRect()
-      const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
-      const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY
-
-      const x = ((clientX - target.left) / target.width) * 100
-      const y = ((clientY - target.top) / target.height) * 100
+      const x = ((e.clientX - target.left) / target.width) * 100
+      const y = ((e.clientY - target.top) / target.height) * 100
 
       setFocusPoint({ x, y, time: Date.now() })
+      dragRef.current = {
+        startY: e.clientY,
+        startExp: exposure,
+        active: true,
+        pointerId: e.pointerId,
+      }
 
-      // Subtle haptic feedback
+      // Haptic feedback
       if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
         try {
-          navigator.vibrate(20)
-        } catch {
-          // Ignore vibrate errors
-        }
+          navigator.vibrate(15)
+        } catch {}
       }
 
       // Hardware focus request if supported
@@ -317,13 +327,37 @@ export default function Camera({
               },
             ],
           })
-        } catch {
-          // Fallback or ignore
-        }
+        } catch {}
       }
     },
-    [phase.kind]
+    [phase.kind, exposure]
   )
+
+  const handlePointerMove = useCallback(
+    (e: React.PointerEvent<HTMLDivElement>) => {
+      if (!dragRef.current.active || dragRef.current.pointerId !== e.pointerId) return
+
+      const deltaY = dragRef.current.startY - e.clientY
+      if (Math.abs(deltaY) > 5) {
+        if (!isDraggingExposure) setIsDraggingExposure(true)
+        
+        // 90px drag delta = 1.0 EV change
+        const rawDeltaExp = deltaY / 90
+        const newExp = Math.max(-1.4, Math.min(1.4, dragRef.current.startExp + rawDeltaExp))
+        const roundedExp = Math.round(newExp * 10) / 10
+        setExposure(roundedExp)
+      }
+    },
+    [isDraggingExposure]
+  )
+
+  const handlePointerUp = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    if (dragRef.current.pointerId === e.pointerId) {
+      dragRef.current.active = false
+      dragRef.current.pointerId = null
+      setIsDraggingExposure(false)
+    }
+  }, [])
 
   // --- Mengganti preset ----------------------------------------------------
 
@@ -556,7 +590,13 @@ export default function Camera({
 
   return (
     <main className={styles.page}>
-      <div className={styles.stage} onClick={handleTapToFocus}>
+      <div
+        className={styles.stage}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={handlePointerUp}
+      >
         {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
         <video ref={videoRef} playsInline muted className={styles.video} />
 
@@ -566,15 +606,34 @@ export default function Camera({
         >
           <canvas ref={canvasRef} className={styles.canvas} />
 
-          {/* Tap-to-Focus Animated Reticle */}
+          {/* Tap-to-Focus Reticle with Interactive Sun Exposure Slider */}
           {focusPoint && (
             <div
               key={focusPoint.time}
-              className={styles.focusReticle}
+              className={`${styles.focusReticle} ${isDraggingExposure ? styles.focusReticleActive : ''}`}
               style={{ left: `${focusPoint.x}%`, top: `${focusPoint.y}%` }}
             >
+              {/* Focus Box */}
               <div className={styles.focusBox}>
                 <div className={styles.focusCenterDot} />
+              </div>
+
+              {/* Native Smartphone-like Sun Exposure Slider */}
+              <div className={styles.sunSliderTrack}>
+                <div className={styles.sunSliderLine} />
+                <div
+                  className={styles.sunIconWrapper}
+                  style={{
+                    transform: `translateY(${-exposure * 24}px)`,
+                  }}
+                >
+                  <Sun size={18} className={styles.sunIcon} />
+                  {isDraggingExposure && (
+                    <span className={styles.sunEvBadge}>
+                      {exposure > 0 ? `+${exposure.toFixed(1)}` : exposure.toFixed(1)}
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
           )}
