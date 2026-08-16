@@ -1,56 +1,133 @@
 /* ===========================================================================
-   Penanda gulir — teks melingkar + panah
+   Y-Vision Style Scroll Indicator (Hero Section)
    =========================================================================== */
 
-.cue {
+.scrollButton {
   position: relative;
-  display: grid;
-  place-items: center;
-  width: 6.5rem;
-  height: 6.5rem;
-  color: var(--color-text-muted);
-  transition: color var(--transition-base);
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  text-decoration: none;
+  color: #ffffff;
+  cursor: pointer;
+  user-select: none;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+  margin-top: 2rem;
 }
 
-.cue:hover,
-.cue:focus-visible {
-  color: var(--color-text-primary);
+.scrollButton:hover {
+  opacity: 0.95;
 }
 
-.ring {
-  position: absolute;
-  inset: 0;
+/* 1. Circle Wrapper */
+.circle {
+  position: relative;
+  width: clamp(52px, 3.6vw, 64px);
+  height: clamp(52px, 3.6vw, 64px);
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.4);
+  background-color: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  transition:
+    transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+    background-color 0.3s ease,
+    border-color 0.3s ease,
+    color 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+.scrollButton:hover .circle {
+  transform: scale(1.08);
+  background-color: #ffffff;
+  border-color: #ffffff;
+  color: #0c0b09;
+  box-shadow: 0 0 24px rgba(255, 255, 255, 0.3);
+}
+
+/* 2. Arrow Mask & Animation */
+.arrowMask {
+  position: relative;
+  width: 46%;
+  height: 46%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.arrowSvg {
   width: 100%;
   height: 100%;
-  animation: spin 22s linear infinite;
+  animation: arrowLoop 2.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 
-.ringText {
-  fill: currentColor;
-  font-family: var(--font-mono);
-  font-size: 8.5px;
-  letter-spacing: 0.24em;
+@keyframes arrowLoop {
+  0% {
+    transform: translateY(-115%);
+    opacity: 0;
+  }
+  20% {
+    transform: translateY(0%);
+    opacity: 1;
+  }
+  70% {
+    transform: translateY(0%);
+    opacity: 1;
+  }
+  95%,
+  100% {
+    transform: translateY(115%);
+    opacity: 0;
+  }
+}
+
+/* 3. Text Label: S C R O L L */
+.labelWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.32em;
+  font-family: var(--font-sans);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.28em;
   text-transform: uppercase;
+  color: #ffffff;
+  line-height: 1;
+  margin-left: 0.28em; /* offsets the last letter tracking */
 }
 
-.arrow {
-  /* Naik-turun pelan supaya arahnya terbaca walau cincinnya berhenti. */
-  animation: cue-bob 2.4s ease-in-out infinite;
+.letter {
+  display: inline-block;
+  animation: textWave 2.2s ease-in-out infinite;
+  opacity: 0.35;
 }
 
-@keyframes cue-bob {
+@keyframes textWave {
   0%,
   100% {
-    transform: translateY(-2px);
+    opacity: 0.35;
+    transform: translateY(0);
   }
   50% {
-    transform: translateY(3px);
+    opacity: 1;
+    transform: translateY(1px);
+    text-shadow: 0 0 8px rgba(255, 255, 255, 0.6);
   }
 }
 
+/* Reduced Motion Preference */
 @media (prefers-reduced-motion: reduce) {
-  .ring,
-  .arrow {
+  .arrowSvg,
+  .letter {
     animation: none;
+    opacity: 0.85;
+    transform: none;
   }
 }
