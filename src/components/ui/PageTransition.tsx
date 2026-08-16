@@ -6,6 +6,9 @@ import styles from "./PageTransition.module.css";
 
 type TransitionStatus = "idle" | "entering" | "holding" | "exiting";
 
+// Paths that should navigate immediately without curtain loading transition
+const EXCLUDED_PREFIXES = ["/login", "/dashboard", "/auth", "/a/"];
+
 export default function PageTransition() {
   const router = useRouter();
   const pathname = usePathname();
@@ -54,6 +57,18 @@ export default function PageTransition() {
         return;
       }
 
+      // Check if target or current path is in excluded list (login, dashboard, etc.)
+      const targetPath = href.startsWith("http")
+        ? new URL(href).pathname
+        : href.split("?")[0].split("#")[0];
+
+      if (
+        EXCLUDED_PREFIXES.some((prefix) => targetPath.startsWith(prefix)) ||
+        EXCLUDED_PREFIXES.some((prefix) => pathname.startsWith(prefix))
+      ) {
+        return;
+      }
+
       pendingHrefRef.current = href;
       setStatus("entering");
 
@@ -80,7 +95,7 @@ export default function PageTransition() {
         }, 1000);
       }, 600);
     },
-    [router, status]
+    [router, status, pathname]
   );
 
   // Global click interception for internal links
@@ -128,7 +143,19 @@ export default function PageTransition() {
         return;
       }
 
-      // Trigger seamless curtain transition
+      // Exclude login, dashboard, and auth routes from loading curtain
+      const targetPath = href.startsWith("http")
+        ? new URL(href).pathname
+        : href.split("?")[0].split("#")[0];
+
+      if (
+        EXCLUDED_PREFIXES.some((prefix) => targetPath.startsWith(prefix)) ||
+        EXCLUDED_PREFIXES.some((prefix) => pathname.startsWith(prefix))
+      ) {
+        return; // Standard fast navigation without loading curtain
+      }
+
+      // Trigger seamless curtain transition for marketing/public event pages
       e.preventDefault();
       navigateWithTransition(href);
     };
@@ -137,7 +164,7 @@ export default function PageTransition() {
     return () => {
       document.removeEventListener("click", handleClick, { capture: true });
     };
-  }, [navigateWithTransition]);
+  }, [navigateWithTransition, pathname]);
 
   if (status === "idle") return null;
 
