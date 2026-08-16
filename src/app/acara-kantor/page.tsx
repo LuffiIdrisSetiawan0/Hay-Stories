@@ -14,7 +14,7 @@ export default function AcaraKantorPage() {
       badge="Acara Kantor & Gathering 🏢"
       title="Team Gathering, Outing, dan Perayaan Tahunan Perusahaan"
       subtitle="Cairkan suasana antar divisi dengan pengalaman kamera analog sekali pakai. Semua karyawan ikut mengabadikan tawa di meja, game interaktif, dan momen kebersamaan tim."
-      heroImage="/img/scenes/04-photobooth.jpg"
+      heroImage="/img/scenes/04-potret.jpg"
       benefits={[
         {
           title: "Pererat Bonding Karyawan",
@@ -60,7 +60,7 @@ export default function AcaraKantorPage() {
         { name: "Golden Hour 400", desc: "Warm flattering tone untuk perayaan malam", tag: "Awarding Night" },
       ]}
       sampleGallery={[
-        { img: "/img/scenes/04-photobooth.jpg", caption: "Keseruan tim kantor berfoto di gala dinner" },
+        { img: "/img/scenes/04-potret.jpg", caption: "Keseruan tim kantor berfoto di gala dinner" },
         { img: "/img/scenes/02-meja-dekorasi.jpg", caption: "Kartu QR di meja perayaan tahunan" },
         { img: "/img/scenes/06-konfeti.jpg", caption: "Selebrasi awarding night & tawa bersama" },
       ]}

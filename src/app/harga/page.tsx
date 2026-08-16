@@ -5,7 +5,7 @@ import FAQ from "@/components/landing/FAQ";
 import Footer from "@/components/landing/Footer";
 
 export const metadata: Metadata = {
-  title: "Harga",
+  title: "Harga · HAY Stories",
   description:
     "Harga HAY Stories transparan dalam Rupiah. Mulai gratis untuk 5 tamu, lalu sekali bayar per acara sesuai jumlah tamu, tanpa langganan, tanpa biaya tersembunyi.",
 };

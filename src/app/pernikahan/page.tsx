@@ -50,54 +50,59 @@ export default function PernikahanPage() {
         },
         {
           step: "03",
-          title: "Terungkap Bersama",
-          desc: "Semua foto langsung tayang di proyektor panggung dan tersimpan aman di album pernikahan.",
+          title: "Tayang & Unduh ZIP",
+          desc: "Foto tayang di proyektor dan tersimpan otomatis ke galeri digital pribadi tuan rumah.",
         },
       ]}
       presets={[
-        { name: "Golden Hour 400", desc: "Hangat, glowing, tone kulit flattering", tag: "Resepsi Malam" },
-        { name: "Everyday 100", desc: "Warna natural, jernih, tone film Kodak Gold", tag: "Akad Siang" },
-        { name: "Noir 400", desc: "Hitam putih kontras klasik berkarakter", tag: "Intimate Toast" },
+        {
+          name: "Warm Gold 200",
+          desc: "Tone hangat bernuansa senja untuk resepsi outdoor & intimate garden",
+          tag: "Outdoor Vibes",
+        },
+        {
+          name: "Portra Soft 400",
+          desc: "Warna kulit natural bercahaya, ideal untuk ballroom & gaun pengantin",
+          tag: "Bridal Favorite",
+        },
+        {
+          name: "B&W Noir 400",
+          desc: "Kontras monokrom klasik nan emosional untuk momen haru akad & sungkeman",
+          tag: "Timeless Emotion",
+        },
       ]}
       sampleGallery={[
-        { img: "/img/scenes/01-pelaminan.jpg", caption: "Senyum haru pelaminan dengan tone Golden Hour" },
-        { img: "/img/scenes/02-meja-dekorasi.jpg", caption: "Detail meja resepsi & kartu QR tamu" },
-        { img: "/img/scenes/05-lantai-dansa.jpg", caption: "Dansa malam spontan sahabat di ballroom" },
+        { img: "/img/scenes/01-pelaminan.jpg", caption: "Sapaan Hangat Sahabat" },
+        { img: "/img/scenes/02-akad.jpg", caption: "Haru & Doa Keluarga" },
+        { img: "/img/scenes/03-table-candid.jpg", caption: "Tawa Spontan Meja Tamu" },
       ]}
       storyQuote={{
-        quote: "Tamu-tamu kami sangat menikmati memotret lewat QR di meja. Hasil fotonya jauh lebih candid, hangat, dan seru daripada foto formal pelaminan!",
-        author: "Rian & Anisa",
-        role: "Menikah di Jakarta · 450 Tamu",
+        quote:
+          "Foto terbaik di resepsi kami bukan dari fotografer panggung, tapi selfie candid sepupu dan teman kantor yang kami dapatkan lewat HAY Stories!",
+        author: "Dimas & Sarah",
+        role: "Pengantin · Resepsi Jakarta",
       }}
       packageHighlight={{
-        name: "Paket Pernikahan Penuh",
+        name: "Paket Pernikahan Pilihan",
         price: "Rp 349.000",
-        guests: "300 - 500 Tamu",
+        guests: "200 tamu",
         features: [
-          "Akses kamera web instan tanpa batas download",
-          "6 Preset roll film analog lengkap",
-          "Live slideshow projector stream real-time",
-          "Bingkai kustom nama pengantin & tanggal",
-          "Unduh ZIP seluruh roll foto resolusi penuh (HD)",
-          "QR kit siap cetak berkualitas tinggi",
+          "QR code meja tak terbatas",
+          "Batas jepretan 25 foto / tamu",
+          "Semua filter roll film analog",
+          "Live Slideshow proyektor ballroom",
+          "Custom watermark nama pengantin",
+          "Download ZIP resolusi penuh (1 tahun)",
         ],
       }}
       faqs={[
         {
-          q: "Apakah tamu perlu download aplikasi?",
-          a: "Tidak sama sekali! Tamu cukup mengarahkan kamera HP ke kartu QR, dan kamera web analog HAY Stories langsung terbuka di browser HP (Chrome, Safari, dll).",
+          q: "Bagaimana cara meletakkan QR code di meja resepsi?",
+          a: "Kami menyediakan file PDF cetak berukuran A6 & tenda meja yang siap dicetak di percetakan atau disematkan ke bingkai meja resepsi Anda.",
         },
         {
-          q: "Bagaimana cara menyambungkan ke proyektor ballroom?",
-          a: "Buka halaman Live Slideshow dari laptop operator acara, lalu tekan tombol 'Full Screen' (Layar Penuh). Foto baru akan otomatis muncul bergantian.",
-        },
-        {
-          q: "Apakah foto aman dan privat?",
-          a: "Ya! Album dilindungi URL unik privat dan enkripsi, hanya Anda dan tamu yang memiliki link QR yang dapat mengakses galeri.",
-        },
-        {
-          q: "Berapa lama foto tersimpan di sistem?",
-          a: "Foto tersimpan aman di cloud selama 1 tahun penuh, dan Anda dapat mengunduh seluruh arsip foto HD kapan saja.",
+          q: "Apakah tamu bisa melihat foto orang lain?",
+          a: "Bisa, galeri live bisa dibuka bersama atau Anda dapat mengatur mode privat di mana foto hanya terlihat oleh pengantin & layar utama.",
         },
       ]}
     />

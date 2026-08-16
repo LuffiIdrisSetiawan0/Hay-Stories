@@ -5,7 +5,6 @@ import Image from "next/image";
 import Link from "next/link";
 import Navbar from "@/components/ui/Navbar";
 import Footer from "@/components/landing/Footer";
-import VersionSwitcher from "@/components/ui/VersionSwitcher";
 import {
   ArrowUpRight,
   CheckCircle2,
@@ -295,7 +294,6 @@ export default function EventPageTemplate(props: EventPageProps) {
       </section>
 
       <Footer />
-      <VersionSwitcher />
     </main>
   );
 }
