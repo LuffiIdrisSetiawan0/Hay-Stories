@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { Download, Eye, EyeOff, X } from 'lucide-react'
+import { Download, Eye, EyeOff, X, Loader2 } from 'lucide-react'
 import { getPreset } from '@/lib/catalog'
 import { photoFilename } from '@/lib/photo-links'
 import { drawFramed, getFrame } from '@/lib/frames'
@@ -104,7 +104,7 @@ export default function PhotoGrid({ photos, eventTitle, moderation }: Props) {
               canvas.toBlob(
                 (b) => (b ? resolve(b) : reject(new Error('Gagal membuat berkas.'))),
                 'image/jpeg',
-                0.92
+                0.95
               )
             )
           } finally {
@@ -116,11 +116,15 @@ export default function PhotoGrid({ photos, eventTitle, moderation }: Props) {
         const a = document.createElement('a')
         a.href = href
         a.download = photoFilename(eventTitle, photo.id)
+        a.target = '_blank'
+        document.body.appendChild(a)
         a.click()
-        URL.revokeObjectURL(href)
-      } catch {
-        // Jaringan putus atau tautan bertanda tangannya kedaluwarsa. Memuat
-        // ulang halaman menerbitkan tautan baru.
+        setTimeout(() => {
+          document.body.removeChild(a)
+          URL.revokeObjectURL(href)
+        }, 4000)
+      } catch (err) {
+        console.error('Download error:', err)
       } finally {
         setSaving(false)
       }
@@ -138,104 +142,91 @@ export default function PhotoGrid({ photos, eventTitle, moderation }: Props) {
           >
             <button
               type="button"
+              className={styles.cellBtn}
               onClick={() => setOpenIndex(i)}
-              className={styles.tile}
-              aria-label={`Lihat foto oleh ${photo.guest_name}`}
+              aria-label={`Buka foto dari ${photo.guest_name ?? 'tamu'}`}
             >
-              {/* Thumbnail adalah blob bertanda tangan dari bucket privat —
-                  tidak ada yang bisa dioptimasi next/image di sini. */}
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={photo.thumbUrl} alt="" loading="lazy" className={styles.thumb} />
-              <span className={styles.credit}>{photo.guest_name}</span>
+              <img
+                src={photo.thumbUrl}
+                alt=""
+                loading="lazy"
+                decoding="async"
+                className={styles.thumb}
+              />
             </button>
-
-            {moderation && (
-              // Sibling tombol ubin, bukan anaknya: tombol di dalam tombol itu
-              // HTML tidak sah dan perilaku kliknya jadi tak terduga.
-              <form action={moderation} className={styles.moderate}>
-                <input type="hidden" name="photoId" value={photo.id} />
-                <input type="hidden" name="hidden" value={photo.is_hidden ? '0' : '1'} />
-                <button
-                  type="submit"
-                  className={styles.moderateBtn}
-                  aria-label={photo.is_hidden ? 'Tampilkan foto ini' : 'Sembunyikan foto ini'}
-                  title={photo.is_hidden ? 'Tampilkan lagi' : 'Sembunyikan dari tamu'}
-                >
-                  {photo.is_hidden ? <EyeOff size={14} /> : <Eye size={14} />}
-                </button>
-              </form>
-            )}
           </li>
         ))}
       </ul>
 
       {open && (
         <div
-          className={styles.viewer}
           role="dialog"
           aria-modal="true"
-          aria-label={`Foto oleh ${open.guest_name}`}
+          aria-label="Penampil foto"
+          className={styles.lightbox}
           onClick={close}
         >
-          <div className={styles.viewerBar} onClick={(e) => e.stopPropagation()}>
-            <div className={styles.viewerMeta}>
-              <span className={styles.viewerName}>{open.guest_name}</span>
-              <span className={styles.viewerSub}>
-                {[formatTaken(open.taken_at), getPreset(open.preset ?? '')?.name]
-                  .filter(Boolean)
-                  .join(' · ')}
-              </span>
+          <div className={styles.lightboxPanel} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.lightboxMedia}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={open.fullUrl}
+                alt={`Foto oleh ${open.guest_name ?? 'tamu'}`}
+                className={styles.lightboxImg}
+              />
             </div>
 
-            <button
-              type="button"
-              onClick={() => void download(open)}
-              disabled={saving}
-              className={styles.viewerBtn}
-              aria-label="Unduh foto ini"
-              title="Unduh"
-            >
-              <Download size={18} />
-            </button>
+            <footer className={styles.lightboxMeta}>
+              <div className={styles.metaText}>
+                <strong>{open.guest_name ?? 'Tamu'}</strong>
+                <span className={styles.metaRoll}>
+                  {open.preset ? (getPreset(open.preset)?.name ?? open.preset) : 'Default'}
+                  {open.frame && open.frame !== 'none' && ` · ${getFrame(open.frame)?.name}`}
+                </span>
+                <span className={styles.metaDate}>{formatTaken(open.taken_at)}</span>
+              </div>
 
-            <button
-              type="button"
-              onClick={close}
-              className={styles.viewerBtn}
-              aria-label="Tutup"
-            >
-              <X size={18} />
-            </button>
-          </div>
+              <div className={styles.actions}>
+                {moderation && (
+                  <form action={moderation}>
+                    <input type="hidden" name="photoId" value={open.id} />
+                    <input
+                      type="hidden"
+                      name="hidden"
+                      value={open.is_hidden ? 'false' : 'true'}
+                    />
+                    <button
+                      type="submit"
+                      className="btn btn-secondary"
+                      title={open.is_hidden ? 'Tampilkan kembali di galeri' : 'Sembunyikan dari galeri'}
+                    >
+                      {open.is_hidden ? <Eye size={16} /> : <EyeOff size={16} />}
+                      {open.is_hidden ? 'Tampilkan' : 'Sembunyikan'}
+                    </button>
+                  </form>
+                )}
 
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={open.fullUrl}
-            alt={`Foto oleh ${open.guest_name} di ${eventTitle}`}
-            className={styles.viewerImage}
-            onClick={(e) => e.stopPropagation()}
-          />
+                <button
+                  type="button"
+                  onClick={() => download(open)}
+                  disabled={saving}
+                  className="btn btn-primary"
+                >
+                  {saving ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
+                  {saving ? 'Menyiapkan…' : 'Unduh foto'}
+                </button>
 
-          <div className={styles.viewerNav} onClick={(e) => e.stopPropagation()}>
-            <button
-              type="button"
-              onClick={() => step(-1)}
-              disabled={openIndex === 0}
-              className="btn btn-secondary"
-            >
-              Sebelumnya
-            </button>
-            <span className={styles.viewerCount}>
-              {(openIndex ?? 0) + 1} / {photos.length}
-            </span>
-            <button
-              type="button"
-              onClick={() => step(1)}
-              disabled={openIndex === photos.length - 1}
-              className="btn btn-secondary"
-            >
-              Berikutnya
-            </button>
+                <button
+                  type="button"
+                  onClick={close}
+                  className={styles.closeBtn}
+                  aria-label="Tutup"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+            </footer>
           </div>
         </div>
       )}

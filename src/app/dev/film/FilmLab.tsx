@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { Download, Sparkles, RefreshCw, Check } from 'lucide-react'
 import { FILM_PRESETS, type FilmPreset } from '@/lib/catalog'
 import { FilmRenderer, fitWithin, isFilmSupported } from '@/lib/film'
 
@@ -9,8 +10,8 @@ const TEST_IMAGE = '/dev/test-chart.jpg'
 /**
  * Sisi terpanjang untuk render di lab.
  *
- * Foto pernikahan yang dijatuhkan ke sini bisa 12 MP, dan enam kanvas sebesar
- * itu akan membekukan tab. Untuk menilai warna, 1400 px lebih dari cukup.
+ * Foto pernikahan yang dijatuhkan ke sini bisa 12 MP, dan kanvas sebesar
+ * itu akan membekukan tab jika terlalu besar. 1400 px sangat tajam & ringan.
  */
 const LAB_LONG_EDGE = 1400
 
@@ -40,13 +41,10 @@ const NEUTRAL: Knobs = {
 
 /**
  * Terapkan pengali, jaga tetap dalam 0–1.
- *
- * Hitam-putih dikecualikan dari pengali kekuatan: dicampur sebagian ia berhenti
- * jadi hitam-putih dan cuma terlihat seperti foto yang pudar warnanya.
  */
 function tune(preset: FilmPreset, k: Knobs) {
   const clamp = (v: number) => Math.min(1, Math.max(0, v))
-  const isMono = preset.id === 'noir-400'
+  const isMono = preset.id === 'noir-400' || preset.id === 'kodak-tri-x-400'
   return {
     ...preset,
     strength: isMono ? preset.strength : clamp(preset.strength * k.strength),
@@ -58,27 +56,14 @@ function tune(preset: FilmPreset, k: Knobs) {
   }
 }
 
-/**
- * Lab penyetelan preset film.
- *
- * Ada karena dua kali saya menyetel grading tanpa bisa melihat hasilnya, dan
- * dua kali meleset. Gambar uji sintetis tidak cukup: grain di atas petak warna
- * datar selalu terbaca sebagai kotoran, dan nada kulit sungguhan berperilaku
- * berbeda dari enam kotak warna.
- *
- * Foto yang dijatuhkan ke sini tidak pernah meninggalkan browser — dibaca
- * lewat createImageBitmap dari berkas lokal, tidak ada unggahan ke mana pun.
- */
 export default function FilmLab() {
   const [status, setStatus] = useState<Status>('loading')
   const [error, setError] = useState<string | null>(null)
   const [knobs, setKnobs] = useState<Knobs>(NEUTRAL)
   const [sourceName, setSourceName] = useState('gambar uji sintetis')
   const [sourceUrl, setSourceUrl] = useState(TEST_IMAGE)
+  const [downloadingId, setDownloadingId] = useState<string | null>(null)
 
-  // Satu konteks WebGL untuk semua preset — sama seperti halaman kamera.
-  // Membuat satu konteks per preset akan menabrak batas konteks browser (~16)
-  // dan tidak mencerminkan cara produksi bekerja.
   const glCanvasRef = useRef<HTMLCanvasElement | null>(null)
   const rendererRef = useRef<FilmRenderer | null>(null)
   const bitmapRef = useRef<ImageBitmap | null>(null)
@@ -103,8 +88,6 @@ export default function FilmLab() {
 
       const tuned = tune(preset, k)
 
-      // Wajib per preset: satu tekstur LUT dipakai bergantian, jadi harus
-      // ditukar sebelum tiap render.
       await renderer.loadPreset(tuned)
       renderer.render(bitmap, tuned, width, height, {
         intensity: tuned.strength,
@@ -119,7 +102,6 @@ export default function FilmLab() {
     }
   }, [])
 
-  /** Ganti sumber gambar, lalu render ulang semuanya. */
   const loadSource = useCallback(
     async (blob: Blob, label: string) => {
       try {
@@ -150,8 +132,6 @@ export default function FilmLab() {
 
     ;(async () => {
       try {
-        // Pemeriksaan dukungan berada di dalam fungsi async, bukan di badan
-        // efek, supaya setState tidak dipanggil sinkron saat efek berjalan.
         if (!isFilmSupported()) {
           setStatus('unsupported')
           return
@@ -205,6 +185,35 @@ export default function FilmLab() {
     [loadSource]
   )
 
+  const downloadPreset = useCallback(async (preset: FilmPreset) => {
+    const target = targetsRef.current.get(preset.id)
+    if (!target) return
+
+    setDownloadingId(preset.id)
+    try {
+      const blob = await new Promise<Blob | null>((resolve) =>
+        target.toBlob(resolve, 'image/jpeg', 0.95)
+      )
+      if (!blob) throw new Error('Gagal mengekspor foto')
+
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `haystories-${preset.id}-${Date.now()}.jpg`
+      a.target = '_blank'
+      document.body.appendChild(a)
+      a.click()
+      setTimeout(() => {
+        document.body.removeChild(a)
+        URL.revokeObjectURL(url)
+        setDownloadingId(null)
+      }, 3000)
+    } catch (err) {
+      console.error('Download error:', err)
+      setDownloadingId(null)
+    }
+  }, [])
+
   const knob = (key: keyof Knobs, label: string) => (
     <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: '0.82rem' }}>
       <span style={{ minWidth: '7ch' }}>{label}</span>
@@ -215,7 +224,7 @@ export default function FilmLab() {
         step={0.05}
         value={knobs[key]}
         onChange={(e) => setKnobs((k) => ({ ...k, [key]: Number(e.target.value) }))}
-        style={{ width: '160px' }}
+        style={{ width: '150px' }}
       />
       <span style={{ fontFamily: 'var(--font-mono)', minWidth: '4ch' }}>
         {knobs[key].toFixed(2)}
@@ -225,15 +234,17 @@ export default function FilmLab() {
   )
 
   return (
-    <main style={{ padding: '2rem', maxWidth: '1400px', margin: '0 auto' }}>
-      <header style={{ marginBottom: '1.5rem' }}>
-        <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: '2rem', marginBottom: '0.25rem' }}>
-          Film Lab
-        </h1>
-        <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.9rem', maxWidth: '60ch' }}>
-          Pipeline WebGL yang sama persis dengan kamera tamu. Jatuhkan foto acara sungguhan ke
-          bawah, geser sampai terlihat benar, lalu salin angkanya. Fotonya diproses di browser ini
-          dan tidak dikirim ke mana pun.
+    <main style={{ padding: '2rem 1.5rem', maxWidth: '1440px', margin: '0 auto' }}>
+      <header style={{ marginBottom: '1.75rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
+          <Sparkles size={24} style={{ color: 'var(--color-accent)' }} />
+          <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: '2.2rem', margin: 0 }}>
+            Film Simulator Lab
+          </h1>
+        </div>
+        <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.92rem', maxWidth: '70ch', margin: 0 }}>
+          Pipeline WebGL presisi tinggi yang sama dengan kamera tamu. Unggah foto Anda di bawah,
+          pilih atau sesuaikan setelan warna, dan langsung simpan/unduh hasil foto analog favorit Anda.
         </p>
       </header>
 
@@ -241,10 +252,11 @@ export default function FilmLab() {
         onDrop={onDrop}
         onDragOver={(e) => e.preventDefault()}
         style={{
-          padding: '1rem 1.25rem',
-          marginBottom: '1.5rem',
+          padding: '1.25rem 1.5rem',
+          marginBottom: '2rem',
           border: '1px dashed var(--color-border-hover)',
           borderRadius: '0.75rem',
+          backgroundColor: 'rgba(255, 255, 255, 0.02)',
           display: 'flex',
           flexWrap: 'wrap',
           alignItems: 'center',
@@ -252,9 +264,9 @@ export default function FilmLab() {
         }}
       >
         <div style={{ fontSize: '0.85rem' }}>
-          <strong>Sumber:</strong> {sourceName}
+          <strong>Sumber foto:</strong> {sourceName}
           <p style={{ color: 'var(--color-text-muted)', fontSize: '0.78rem', marginTop: '0.2rem' }}>
-            Jatuhkan foto ke kotak ini, atau pilih berkas.
+            Jatuhkan foto ke area ini, atau klik tombol pilih berkas.
           </p>
         </div>
 
@@ -265,14 +277,14 @@ export default function FilmLab() {
             const file = e.target.files?.[0]
             if (file) void loadSource(file, file.name)
           }}
-          style={{ fontSize: '0.8rem' }}
+          style={{ fontSize: '0.82rem' }}
         />
 
         <div
           style={{
             display: 'flex',
             flexWrap: 'wrap',
-            gap: '0.75rem 1.5rem',
+            gap: '0.75rem 1.25rem',
             marginLeft: 'auto',
           }}
         >
@@ -283,14 +295,20 @@ export default function FilmLab() {
           {knob('vignette', 'Vignette')}
           {knob('halation', 'Halation')}
           {knob('smooth', 'Kulit')}
-          <button type="button" className="btn btn-secondary" onClick={() => setKnobs(NEUTRAL)}>
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={() => setKnobs(NEUTRAL)}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.8rem' }}
+          >
+            <RefreshCw size={13} />
             Reset
           </button>
         </div>
 
         <span
           data-testid="film-status"
-          style={{ fontFamily: 'var(--font-mono)', fontSize: '0.78rem', width: '100%' }}
+          style={{ fontFamily: 'var(--font-mono)', fontSize: '0.78rem', width: '100%', color: 'var(--color-text-muted)' }}
         >
           status: {status}
           {error ? ` — ${error}` : ''}
@@ -300,65 +318,93 @@ export default function FilmLab() {
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(380px, 1fr))',
-          gap: '1.5rem',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))',
+          gap: '2rem 1.5rem',
         }}
       >
-        <figure style={{ margin: 0 }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={sourceUrl}
-            alt="Sumber tanpa filter"
-            style={{ width: '100%', display: 'block', borderRadius: '0.5rem' }}
-          />
-          <figcaption style={{ marginTop: '0.5rem' }}>
-            <strong style={{ fontSize: '0.9rem' }}>Asli (tanpa filter)</strong>
+        {/* Card Foto Asli */}
+        <figure style={{ margin: 0, display: 'flex', flexDirection: 'column' }}>
+          <div style={{ position: 'relative', borderRadius: '0.6rem', overflow: 'hidden', backgroundColor: 'var(--color-bg-secondary)' }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={sourceUrl}
+              alt="Sumber tanpa filter"
+              style={{ width: '100%', display: 'block', aspectRatio: '4/3', objectFit: 'cover' }}
+            />
+          </div>
+          <figcaption style={{ marginTop: '0.75rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <strong style={{ fontSize: '0.95rem' }}>Foto Asli (Original)</strong>
+              <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', margin: '0.15rem 0 0' }}>
+                Tanpa pengolahan filter analog
+              </p>
+            </div>
           </figcaption>
         </figure>
 
+        {/* 12 Preset Cards dengan Tombol Download */}
         {FILM_PRESETS.map((preset) => {
           const t = tune(preset, knobs)
+          const isDownloading = downloadingId === preset.id
           return (
-            <figure key={preset.id} style={{ margin: 0 }}>
-              <canvas
-                ref={(el) => registerTarget(preset.id, el)}
-                data-testid={`canvas-${preset.id}`}
-                style={{
-                  width: '100%',
-                  display: 'block',
-                  borderRadius: '0.5rem',
-                  background: 'var(--color-bg-secondary)',
-                }}
-              />
-              <figcaption style={{ marginTop: '0.5rem' }}>
-                <strong style={{ fontSize: '0.9rem' }}>{preset.name}</strong>
-                <p
+            <figure key={preset.id} style={{ margin: 0, display: 'flex', flexDirection: 'column' }}>
+              <div style={{ position: 'relative', borderRadius: '0.6rem', overflow: 'hidden', backgroundColor: 'var(--color-bg-secondary)' }}>
+                <canvas
+                  ref={(el) => registerTarget(preset.id, el)}
+                  data-testid={`canvas-${preset.id}`}
                   style={{
-                    fontFamily: 'var(--font-mono)',
-                    fontSize: '0.72rem',
-                    color: 'var(--color-text-muted)',
-                    marginTop: '0.2rem',
+                    width: '100%',
+                    display: 'block',
+                    aspectRatio: '4/3',
+                    objectFit: 'cover',
+                  }}
+                />
+              </div>
+              <figcaption style={{ marginTop: '0.75rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.75rem' }}>
+                <div style={{ flex: 1 }}>
+                  <strong style={{ fontSize: '0.95rem' }}>{preset.name}</strong>
+                  <p
+                    style={{
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: '0.72rem',
+                      color: 'var(--color-text-muted)',
+                      margin: '0.2rem 0 0',
+                    }}
+                  >
+                    strength {t.strength.toFixed(2)} · kontras {t.contrast.toFixed(2)} · grain {t.grain.toFixed(2)}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => downloadPreset(preset)}
+                  disabled={isDownloading}
+                  className="btn btn-secondary"
+                  style={{
+                    fontSize: '0.78rem',
+                    padding: '0.4rem 0.85rem',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.4rem',
+                    whiteSpace: 'nowrap',
                   }}
                 >
-                  strength {t.strength.toFixed(2)} · luma {t.lumaLock.toFixed(2)} · kontras {t.contrast.toFixed(2)} · grain {t.grain.toFixed(2)} · vignette{' '}
-                  {t.vignette.toFixed(2)} · halation {t.halation.toFixed(3)}
-                </p>
+                  {isDownloading ? <Check size={14} style={{ color: '#22c55e' }} /> : <Download size={14} />}
+                  {isDownloading ? 'Tersimpan!' : 'Simpan Foto'}
+                </button>
               </figcaption>
             </figure>
           )
         })}
       </div>
 
-      {/* Angka final, siap ditempel ke FILM_PRESETS supaya hasil setelan tidak
-          hilang begitu tab ditutup. */}
-      <details style={{ marginTop: '2.5rem' }}>
-        <summary style={{ cursor: 'pointer', fontSize: '0.9rem' }}>
-          Salin angka ini ke <code>src/lib/catalog.ts</code>
+      <details style={{ marginTop: '3rem' }}>
+        <summary style={{ cursor: 'pointer', fontSize: '0.9rem', color: 'var(--color-text-secondary)' }}>
+          Salin konfigurasi ini ke <code>src/lib/catalog.ts</code>
         </summary>
         <pre
           style={{
             marginTop: '0.75rem',
-            padding: '1rem',
+            padding: '1.25rem',
             borderRadius: '0.5rem',
             background: 'var(--color-bg-secondary)',
             fontSize: '0.75rem',
