@@ -7,6 +7,7 @@ import { findActiveGuest, findEventBySlug, isEventOpen } from '@/lib/guest/event
 import { readGuestSession } from '@/lib/guest/session'
 import { listPhotos } from '@/lib/photos'
 import PhotoGrid from '@/components/photos/PhotoGrid'
+import { deleteGuestPhoto } from './actions'
 import styles from './Gallery.module.css'
 
 export const metadata: Metadata = {
@@ -132,7 +133,12 @@ export default async function GalleryPage(props: PageProps<'/a/[slug]/galeri'>) 
       ) : (
         <>
           <div className={styles.gridWrap}>
-            <PhotoGrid photos={photos} eventTitle={event.title} />
+            <PhotoGrid
+              photos={photos}
+              eventTitle={event.title}
+              currentGuestId={guest.id}
+              onDeletePhoto={deleteGuestPhoto.bind(null, event.slug)}
+            />
           </div>
 
           {hasMore && (

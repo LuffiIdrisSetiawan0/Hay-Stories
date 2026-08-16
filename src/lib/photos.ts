@@ -40,6 +40,7 @@ const SIGNED_TTL_SECONDS = 60 * 60
 
 export interface PhotoRow {
   id: string
+  guest_id: string | null
   guest_name: string
   taken_at: string | null
   preset: string | null
@@ -101,7 +102,7 @@ export async function listPhotos(
     let query = supabase
       .from('photos')
       .select(
-        'id, guest_name, taken_at, preset, frame, width, height, storage_path, thumb_path, is_hidden',
+        'id, guest_id, guest_name, taken_at, preset, frame, width, height, storage_path, thumb_path, is_hidden',
         { count: 'exact' }
       )
       .eq('event_id', eventId)

@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { Download, Eye, EyeOff, X, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react'
+import { Download, X, ChevronLeft, ChevronRight, Loader2, Trash2 } from 'lucide-react'
 import { getPreset } from '@/lib/catalog'
 import { photoFilename } from '@/lib/photo-links'
 import { drawFramed, getFrame } from '@/lib/frames'
@@ -13,8 +13,12 @@ type GridPhotoRow = SignedPhoto
 interface Props {
   photos: SignedPhoto[]
   eventTitle: string
-  /** Server Action untuk menyembunyikan/menampilkan. Hanya untuk host. */
-  moderation?: (formData: FormData) => void
+  /** ID tamu yang sedang aktif (untuk izin menghapus foto sendiri) */
+  currentGuestId?: string
+  /** True jika dibuka oleh host (bisa menghapus foto apa saja) */
+  isHost?: boolean
+  /** Handler untuk menghapus foto secara permanen dan mengembalikan kuota jepretan (retake) */
+  onDeletePhoto?: (photoId: string) => Promise<{ ok: boolean; error?: string } | void>
 }
 
 function formatTaken(iso: string | null) {
@@ -24,9 +28,30 @@ function formatTaken(iso: string | null) {
   )
 }
 
-export default function PhotoGrid({ photos, eventTitle, moderation }: Props) {
+export default function PhotoGrid({
+  photos: initialPhotos,
+  eventTitle,
+  currentGuestId,
+  isHost = false,
+  onDeletePhoto,
+}: Props) {
+  const [photos, setPhotos] = useState<SignedPhoto[]>(initialPhotos)
   const [openIndex, setOpenIndex] = useState<number | null>(null)
   const [saving, setSaving] = useState(false)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [toast, setToast] = useState<string | null>(null)
+
+  // Keep state in sync with incoming props
+  useEffect(() => {
+    setPhotos(initialPhotos)
+  }, [initialPhotos])
+
+  useEffect(() => {
+    if (!toast) return
+    const t = setTimeout(() => setToast(null), 3000)
+    return () => clearTimeout(t)
+  }, [toast])
+
   const open = openIndex === null ? null : photos[openIndex]
 
   const close = useCallback(() => setOpenIndex(null), [])
@@ -65,6 +90,43 @@ export default function PhotoGrid({ photos, eventTitle, moderation }: Props) {
       document.body.style.overflow = previous
     }
   }, [openIndex])
+
+  /**
+   * Hapus foto dan kembalikan jepretan (Retake).
+   */
+  const handleDelete = useCallback(
+    async (photo: GridPhotoRow, e?: React.MouseEvent) => {
+      if (e) e.stopPropagation()
+      if (!onDeletePhoto || deletingId) return
+
+      const confirmed = window.confirm(
+        'Hapus foto ini dari album? Kuota jepretan akan dikembalikan sehingga bisa foto ulang (retake).'
+      )
+      if (!confirmed) return
+
+      setDeletingId(photo.id)
+      try {
+        const res = await onDeletePhoto(photo.id)
+        if (res && typeof res === 'object' && !res.ok) {
+          throw new Error(res.error ?? 'Gagal menghapus foto.')
+        }
+
+        // Hapus dari state lokal
+        setPhotos((prev) => prev.filter((p) => p.id !== photo.id))
+        setToast('Foto dihapus. Kuota jepretan dikembalikan untuk retake!')
+
+        // Jika lightbox sedang terbuka pada foto yang dihapus
+        if (openIndex !== null) {
+          close()
+        }
+      } catch (err) {
+        alert(err instanceof Error ? err.message : 'Gagal menghapus foto.')
+      } finally {
+        setDeletingId(null)
+      }
+    },
+    [onDeletePhoto, deletingId, openIndex, close]
+  )
 
   /**
    * Unduh foto dengan bingkai yang diterapkan di browser.
@@ -123,14 +185,16 @@ export default function PhotoGrid({ photos, eventTitle, moderation }: Props) {
 
   return (
     <>
+      {toast && <div className={styles.toastMsg}>{toast}</div>}
+
       <ul className={styles.grid}>
         {photos.map((photo, i) => {
           const photoPreset = photo.preset ? getPreset(photo.preset) : null
+          const canDelete = isHost || (Boolean(currentGuestId) && photo.guest_id === currentGuestId)
+          const isDeleting = deletingId === photo.id
+
           return (
-            <li
-              key={photo.id}
-              className={`${styles.cell} ${photo.is_hidden ? styles.cellHidden : ''}`}
-            >
+            <li key={photo.id} className={styles.cell}>
               <button
                 type="button"
                 className={styles.tile}
@@ -153,24 +217,18 @@ export default function PhotoGrid({ photos, eventTitle, moderation }: Props) {
                 </div>
               </button>
 
-              {moderation && (
-                <div className={styles.moderate}>
-                  <form action={moderation}>
-                    <input type="hidden" name="photoId" value={photo.id} />
-                    <input
-                      type="hidden"
-                      name="hidden"
-                      value={photo.is_hidden ? 'false' : 'true'}
-                    />
-                    <button
-                      type="submit"
-                      className={styles.moderateBtn}
-                      title={photo.is_hidden ? 'Tampilkan kembali di galeri' : 'Sembunyikan dari galeri'}
-                      aria-label={photo.is_hidden ? 'Tampilkan' : 'Sembunyikan'}
-                    >
-                      {photo.is_hidden ? <EyeOff size={14} /> : <Eye size={14} />}
-                    </button>
-                  </form>
+              {canDelete && onDeletePhoto && (
+                <div className={styles.deleteActionWrapper}>
+                  <button
+                    type="button"
+                    onClick={(e) => handleDelete(photo, e)}
+                    disabled={isDeleting}
+                    className={styles.deleteBtn}
+                    title="Hapus foto & kembalikan jepretan (Retake)"
+                    aria-label="Hapus foto"
+                  >
+                    {isDeleting ? <Loader2 size={13} className="animate-spin" /> : <Trash2 size={13} />}
+                  </button>
                 </div>
               )}
             </li>
@@ -201,23 +259,23 @@ export default function PhotoGrid({ photos, eventTitle, moderation }: Props) {
             </div>
 
             <div className={styles.topActions}>
-              {moderation && (
-                <form action={moderation}>
-                  <input type="hidden" name="photoId" value={open.id} />
-                  <input
-                    type="hidden"
-                    name="hidden"
-                    value={open.is_hidden ? 'false' : 'true'}
-                  />
+              {(isHost || (Boolean(currentGuestId) && open.guest_id === currentGuestId)) &&
+                onDeletePhoto && (
                   <button
-                    type="submit"
-                    className={styles.iconButton}
-                    title={open.is_hidden ? 'Tampilkan foto di galeri' : 'Sembunyikan foto dari galeri'}
+                    type="button"
+                    onClick={(e) => handleDelete(open, e)}
+                    disabled={deletingId === open.id}
+                    className={`${styles.iconButton} ${styles.iconButtonDanger}`}
+                    title="Hapus foto & kembalikan jepretan (Retake)"
+                    aria-label="Hapus foto"
                   >
-                    {open.is_hidden ? <EyeOff size={18} /> : <Eye size={18} />}
+                    {deletingId === open.id ? (
+                      <Loader2 size={18} className="animate-spin" />
+                    ) : (
+                      <Trash2 size={18} />
+                    )}
                   </button>
-                </form>
-              )}
+                )}
 
               <button
                 type="button"
@@ -273,9 +331,9 @@ export default function PhotoGrid({ photos, eventTitle, moderation }: Props) {
             )}
           </div>
 
-          {/* Bottom Bar */}
+          {/* Bottom Bar with Counter and Download */}
           <footer className={styles.lightboxBottomBar} onClick={(e) => e.stopPropagation()}>
-            <span className={styles.counter}>
+            <span className={styles.photoCounter}>
               {openIndex + 1} / {photos.length}
             </span>
 
@@ -286,7 +344,7 @@ export default function PhotoGrid({ photos, eventTitle, moderation }: Props) {
               className={styles.downloadBtn}
             >
               {saving ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
-              {saving ? 'Menyiapkan…' : 'Unduh Foto'}
+              <span>{saving ? 'Menyiapkan…' : 'Unduh Foto'}</span>
             </button>
           </footer>
         </div>

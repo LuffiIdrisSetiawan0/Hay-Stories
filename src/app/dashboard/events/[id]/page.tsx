@@ -10,7 +10,7 @@ import { qrSvg } from '@/lib/qr'
 import PhotoGrid from '@/components/photos/PhotoGrid'
 import SharePanel from './SharePanel'
 import RevealControl from './RevealControl'
-import { togglePhotoHidden } from './actions'
+import { deleteHostPhoto } from './actions'
 import styles from './Manage.module.css'
 
 export const metadata: Metadata = {
@@ -137,12 +137,17 @@ export default async function ManageEventPage(props: PageProps<'/dashboard/event
             ? 'Foto tidak bisa dimuat saat ini. Ini gangguan pada penyimpanan, bukan tanda fotonya hilang — muat ulang sebentar lagi.'
             : photos.length === 0
               ? 'Belum ada foto. Begitu tamu mulai menjepret, fotonya muncul di sini — kamu bisa melihatnya lebih dulu, sebelum album dibuka.'
-              : 'Kamu melihat ini lebih dulu. Ketuk ikon mata untuk menyembunyikan sebuah foto dari galeri tamu; foto tersembunyi tampak pudar dan bisa dikembalikan kapan saja.'}
+              : 'Kamu melihat ini lebih dulu. Ketuk ikon tong sampah pada foto untuk menghapus foto yang tidak diinginkan dan mengembalikan jepretan tamu (bisa retake).'}
         </p>
 
         {photos.length > 0 && (
           <div className={styles.gridWrap}>
-            <PhotoGrid photos={photos} eventTitle={event.title} moderation={togglePhotoHidden} />
+            <PhotoGrid
+              photos={photos}
+              eventTitle={event.title}
+              isHost={true}
+              onDeletePhoto={deleteHostPhoto}
+            />
           </div>
         )}
 

@@ -2,6 +2,8 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
+import { PHOTO_BUCKET } from '@/lib/photos'
 
 export interface RevealResult {
   error?: string
@@ -10,11 +12,6 @@ export interface RevealResult {
 
 /**
  * Buka album sekarang juga.
- *
- * Tidak ada pemeriksaan kepemilikan di sini secara eksplisit karena RLS sudah
- * menanganinya: policy `events: kelola milik sendiri` membuat UPDATE terhadap
- * acara milik host lain tidak menyentuh baris apa pun. Itulah sebabnya hasilnya
- * diminta kembali dengan `.select()` — nol baris berarti bukan miliknya.
  */
 export async function revealNow(
   _prevState: RevealResult | null,
@@ -50,41 +47,53 @@ export async function revealNow(
 }
 
 /**
- * Sembunyikan atau tampilkan lagi satu foto.
- *
- * Sama seperti `revealNow`, kepemilikannya ditegakkan RLS: policy
- * `photos: host memoderasi` membatasi UPDATE ke foto pada acara milik host ini,
- * jadi id foto orang lain tidak menyentuh baris apa pun. `.select()` yang
- * mengembalikan nol baris adalah cara mengetahuinya.
- *
- * Foto yang disembunyikan tidak dihapus — tamu berhenti melihatnya di galeri,
- * tapi host masih bisa mengembalikannya. Untuk momen canggung yang tidak perlu
- * berakhir di album, ini hampir selalu yang diinginkan, dan tidak ada tombol
- * yang bisa membatalkan penghapusan sungguhan.
+ * Hapus satu foto secara permanen oleh host dan kembalikan kuota jepretan tamu (bisa retake).
  */
-export async function togglePhotoHidden(formData: FormData): Promise<void> {
-  const photoId = String(formData.get('photoId') ?? '')
-  const hidden = String(formData.get('hidden') ?? '') === '1'
-  if (!photoId) return
+export async function deleteHostPhoto(photoId: string): Promise<{ ok: boolean; error?: string }> {
+  if (!photoId) return { ok: false, error: 'ID foto tidak sah.' }
 
   const supabase = await createClient()
-
   const {
     data: { user },
   } = await supabase.auth.getUser()
-  if (!user) return
+  if (!user) return { ok: false, error: 'Sesi berakhir.' }
 
-  const { data, error } = await supabase
+  const admin = createAdminClient()
+
+  // Ambil data foto untuk memastikan acara ini milik host yang sedang login
+  const { data: photo, error: fetchErr } = await admin
     .from('photos')
-    .update({ is_hidden: hidden })
+    .select('id, event_id, guest_id, storage_path, thumb_path, events!inner(host_id)')
     .eq('id', photoId)
-    .select('event_id')
-    .maybeSingle<{ event_id: string }>()
+    .single()
 
-  if (error) {
-    console.error('togglePhotoHidden gagal:', error)
-    return
+  if (fetchErr || !photo) {
+    return { ok: false, error: 'Foto tidak ditemukan.' }
   }
 
-  if (data) revalidatePath(`/dashboard/events/${data.event_id}`)
+  const hostId = (photo.events as unknown as { host_id: string })?.host_id
+  if (hostId !== user.id) {
+    return { ok: false, error: 'Kamu bukan pemilik album ini.' }
+  }
+
+  // Hapus berkas dari storage
+  const paths = [photo.storage_path, photo.thumb_path].filter(Boolean) as string[]
+  if (paths.length > 0) {
+    await admin.storage.from(PHOTO_BUCKET).remove(paths)
+  }
+
+  // Hapus baris dari database
+  const { error: deleteErr } = await admin.from('photos').delete().eq('id', photoId)
+  if (deleteErr) {
+    console.error('deleteHostPhoto row gagal:', deleteErr)
+    return { ok: false, error: 'Gagal menghapus foto dari database.' }
+  }
+
+  // Kembalikan kuota jepretan tamu (supaya tamu bisa retake)
+  if (photo.guest_id) {
+    await admin.rpc('release_shot', { p_guest_id: photo.guest_id })
+  }
+
+  revalidatePath(`/dashboard/events/${photo.event_id}`)
+  return { ok: true }
 }

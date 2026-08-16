@@ -27,11 +27,6 @@
   list-style: none;
 }
 
-.cellHidden .thumb {
-  opacity: 0.35;
-  filter: grayscale(1);
-}
-
 .tile {
   position: relative;
   display: block;
@@ -99,33 +94,40 @@
   font-family: var(--font-mono);
 }
 
-/* ===== Moderasi Host (Grid) ===== */
+/* ===== Tombol Hapus / Retake (Grid) ===== */
 
-.moderate {
+.deleteActionWrapper {
   position: absolute;
   top: 0.5rem;
   right: 0.5rem;
   z-index: 2;
 }
 
-.moderateBtn {
+.deleteBtn {
   display: grid;
   place-items: center;
-  width: 2rem;
-  height: 2rem;
+  width: 2.1rem;
+  height: 2.1rem;
   border-radius: var(--radius-full);
-  background: rgba(15, 15, 15, 0.75);
-  color: #fff;
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(18, 18, 18, 0.85);
+  color: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.18);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   cursor: pointer;
-  transition: background 0.2s ease, transform 0.15s ease;
+  transition: background 0.2s ease, transform 0.15s ease, color 0.2s ease, border-color 0.2s ease;
 }
 
-.moderateBtn:hover {
-  background: rgba(30, 30, 30, 0.95);
-  transform: scale(1.05);
+.deleteBtn:hover {
+  background: rgba(220, 38, 38, 0.9);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.4);
+  transform: scale(1.08);
+}
+
+.deleteBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* ===========================================================================
@@ -201,7 +203,7 @@
 .topActions {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.65rem;
 }
 
 .iconButton {
@@ -220,6 +222,12 @@
 .iconButton:hover {
   background: rgba(255, 255, 255, 0.22);
   transform: scale(1.05);
+}
+
+.iconButtonDanger:hover {
+  background: rgba(220, 38, 38, 0.85);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #fff;
 }
 
 /* Center Stage with Image and Nav Arrows */
@@ -250,18 +258,18 @@
   height: auto;
   object-fit: contain;
   border-radius: 0.5rem;
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
   animation: zoomIn 0.2s ease-out;
 }
 
 @keyframes zoomIn {
   from {
-    opacity: 0.5;
-    transform: scale(0.97);
+    transform: scale(0.96);
+    opacity: 0;
   }
   to {
-    opacity: 1;
     transform: scale(1);
+    opacity: 1;
   }
 }
 
@@ -274,42 +282,30 @@
   width: 3rem;
   height: 3rem;
   border-radius: var(--radius-full);
-  background: rgba(20, 20, 20, 0.75);
+  background: rgba(20, 20, 20, 0.65);
   color: #fff;
   border: 1px solid rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(12px);
   cursor: pointer;
-  z-index: 10;
   transition: all 0.2s ease;
+  z-index: 5;
 }
 
 .navArrow:hover {
-  background: rgba(40, 40, 40, 0.95);
+  background: rgba(40, 40, 40, 0.9);
   transform: translateY(-50%) scale(1.1);
+  border-color: rgba(255, 255, 255, 0.3);
 }
 
 .navPrev {
-  left: 1.5rem;
+  left: 1.25rem;
 }
 
 .navNext {
-  right: 1.5rem;
+  right: 1.25rem;
 }
 
-@media (max-width: 640px) {
-  .navPrev {
-    left: 0.5rem;
-  }
-  .navNext {
-    right: 0.5rem;
-  }
-  .navArrow {
-    width: 2.4rem;
-    height: 2.4rem;
-  }
-}
-
-/* Bottom Bar */
+/* Bottom Bar with Actions */
 .lightboxBottomBar {
   flex-shrink: 0;
   display: flex;
@@ -320,11 +316,10 @@
   z-index: 10;
 }
 
-.counter {
+.photoCounter {
   font-family: var(--font-mono);
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   color: rgba(245, 242, 236, 0.7);
-  letter-spacing: 0.05em;
 }
 
 .downloadBtn {
@@ -332,17 +327,41 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.6rem 1.25rem;
-  border-radius: 9999px;
-  background: var(--color-accent);
-  color: #000;
-  font-weight: 600;
+  border-radius: var(--radius-full);
+  background: #f5f2ec;
+  color: #111;
   font-size: 0.875rem;
+  font-weight: 600;
   border: none;
   cursor: pointer;
   transition: all 0.2s ease;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
 }
 
-.downloadBtn:hover {
-  background: var(--color-accent-hover, #ffdf73);
+.downloadBtn:hover:not(:disabled) {
+  background: #fff;
   transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+}
+
+.downloadBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.toastMsg {
+  position: fixed;
+  top: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.55rem 1.25rem;
+  border-radius: var(--radius-full);
+  background: rgba(15, 15, 15, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 500;
+  z-index: 10000;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+  animation: fadeIn 0.15s ease-out;
 }
