@@ -1,18 +1,12 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { Download, Eye, EyeOff, X, Loader2 } from 'lucide-react'
+import { Download, Eye, EyeOff, X, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react'
 import { getPreset } from '@/lib/catalog'
 import { photoFilename } from '@/lib/photo-links'
 import { drawFramed, getFrame } from '@/lib/frames'
 import type { SignedPhoto } from '@/lib/photos'
 import styles from './PhotoGrid.module.css'
-
-/**
- * Grid foto dengan penampil layar penuh. Dipakai galeri tamu maupun dashboard
- * host — bedanya hanya `moderation`, yang bila diisi memasang tombol
- * sembunyikan pada tiap ubin.
- */
 
 type GridPhotoRow = SignedPhoto
 
@@ -48,8 +42,7 @@ export default function PhotoGrid({ photos, eventTitle, moderation }: Props) {
     [photos.length]
   )
 
-  // Keyboard hanya relevan saat penampil terbuka. Listener dipasang bersyarat
-  // supaya galeri yang tertutup tidak menahan panah kiri/kanan halaman.
+  // Keyboard navigation
   useEffect(() => {
     if (openIndex === null) return
 
@@ -63,7 +56,7 @@ export default function PhotoGrid({ photos, eventTitle, moderation }: Props) {
     return () => window.removeEventListener('keydown', onKey)
   }, [openIndex, close, step])
 
-  // Halaman di belakang penampil tidak boleh ikut tergulir.
+  // Prevent background scrolling while lightbox is open
   useEffect(() => {
     if (openIndex === null) return
     const previous = document.body.style.overflow
@@ -74,12 +67,7 @@ export default function PhotoGrid({ photos, eventTitle, moderation }: Props) {
   }, [openIndex])
 
   /**
-   * Unduh dengan bingkai ditempelkan di perangkat ini.
-   *
-   * Arsip di storage sengaja polos, jadi bingkainya dikomposit saat diunduh —
-   * di browser, bukan di server. Gambarnya toh sudah dimuat penampil layar
-   * penuh, jadi tidak ada perjalanan jaringan tambahan dan tidak ada waktu
-   * eksekusi fungsi yang dibayar per unduhan.
+   * Unduh foto dengan bingkai yang diterapkan di browser.
    */
   const download = useCallback(
     async (photo: GridPhotoRow) => {
@@ -90,8 +78,6 @@ export default function PhotoGrid({ photos, eventTitle, moderation }: Props) {
         if (!res.ok) throw new Error(String(res.status))
         const blob = await res.blob()
 
-        // Tanpa bingkai, berkas aslinya diteruskan apa adanya — tidak ada
-        // alasan mengencode ulang dan kehilangan kualitas.
         let out = blob
         if (frame && frame.id !== 'none') {
           const bitmap = await createImageBitmap(blob)
@@ -132,102 +118,177 @@ export default function PhotoGrid({ photos, eventTitle, moderation }: Props) {
     [eventTitle]
   )
 
+  const presetInfo = open?.preset ? getPreset(open.preset) : null
+  const frameInfo = open?.frame && open.frame !== 'none' ? getFrame(open.frame) : null
+
   return (
     <>
       <ul className={styles.grid}>
-        {photos.map((photo, i) => (
-          <li
-            key={photo.id}
-            className={`${styles.cell} ${photo.is_hidden ? styles.cellHidden : ''}`}
-          >
-            <button
-              type="button"
-              className={styles.cellBtn}
-              onClick={() => setOpenIndex(i)}
-              aria-label={`Buka foto dari ${photo.guest_name ?? 'tamu'}`}
+        {photos.map((photo, i) => {
+          const photoPreset = photo.preset ? getPreset(photo.preset) : null
+          return (
+            <li
+              key={photo.id}
+              className={`${styles.cell} ${photo.is_hidden ? styles.cellHidden : ''}`}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={photo.thumbUrl}
-                alt=""
-                loading="lazy"
-                decoding="async"
-                className={styles.thumb}
-              />
-            </button>
-          </li>
-        ))}
-      </ul>
+              <button
+                type="button"
+                className={styles.tile}
+                onClick={() => setOpenIndex(i)}
+                aria-label={`Buka foto dari ${photo.guest_name || 'Tamu'}`}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={photo.thumbUrl}
+                  alt={`Foto dari ${photo.guest_name || 'Tamu'}`}
+                  loading="lazy"
+                  decoding="async"
+                  className={styles.thumb}
+                />
+                <div className={styles.credit}>
+                  <span className={styles.creditName}>{photo.guest_name || 'Tamu'}</span>
+                  {photoPreset && (
+                    <span className={styles.creditPreset}>{photoPreset.name}</span>
+                  )}
+                </div>
+              </button>
 
-      {open && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-label="Penampil foto"
-          className={styles.lightbox}
-          onClick={close}
-        >
-          <div className={styles.lightboxPanel} onClick={(e) => e.stopPropagation()}>
-            <div className={styles.lightboxMedia}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={open.fullUrl}
-                alt={`Foto oleh ${open.guest_name ?? 'tamu'}`}
-                className={styles.lightboxImg}
-              />
-            </div>
-
-            <footer className={styles.lightboxMeta}>
-              <div className={styles.metaText}>
-                <strong>{open.guest_name ?? 'Tamu'}</strong>
-                <span className={styles.metaRoll}>
-                  {open.preset ? (getPreset(open.preset)?.name ?? open.preset) : 'Default'}
-                  {open.frame && open.frame !== 'none' && ` · ${getFrame(open.frame)?.name}`}
-                </span>
-                <span className={styles.metaDate}>{formatTaken(open.taken_at)}</span>
-              </div>
-
-              <div className={styles.actions}>
-                {moderation && (
+              {moderation && (
+                <div className={styles.moderate}>
                   <form action={moderation}>
-                    <input type="hidden" name="photoId" value={open.id} />
+                    <input type="hidden" name="photoId" value={photo.id} />
                     <input
                       type="hidden"
                       name="hidden"
-                      value={open.is_hidden ? 'false' : 'true'}
+                      value={photo.is_hidden ? 'false' : 'true'}
                     />
                     <button
                       type="submit"
-                      className="btn btn-secondary"
-                      title={open.is_hidden ? 'Tampilkan kembali di galeri' : 'Sembunyikan dari galeri'}
+                      className={styles.moderateBtn}
+                      title={photo.is_hidden ? 'Tampilkan kembali di galeri' : 'Sembunyikan dari galeri'}
+                      aria-label={photo.is_hidden ? 'Tampilkan' : 'Sembunyikan'}
                     >
-                      {open.is_hidden ? <Eye size={16} /> : <EyeOff size={16} />}
-                      {open.is_hidden ? 'Tampilkan' : 'Sembunyikan'}
+                      {photo.is_hidden ? <EyeOff size={14} /> : <Eye size={14} />}
                     </button>
                   </form>
-                )}
+                </div>
+              )}
+            </li>
+          )
+        })}
+      </ul>
 
-                <button
-                  type="button"
-                  onClick={() => download(open)}
-                  disabled={saving}
-                  className="btn btn-primary"
-                >
-                  {saving ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
-                  {saving ? 'Menyiapkan…' : 'Unduh foto'}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={close}
-                  className={styles.closeBtn}
-                  aria-label="Tutup"
-                >
-                  <X size={20} />
-                </button>
+      {/* Lightbox / Penampil Foto Layar Penuh */}
+      {open !== null && openIndex !== null && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Penampil foto layar penuh"
+          className={styles.lightbox}
+          onClick={close}
+        >
+          {/* Top Bar */}
+          <header className={styles.lightboxTopBar} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.metaBlock}>
+              <span className={styles.metaAuthor}>{open.guest_name || 'Tamu'}</span>
+              <div className={styles.metaSub}>
+                <span className={styles.badgeRoll}>
+                  {presetInfo?.name ?? open.preset ?? 'Analog'}
+                </span>
+                {frameInfo && <span>· {frameInfo.name}</span>}
+                <span>· {formatTaken(open.taken_at)}</span>
               </div>
-            </footer>
+            </div>
+
+            <div className={styles.topActions}>
+              {moderation && (
+                <form action={moderation}>
+                  <input type="hidden" name="photoId" value={open.id} />
+                  <input
+                    type="hidden"
+                    name="hidden"
+                    value={open.is_hidden ? 'false' : 'true'}
+                  />
+                  <button
+                    type="submit"
+                    className={styles.iconButton}
+                    title={open.is_hidden ? 'Tampilkan foto di galeri' : 'Sembunyikan foto dari galeri'}
+                  >
+                    {open.is_hidden ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </form>
+              )}
+
+              <button
+                type="button"
+                onClick={close}
+                className={styles.iconButton}
+                aria-label="Tutup penampil foto"
+                title="Tutup (ESC)"
+              >
+                <X size={20} />
+              </button>
+            </div>
+          </header>
+
+          {/* Stage Image and Navigation Controls */}
+          <div className={styles.stage} onClick={close}>
+            {openIndex > 0 && (
+              <button
+                type="button"
+                className={`${styles.navArrow} ${styles.navPrev}`}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  step(-1)
+                }}
+                aria-label="Foto sebelumnya"
+                title="Sebelumnya (←)"
+              >
+                <ChevronLeft size={24} />
+              </button>
+            )}
+
+            <div className={styles.imageWrapper} onClick={(e) => e.stopPropagation()}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={open.fullUrl}
+                alt={`Foto oleh ${open.guest_name || 'Tamu'}`}
+                className={styles.mainImage}
+              />
+            </div>
+
+            {openIndex < photos.length - 1 && (
+              <button
+                type="button"
+                className={`${styles.navArrow} ${styles.navNext}`}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  step(1)
+                }}
+                aria-label="Foto berikutnya"
+                title="Berikutnya (→)"
+              >
+                <ChevronRight size={24} />
+              </button>
+            )}
           </div>
+
+          {/* Bottom Bar */}
+          <footer className={styles.lightboxBottomBar} onClick={(e) => e.stopPropagation()}>
+            <span className={styles.counter}>
+              {openIndex + 1} / {photos.length}
+            </span>
+
+            <button
+              type="button"
+              onClick={() => download(open)}
+              disabled={saving}
+              className={styles.downloadBtn}
+            >
+              {saving ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
+              {saving ? 'Menyiapkan…' : 'Unduh Foto'}
+            </button>
+          </footer>
         </div>
       )}
     </>
