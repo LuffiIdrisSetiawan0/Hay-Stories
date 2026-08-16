@@ -9,9 +9,6 @@ const TEST_IMAGE = '/dev/test-chart.jpg'
 
 /**
  * Sisi terpanjang untuk render di lab.
- *
- * Foto pernikahan yang dijatuhkan ke sini bisa 12 MP, dan kanvas sebesar
- * itu akan membekukan tab jika terlalu besar. 1400 px sangat tajam & ringan.
  */
 const LAB_LONG_EDGE = 1400
 
@@ -27,6 +24,10 @@ interface Knobs {
   halation: number
   /** Nilai MUTLAK 0-1, bukan pengali: penghalusan tidak ada di preset. */
   smooth: number
+  /** Nilai MUTLAK -1.5 hingga +1.5 EV, kompensasi pencahayaan. */
+  exposure: number
+  /** Nilai MUTLAK 0-1, penajaman optik kamera. */
+  sharpen: number
 }
 
 const NEUTRAL: Knobs = {
@@ -37,6 +38,8 @@ const NEUTRAL: Knobs = {
   vignette: 1,
   halation: 1,
   smooth: 0.65,
+  exposure: 0.0,
+  sharpen: 0.45,
 }
 
 /**
@@ -94,6 +97,8 @@ export default function FilmLab() {
         lumaLock: tuned.lumaLock,
         contrast: tuned.contrast,
         smooth: k.smooth,
+        exposure: k.exposure,
+        sharpen: k.sharpen,
       })
 
       target.width = width
@@ -214,24 +219,43 @@ export default function FilmLab() {
     }
   }, [])
 
-  const knob = (key: keyof Knobs, label: string) => (
-    <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: '0.82rem' }}>
-      <span style={{ minWidth: '7ch' }}>{label}</span>
-      <input
-        type="range"
-        min={0}
-        max={key === 'smooth' ? 1 : 2}
-        step={0.05}
-        value={knobs[key]}
-        onChange={(e) => setKnobs((k) => ({ ...k, [key]: Number(e.target.value) }))}
-        style={{ width: '150px' }}
-      />
-      <span style={{ fontFamily: 'var(--font-mono)', minWidth: '4ch' }}>
-        {knobs[key].toFixed(2)}
-        {key === 'smooth' ? '' : '×'}
-      </span>
-    </label>
-  )
+  const knob = (key: keyof Knobs, label: string) => {
+    let min = 0
+    let max = 2
+    let step = 0.05
+    let suffix = '×'
+
+    if (key === 'smooth' || key === 'sharpen') {
+      min = 0
+      max = 1
+      suffix = ''
+    } else if (key === 'exposure') {
+      min = -1.2
+      max = 1.2
+      step = 0.1
+      suffix = ' EV'
+    }
+
+    return (
+      <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: '0.82rem' }}>
+        <span style={{ minWidth: '7ch' }}>{label}</span>
+        <input
+          type="range"
+          min={min}
+          max={max}
+          step={step}
+          value={knobs[key]}
+          onChange={(e) => setKnobs((k) => ({ ...k, [key]: Number(e.target.value) }))}
+          style={{ width: '135px' }}
+        />
+        <span style={{ fontFamily: 'var(--font-mono)', minWidth: '5ch' }}>
+          {knobs[key] > 0 && key === 'exposure' ? '+' : ''}
+          {knobs[key].toFixed(2)}
+          {suffix}
+        </span>
+      </label>
+    )
+  }
 
   return (
     <main style={{ padding: '2rem 1.5rem', maxWidth: '1440px', margin: '0 auto' }}>
@@ -243,8 +267,7 @@ export default function FilmLab() {
           </h1>
         </div>
         <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.92rem', maxWidth: '70ch', margin: 0 }}>
-          Pipeline WebGL presisi tinggi yang sama dengan kamera tamu. Unggah foto Anda di bawah,
-          pilih atau sesuaikan setelan warna, dan langsung simpan/unduh hasil foto analog favorit Anda.
+          Pipeline WebGL presisi tinggi dengan penajaman sensor kamera dan kontrol pencahayaan EV. Unggah foto Anda, sesuaikan setelan, dan langsung simpan hasil foto analog favorit Anda.
         </p>
       </header>
 
@@ -288,13 +311,13 @@ export default function FilmLab() {
             marginLeft: 'auto',
           }}
         >
-          {knob('strength', 'Kekuatan')}
-          {knob('lumaLock', 'Kunci nada')}
+          {knob('sharpen', 'Penajaman')}
+          {knob('exposure', 'Pencahayaan')}
+          {knob('smooth', 'Kulit')}
           {knob('contrast', 'Kontras')}
           {knob('grain', 'Grain')}
           {knob('vignette', 'Vignette')}
           {knob('halation', 'Halation')}
-          {knob('smooth', 'Kulit')}
           <button
             type="button"
             className="btn btn-secondary"
@@ -371,7 +394,7 @@ export default function FilmLab() {
                       margin: '0.2rem 0 0',
                     }}
                   >
-                    strength {t.strength.toFixed(2)} · kontras {t.contrast.toFixed(2)} · grain {t.grain.toFixed(2)}
+                    tajam {knobs.sharpen.toFixed(2)} · cahaya {knobs.exposure > 0 ? '+' : ''}{knobs.exposure.toFixed(1)} EV · kontras {t.contrast.toFixed(2)} · grain {t.grain.toFixed(2)}
                   </p>
                 </div>
                 <button

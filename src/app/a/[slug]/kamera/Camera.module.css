@@ -1,16 +1,10 @@
 /* ===========================================================================
    Kamera tamu
-
-   Viewfinder mengisi layar; semua kontrol mengambang di atasnya. Versi
-   sebelumnya menumpuk lima jalur (bar, viewfinder, strip roll, tombol, pesan)
-   yang saling berebut tinggi layar, dan yang paling terdesak justru fotonya.
+   Viewfinder mengisi layar; semua kontrol mengambang di atasnya.
    =========================================================================== */
 
 .page {
   position: relative;
-  /* 100dvh, bukan 100vh: bilah alamat Safari iOS menyusut saat digulir dan
-     100vh mengukur layar seolah bilah itu tidak ada, sehingga tombol rana
-     terpotong di bawah layar. */
   height: 100dvh;
   overflow: hidden;
   background: #0a0908;
@@ -26,12 +20,6 @@
   place-items: center;
 }
 
-/*
- * Video sumber tetap dirender browser (dibutuhkan agar frame-nya mengalir ke
- * WebGL) tapi tidak boleh terlihat. `display: none` akan membuat sebagian
- * browser berhenti mendekode frame-nya sama sekali, jadi ia disembunyikan
- * dengan ukuran satu piksel di luar jangkauan mata.
- */
 .video {
   position: absolute;
   width: 1px;
@@ -101,8 +89,6 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  /* env(safe-area-inset-top) menjaga bar tetap di bawah poni dan bilah status
-     iPhone saat halaman dibuka dari layar utama. */
   padding: calc(0.75rem + env(safe-area-inset-top)) 1rem 2rem;
   background: linear-gradient(to bottom, rgba(10, 9, 8, 0.75), transparent);
   pointer-events: none;
@@ -149,36 +135,37 @@
 
 .counterMax {
   font-size: 0.8125rem;
-  color: rgba(245, 242, 236, 0.5);
+  color: rgba(245, 242, 236, 0.55);
 }
 
-/* ===== Pesan mengambang ===== */
+/* ===== Toast notifikasi ===== */
 
 .toast {
   position: absolute;
+  top: 4.5rem;
   left: 50%;
   transform: translateX(-50%);
-  bottom: calc(13rem + env(safe-area-inset-bottom));
-  z-index: 2;
-  max-width: calc(100% - 2rem);
-  padding: 0.5rem 0.95rem;
+  padding: 0.45rem 1rem;
   border-radius: var(--radius-full);
-  background: rgba(10, 9, 8, 0.85);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: rgba(20, 20, 20, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  color: #fff;
   font-size: 0.8125rem;
-  text-align: center;
-  animation: rise 180ms ease-out;
+  font-weight: 500;
+  z-index: 20;
+  animation: fadeIn 0.2s ease-out;
 }
 
 .toastError {
-  background: rgba(146, 24, 24, 0.92);
+  background: rgba(220, 38, 38, 0.85);
+  border-color: rgba(255, 255, 255, 0.3);
 }
 
-@keyframes rise {
+@keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translate(-50%, 0.4rem);
+    transform: translate(-50%, -6px);
   }
   to {
     opacity: 1;
@@ -186,23 +173,94 @@
   }
 }
 
-/* ===== Dok bawah ===== */
+/* ===== Dock kontrol bawah ===== */
 
 .dock {
   position: absolute;
+  bottom: 0;
   left: 0;
   right: 0;
-  bottom: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.875rem;
-  padding: 2.5rem 0 calc(1.25rem + env(safe-area-inset-bottom));
-  background: linear-gradient(to top, rgba(10, 9, 8, 0.85), transparent);
+  gap: 0.75rem;
+  padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+  background: linear-gradient(to top, rgba(10, 9, 8, 0.88) 0%, rgba(10, 9, 8, 0.5) 60%, transparent 100%);
   pointer-events: none;
 }
 
 .dock > * {
   pointer-events: auto;
+}
+
+/* Tool Bar Penajaman & Pencahayaan */
+.toolBar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0 1rem;
+}
+
+.toolBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.32rem 0.75rem;
+  border-radius: var(--radius-full);
+  background: rgba(20, 20, 20, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: rgba(245, 242, 236, 0.85);
+  font-size: 0.75rem;
+  font-weight: 500;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.toolBtn:hover {
+  background: rgba(40, 40, 40, 0.85);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.toolBtnActive {
+  background: #f5f2ec;
+  border-color: #f5f2ec;
+  color: #111;
+  font-weight: 600;
+}
+
+/* Drawer Pengaturan Cepat */
+.adjustDrawer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.6rem;
+  margin: 0 auto;
+  border-radius: var(--radius-full);
+  background: rgba(15, 15, 15, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  animation: fadeIn 0.15s ease-out;
+}
+
+.adjustOption {
+  padding: 0.22rem 0.6rem;
+  border-radius: var(--radius-full);
+  background: transparent;
+  border: none;
+  color: rgba(245, 242, 236, 0.75);
+  font-size: 0.72rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.adjustOptionActive {
+  background: rgba(255, 255, 255, 0.22);
+  color: #fff;
+  font-weight: 600;
 }
 
 /* ===== Pemilih roll ===== */
@@ -248,7 +306,7 @@
   font-weight: 600;
 }
 
-/* ===== Tombol ===== */
+/* ===== Tombol Shutter & Navigasi ===== */
 
 .controls {
   display: grid;
@@ -322,22 +380,14 @@
   background: #f5f2ec;
 }
 
-/* ===== Pratinjau bingkai =====
-   Proporsi dan tebal tepinya dihitung di komponen dari geometri yang sama
-   dengan yang dipakai saat mengunduh, supaya keduanya tidak menyimpang. */
+/* ===== Pratinjau bingkai ===== */
 
-/* Tanpa bingkai: pembungkus mengisi panggung dan canvas tetap `contain`. */
 .framed {
   position: relative;
   width: 100%;
   height: 100%;
 }
 
-/*
- * Dengan bingkai: tinggi ditentukan aspect-ratio dari gaya inline, dan canvas
- * mengisi kotak dalamnya persis. `fill` aman di sini karena padding-nya sudah
- * dihitung dari rasio video, jadi kotak dalamnya berasio sama.
- */
 .framedOn {
   width: 100%;
   height: auto;
@@ -345,11 +395,6 @@
   box-sizing: border-box;
 }
 
-/*
- * `cover`, bukan `fill`. Untuk bingkai berasio sendiri (Cetak 4:5) kotak
- * fotonya tidak seasio dengan video, jadi `fill` akan menggepengkan gambar.
- * `cover` memotong dari tengah — persis yang dilakukan cropRect() saat unduh.
- */
 .framedOn .canvas {
   object-fit: cover;
 }
@@ -358,9 +403,6 @@
   position: absolute;
   left: 0;
   right: 0;
-  /* Tingginya diberikan komponen; lihat framePreview.bandStyle. */
-  /* Deretan lubang: satu pita gradien lebih murah daripada puluhan elemen,
-     dan ini cuma pratinjau — bentuk finalnya digambar canvas saat unduh. */
   background-image: repeating-linear-gradient(
     to right,
     #f7f4ee 0,
@@ -399,21 +441,13 @@
 .frameTitle {
   font-size: clamp(0.7rem, 3.4vw, 1.15rem);
   font-weight: 600;
-  color: rgba(26, 26, 26, 0.78);
+  color: #111;
+  text-shadow: 0 0 1px rgba(255, 255, 255, 0.4);
 }
 
 .frameStamp {
-  font-size: clamp(0.45rem, 1.9vw, 0.7rem);
-  color: rgba(26, 26, 26, 0.45);
-}
-
-/* Tombol ikon yang sedang menyala — dibalik jadi terang, sama seperti chip roll
-   yang aktif, supaya keadaannya terbaca tanpa perlu label. */
-.iconBtnOn {
-  background: #f5f2ec;
-  color: #1a1a1a;
-}
-
-.iconBtnOn:hover {
-  background: #fff;
+  font-size: clamp(0.55rem, 2.4vw, 0.8rem);
+  color: #ff9900;
+  font-weight: 700;
+  letter-spacing: 0.1em;
 }

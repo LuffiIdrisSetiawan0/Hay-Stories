@@ -12,35 +12,30 @@ export interface RenderOptions {
   intensity?: number
   /**
    * 0-1, seberapa banyak kecerahan asli dikembalikan setelah LUT.
-   *
-   * 1 berarti LUT hanya boleh mengubah warna, tidak boleh mengangkat atau
-   * menurunkan nada sama sekali. Dipakai untuk menahan kurva nada film
-   * menumpuk di atas kurva yang sudah diterapkan ISP kamera ponsel.
    */
   lumaLock?: number
   /** 0–1, kekuatan kurva-S kontras setelah grading. */
   contrast?: number
   /**
-   * 0–1, penghalusan kulit. Menekan detail berkontras rendah di area bernada
-   * kulit saja; tepi tajam seperti mata dan bibir tidak tersentuh.
+   * 0–1, penghalusan kulit. Menekan detail berkontras rendah di area bernada kulit.
    */
   smooth?: number
   /**
+   * -1.5 hingga +1.5, kompensasi pencahayaan fotografi (EV stops).
+   */
+  exposure?: number
+  /**
+   * 0–1, penajaman optik kamera (Unsharp Mask) untuk meningkatkan detail sensor HP.
+   */
+  sharpen?: number
+  /**
    * Setel `false` bila sumbernya sudah dalam orientasi bawah-ke-atas.
-   * Default (`true`) benar untuk video, gambar, dan ImageBitmap biasa.
    */
   flipY?: boolean
 }
 
 /**
  * Merender sumber gambar/video melalui LUT film ke sebuah canvas.
- *
- * Satu instance dipakai untuk viewfinder live DAN untuk membakar hasil
- * jepretan, sehingga apa yang dilihat tamu persis sama dengan yang tersimpan.
- *
- * Selalu panggil `dispose()` saat komponen dilepas. Di iOS, konteks WebGL yang
- * bocor akan dicabut paksa oleh sistem setelah beberapa kali dan viewfinder
- * berikutnya hanya menampilkan layar hitam.
  */
 export class FilmRenderer {
   private canvas: HTMLCanvasElement
@@ -61,7 +56,7 @@ export class FilmRenderer {
       antialias: false,
       depth: false,
       stencil: false,
-      preserveDrawingBuffer: true, // dibutuhkan agar toBlob() setelah render tidak kosong
+      preserveDrawingBuffer: true,
       powerPreference: 'high-performance',
     })
 
@@ -94,6 +89,8 @@ export class FilmRenderer {
       'uLumaLock',
       'uContrast',
       'uSmooth',
+      'uExposure',
+      'uSharpen',
       'uMirror',
       'uFlipY',
     ]) {
@@ -116,8 +113,6 @@ export class FilmRenderer {
 
     const gl = this.gl
     gl.bindTexture(gl.TEXTURE_2D, this.lutTexture)
-    // LUT TIDAK boleh dibalik: barisnya adalah data pencarian warna, bukan
-    // gambar. Membaliknya akan menukar sumbu hijau.
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false)
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img)
     gl.bindTexture(gl.TEXTURE_2D, null)
@@ -126,11 +121,6 @@ export class FilmRenderer {
 
   /**
    * Gambar satu frame. `width`/`height` menentukan ukuran keluaran.
-   *
-   * `loadPreset(preset)` wajib sudah selesai untuk preset yang sama. Guard di
-   * bawah sengaja keras: merender dengan LUT preset lain tidak menimbulkan
-   * error apa pun, hanya menghasilkan warna yang salah — dan foto tamu yang
-   * tersimpan dengan film keliru tidak bisa diperbaiki setelahnya.
    */
   render(
     source: FilmSource,
@@ -178,6 +168,8 @@ export class FilmRenderer {
     gl.uniform1f(this.uniforms.uLumaLock, options.lumaLock ?? 0)
     gl.uniform1f(this.uniforms.uContrast, options.contrast ?? 0)
     gl.uniform1f(this.uniforms.uSmooth, options.smooth ?? 0)
+    gl.uniform1f(this.uniforms.uExposure, options.exposure ?? 0)
+    gl.uniform1f(this.uniforms.uSharpen, options.sharpen ?? 0)
     gl.uniform1i(this.uniforms.uMirror, options.mirror ? 1 : 0)
     gl.uniform1i(this.uniforms.uFlipY, options.flipY === false ? 0 : 1)
 
@@ -197,18 +189,6 @@ export class FilmRenderer {
     return canvasToBlob(this.canvas, options.quality ?? 0.9)
   }
 
-  /**
-   * Melepas seluruh sumber daya GPU. Canvas tetap bisa dipakai untuk membuat
-   * FilmRenderer baru setelahnya.
-   *
-   * Sengaja TIDAK memanggil `WEBGL_lose_context.loseContext()`. Canvas yang
-   * konteksnya dilepas paksa akan terus mengembalikan konteks mati itu pada
-   * `getContext()` berikutnya — jadi satu kali dispose membuat canvas tersebut
-   * rusak permanen. React StrictMode me-remount setiap komponen sekali di mode
-   * dev, sehingga viewfinder akan selalu hitam. Menghapus objek GL sudah
-   * membebaskan hampir seluruh memori GPU yang berarti; sisa konteksnya
-   * direklamasi browser saat canvas-nya di-GC.
-   */
   dispose(): void {
     if (this.disposed) return
     this.disposed = true
@@ -274,7 +254,6 @@ function createProgram(gl: WebGL2RenderingContext, vs: string, fs: string): WebG
   gl.attachShader(program, fragment)
   gl.linkProgram(program)
 
-  // Shader sudah tertanam di program setelah link; lepaskan referensinya.
   gl.deleteShader(vertex)
   gl.deleteShader(fragment)
 
@@ -318,7 +297,6 @@ function createTexture(gl: WebGL2RenderingContext): WebGLTexture {
   if (!texture) throw new Error('Gagal membuat tekstur.')
 
   gl.bindTexture(gl.TEXTURE_2D, texture)
-  // CLAMP_TO_EDGE wajib: REPEAT akan membuat LUT membungkus antar-irisan.
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)

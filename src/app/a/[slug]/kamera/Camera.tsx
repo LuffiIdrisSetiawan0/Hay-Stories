@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, Images, Loader2, Sparkles, SwitchCamera } from 'lucide-react'
+import { ArrowLeft, Images, Loader2, Sparkles, SwitchCamera, Sun, Zap } from 'lucide-react'
 import { DEFAULT_PRESET, FILM_PRESETS, getPreset, type FilmPreset } from '@/lib/catalog'
 import {
   DEFAULT_FRAME,
@@ -16,46 +16,11 @@ import { FilmRenderer, captureSize, fitWithin, processCapture, videoToBitmap } f
 import { createClient } from '@/lib/supabase/client'
 import styles from './Camera.module.css'
 
-/**
- * Sisi terpanjang viewfinder.
- *
- * Ini ukuran KELUARAN render, bukan ukuran masukannya. Yang mahal justru
- * masukannya: tekstur video seukuran stream diunggah ke GPU tiap frame, berapa
- * pun kecilnya hasil yang digambar. Karena itu menurunkan angka ini saja tidak
- * menyembuhkan viewfinder yang tersendat — yang menentukan adalah resolusi
- * stream dan seberapa sering frame diunggah.
- *
- * Jepretan yang tersimpan tetap resolusi penuh; itu dirender sekali, bukan
- * tiap frame.
- */
 const PREVIEW_LONG_EDGE = 900
-
-/**
- * Resolusi yang diminta ke kamera. Ini yang menentukan resolusi foto tersimpan,
- * karena jepretan diambil langsung dari frame stream.
- *
- * 1440p, turun dari 4K. Bukan karena 4K tidak muat disimpan, tapi karena setiap
- * frame pratinjau harus mengunggah tekstur video seukuran itu ke GPU — dan di
- * HP kelas menengah viewfinder-nya patah-patah. 1440p menurunkan beban unggah
- * jadi sekitar 44% dari 4K, sambil tetap menyimpan 3,7 MP (cetak nyaman sampai
- * A4) alih-alih 2,1 MP seperti versi paling awal.
- *
- * Satu angka ini adalah tombol utamanya. Kalau masih tersendat, 1920x1080
- * berikutnya; kalau ternyata lapang, 4K bisa dicoba lagi.
- */
 const STREAM_WIDTH = 2560
 const STREAM_HEIGHT = 1440
 
-/** Roll yang sudah terpasang saat kamera dibuka. Tamu bebas menggantinya. */
 const INITIAL_PRESET = getPreset(DEFAULT_PRESET)!
-
-/**
- * Kekuatan penghalusan kulit saat dinyalakan.
- *
- * Sengaja tidak penuh. Pada 1.0 detail kulit hilang sama sekali dan wajah
- * terlihat seperti plastik — lebih buruk daripada jerawat yang terlihat. Angka
- * ini menekan sekitar separuh detail berkontras rendah di area kulit saja.
- */
 const SKIN_SMOOTH = 0.65
 
 type Phase =
@@ -72,6 +37,19 @@ interface Props {
   shotsLimit: number
 }
 
+const EXPOSURE_OPTIONS = [
+  { label: 'Redup -0.5 EV', val: -0.5 },
+  { label: 'Normal 0 EV', val: 0.0 },
+  { label: 'Terang +0.4 EV', val: 0.4 },
+  { label: 'Indoor Boost +0.8 EV', val: 0.8 },
+] as const
+
+const SHARPNESS_OPTIONS = [
+  { label: 'Alami (Lembut)', val: 0.15 },
+  { label: 'Tajam (Standar HD)', val: 0.45 },
+  { label: 'Ultra Detail', val: 0.80 },
+] as const
+
 export default function Camera({
   eventId,
   slug,
@@ -86,36 +64,23 @@ export default function Camera({
   const streamRef = useRef<MediaStream | null>(null)
   const loopRef = useRef<{ kind: 'raf' | 'rvfc'; id: number } | null>(null)
 
-  /*
-   * Preset yang dipegang loop render, terpisah dari yang dipegang React.
-   *
-   * `render()` melempar kalau LUT-nya belum dimuat, jadi ref ini baru maju
-   * setelah `loadPreset()` selesai. State-nya berubah lebih dulu supaya tombol
-   * yang ditekan langsung terlihat aktif — di antara keduanya viewfinder masih
-   * menggambar roll lama, dan itu memang yang benar.
-   */
   const presetRef = useRef<FilmPreset>(INITIAL_PRESET)
   const [preset, setPreset] = useState<FilmPreset>(INITIAL_PRESET)
 
   const [phase, setPhase] = useState<Phase>({ kind: 'starting' })
   const [facing, setFacing] = useState<'environment' | 'user'>('environment')
   const [frame, setFrame] = useState<FrameId>(DEFAULT_FRAME)
-  /* Menyala secara bawaan karena itu yang diminta klien, tapi tetap bisa
-     dimatikan — sebagian tamu justru ingin fotonya apa adanya. */
   const [softSkin, setSoftSkin] = useState(true)
+  const [exposure, setExposure] = useState<number>(0.0)
+  const [sharpness, setSharpness] = useState<number>(0.45)
+  const [activeDrawer, setActiveDrawer] = useState<'none' | 'exposure' | 'sharpness'>('none')
+
   const [shotsUsed, setShotsUsed] = useState(initialShotsUsed)
   const [busy, setBusy] = useState(false)
   const [flash, setFlash] = useState(false)
   const [lastShot, setLastShot] = useState<string | null>(null)
   const [videoSize, setVideoSize] = useState<{ w: number; h: number } | null>(null)
 
-  /*
-   * Pesan mengambang di atas viewfinder, bukan baris tetap di bawah layar.
-   *
-   * Kabar baik ("Tersimpan.") menghilang sendiri — membiarkannya menetap berarti
-   * tamu membaca ulang hal yang sama sepanjang acara. Kegagalan bertahan sampai
-   * jepretan berikutnya, karena itu yang perlu ditindaklanjuti.
-   */
   const [notice, setNotice] = useState<{ text: string; kind: 'ok' | 'error' } | null>(null)
 
   useEffect(() => {
@@ -126,9 +91,6 @@ export default function Camera({
 
   const remaining = Math.max(0, shotsLimit - shotsUsed)
   const rollEmpty = remaining === 0
-
-  // Pratinjau kamera depan dicerminkan supaya tamu bisa mengarahkan dirinya
-  // sendiri, seperti bercermin.
   const mirror = facing === 'user'
 
   // --- Loop render ---------------------------------------------------------
@@ -145,8 +107,10 @@ export default function Camera({
       lumaLock: presetRef.current.lumaLock,
       contrast: presetRef.current.contrast,
       smooth: softSkin ? SKIN_SMOOTH : 0,
+      exposure,
+      sharpen: sharpness,
     })
-  }, [mirror, softSkin])
+  }, [mirror, softSkin, exposure, sharpness])
 
   const stopLoop = useCallback(() => {
     const loop = loopRef.current
@@ -156,17 +120,6 @@ export default function Camera({
     loopRef.current = null
   }, [])
 
-  /*
-   * Menggambar mengikuti frame KAMERA, bukan refresh layar.
-   *
-   * Kamera ponsel umumnya mengirim 30 fps sementara layarnya menyegarkan 60–120
-   * kali sedetik. Dengan requestAnimationFrame, setiap frame kamera diunggah ke
-   * GPU dua sampai empat kali — pekerjaan yang hasilnya identik dan langsung
-   * dibuang. Pada tekstur 4K itulah yang membuat viewfinder patah-patah.
-   *
-   * requestVideoFrameCallback hanya menyala saat benar-benar ada frame baru.
-   * Belum ada di semua browser lama, jadi rAF tetap disiapkan sebagai cadangan.
-   */
   const startLoop = useCallback(() => {
     stopLoop()
     const video = videoRef.current
@@ -193,30 +146,18 @@ export default function Camera({
     let cancelled = false
 
     async function start() {
-      /*
-       * getUserMedia hanya ada di konteks aman. Menguji ini lebih dulu penting
-       * saat pengembangan: membuka aplikasi dari ponsel lewat http://192.168.x.x
-       * membuat API-nya lenyap sama sekali, dan pesan bawaan browser tidak
-       * memberi petunjuk sedikit pun soal sebabnya.
-       */
-      if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) {
+      if (typeof navigator === 'undefined' || !navigator.mediaDevices?.getUserMedia) {
         setPhase({
           kind: 'blocked',
-          title: 'Kamera butuh koneksi aman',
-          body: 'Browser hanya mengizinkan kamera lewat HTTPS atau localhost. Buka halaman ini dari alamat https.',
+          title: 'Kamera tidak didukung',
+          body: 'Browser ini tidak mengizinkan akses kamera, atau halaman dibuka tanpa HTTPS.',
         })
         return
       }
 
+      setPhase({ kind: 'starting' })
+
       try {
-        /*
-         * `ideal`, bukan `exact`: perangkat yang tidak sanggup memberi yang
-         * terdekat alih-alih menolak, jadi HP lama tetap jalan dan menyimpan
-         * apa adanya.
-         *
-         * Rasio 16:9 memotong sensor 4:3 di atas-bawah, tapi itu pilihan
-         * bingkai — bukan batas resolusi.
-         */
         const stream = await navigator.mediaDevices.getUserMedia({
           video: {
             facingMode: { ideal: facing },
@@ -231,56 +172,59 @@ export default function Camera({
           return
         }
 
+        streamRef.current?.getTracks().forEach((t) => t.stop())
         streamRef.current = stream
 
         const video = videoRef.current
-        const canvas = canvasRef.current
-        if (!video || !canvas) return
+        if (!video) return
 
         video.srcObject = stream
         await video.play()
 
-        // Konteks WebGL dibuat sekali lalu dipakai ulang saat kamera dibalik.
-        // Membuatnya baru tiap kali akan menabrak batas jumlah konteks browser
-        // setelah beberapa kali pembalikan.
-        rendererRef.current ??= new FilmRenderer(canvas)
-        await rendererRef.current.loadPreset(presetRef.current)
-
         if (cancelled) return
-        setVideoSize({ w: video.videoWidth, h: video.videoHeight })
+
+        const track = stream.getVideoTracks()[0]
+        const settings = track?.getSettings()
+        const w = settings?.width ?? video.videoWidth
+        const h = settings?.height ?? video.videoHeight
+        if (w && h) setVideoSize({ w, h })
+
+        const canvas = canvasRef.current
+        if (canvas) {
+          if (!rendererRef.current) {
+            rendererRef.current = new FilmRenderer(canvas)
+          }
+          await rendererRef.current.loadPreset(presetRef.current)
+        }
+
         setPhase({ kind: 'live' })
         startLoop()
       } catch (err) {
         if (cancelled) return
-
-        const name = err instanceof Error ? err.name : ''
-
-        if (name === 'NotAllowedError' || name === 'SecurityError') {
+        const name = (err as { name?: string })?.name ?? ''
+        if (name === 'NotAllowedError' || name === 'PermissionDeniedError') {
           setPhase({
             kind: 'blocked',
             title: 'Izin kamera ditolak',
-            body: 'Buka pengaturan situs di browsermu, izinkan kamera, lalu muat ulang halaman ini.',
+            body: 'Izinkan akses kamera di pengaturan browsermu untuk mulai menjepret.',
           })
-        } else if (name === 'NotFoundError' || name === 'OverconstrainedError') {
+        } else if (name === 'NotFoundError' || name === 'DevicesNotFoundError') {
           setPhase({
             kind: 'blocked',
             title: 'Kamera tidak ditemukan',
-            body: 'Perangkat ini tidak punya kamera yang bisa dipakai browser.',
+            body: 'Perangkat ini tidak memiliki kamera yang bisa dipakai.',
           })
         } else {
           setPhase({
             kind: 'blocked',
             title: 'Kamera gagal dinyalakan',
-            body:
-              err instanceof Error && err.message
-                ? err.message
-                : 'Tutup aplikasi lain yang sedang memakai kamera, lalu muat ulang.',
+            body: err instanceof Error ? err.message : String(err),
           })
         }
       }
     }
 
-    start()
+    void start()
 
     return () => {
       cancelled = true
@@ -290,77 +234,83 @@ export default function Camera({
     }
   }, [facing, startLoop, stopLoop])
 
-  // Konteks WebGL dilepas hanya saat komponennya benar-benar hilang, bukan tiap
-  // kali kamera dibalik.
-  useEffect(() => {
-    return () => {
-      rendererRef.current?.dispose()
-      rendererRef.current = null
-    }
-  }, [])
-
-  // Objek URL thumbnail dilepas saat diganti maupun saat komponen dibongkar.
-  useEffect(() => {
-    if (!lastShot) return
-    return () => URL.revokeObjectURL(lastShot)
-  }, [lastShot])
-
-  // --- Ganti roll ----------------------------------------------------------
+  // --- Mengganti preset ----------------------------------------------------
 
   const changePreset = useCallback(
     async (next: FilmPreset) => {
-      if (busy || next.id === preset.id) return
-
       setPreset(next)
+      const renderer = rendererRef.current
+      if (!renderer) {
+        presetRef.current = next
+        return
+      }
       try {
-        await rendererRef.current?.loadPreset(next)
+        await renderer.loadPreset(next)
         presetRef.current = next
       } catch {
-        // LUT gagal dimuat. Kembalikan pilihannya supaya tombol yang menyala
-        // cocok dengan roll yang benar-benar sedang dirender.
-        setPreset(presetRef.current)
-        setNotice({ text: 'Roll itu gagal dimuat. Coba lagi.', kind: 'error' })
+        // Gagal memuat LUT
       }
     },
-    [busy, preset.id]
+    []
   )
+
+  // --- Suara rana ----------------------------------------------------------
+
+  const playShutterSound = useCallback(() => {
+    try {
+      const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)()
+      const now = ctx.currentTime
+
+      const clickOsc = ctx.createOscillator()
+      const clickGain = ctx.createGain()
+      clickOsc.type = 'square'
+      clickOsc.frequency.setValueAtTime(800, now)
+      clickOsc.frequency.exponentialRampToValueAtTime(80, now + 0.04)
+      clickGain.gain.setValueAtTime(0.3, now)
+      clickGain.gain.exponentialRampToValueAtTime(0.001, now + 0.04)
+      clickOsc.connect(clickGain).connect(ctx.destination)
+      clickOsc.start(now)
+      clickOsc.stop(now + 0.04)
+
+      const bufferSize = ctx.sampleRate * 0.18
+      const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate)
+      const output = noiseBuffer.getChannelData(0)
+      for (let i = 0; i < bufferSize; i++) {
+        output[i] = (Math.random() * 2 - 1) * Math.exp(-i / (ctx.sampleRate * 0.04))
+      }
+      const whiteNoise = ctx.createBufferSource()
+      whiteNoise.buffer = noiseBuffer
+      const filter = ctx.createBiquadFilter()
+      filter.type = 'bandpass'
+      filter.frequency.value = 1800
+      const noiseGain = ctx.createGain()
+      noiseGain.gain.setValueAtTime(0.2, now + 0.05)
+      noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.22)
+      whiteNoise.connect(filter).connect(noiseGain).connect(ctx.destination)
+      whiteNoise.start(now + 0.05)
+    } catch {
+      // AudioContext diblokir autoplay policy
+    }
+  }, [])
 
   // --- Menjepret -----------------------------------------------------------
 
   const capture = useCallback(async () => {
+    if (busy || rollEmpty || phase.kind !== 'live') return
     const video = videoRef.current
     const renderer = rendererRef.current
-    if (!video || !renderer || busy || rollEmpty || phase.kind !== 'live') return
-
-    /*
-     * Membalik kamera menghentikan stream lama sebelum yang baru siap, dan
-     * selama jeda itu fase masih 'live'. Menjepret di tengahnya menghasilkan
-     * frame kosong yang tetap memakan satu jatah roll, jadi kesiapan videonya
-     * diperiksa langsung, bukan lewat state React.
-     */
-    if (video.readyState < 2) return
+    if (!video || !renderer || video.readyState < 2) return
 
     setBusy(true)
-    setNotice(null)
-    setFlash(true)
-    setTimeout(() => setFlash(false), 180)
-
-    // Loop dihentikan supaya render resolusi penuh tidak berebut canvas dengan
-    // viewfinder. Frame terakhir tetap terpampang — itu jeda "rana" yang memang
-    // diinginkan.
     stopLoop()
+
+    setFlash(true)
+    playShutterSound()
+    setTimeout(() => setFlash(false), 200)
 
     let photoId: string | null = null
 
     try {
-      /*
-       * Klaim jepretan BERBARENGAN dengan rendernya, bukan sesudahnya.
-       *
-       * Server cuma perlu ukuran foto, dan itu sudah diketahui dari dimensi
-       * video sebelum satu piksel pun dirender. Menjalankannya berurutan
-       * berarti tamu menunggu satu perjalanan jaringan penuh yang sebenarnya
-       * bisa berlangsung sementara GPU bekerja.
-       */
       const size = captureSize(video.videoWidth, video.videoHeight)
       const claimPromise = fetch('/api/guest/shot', {
         method: 'POST',
@@ -377,19 +327,11 @@ export default function Camera({
       const bitmap = await videoToBitmap(video)
       let shot
       try {
-        /*
-         * Selfie tersimpan MENGIKUTI pratinjau, ikut dicerminkan.
-         *
-         * Sebelumnya tidak: alasannya "hasil harus sesuai yang dilihat orang
-         * lain". Secara teknis benar, tapi tamu membingkai wajahnya di cermin
-         * lalu menerima foto yang terbalik dari yang baru saja mereka atur —
-         * dan mereka membacanya sebagai kerusakan, bukan sebagai akurasi.
-         * Prinsip yang sama dengan LUT dan grain: yang dibingkai harus sama
-         * dengan yang tersimpan.
-         */
         shot = await processCapture(renderer, bitmap, presetRef.current, {
           mirror,
           smooth: softSkin ? SKIN_SMOOTH : 0,
+          exposure,
+          sharpen: sharpness,
         })
       } finally {
         bitmap.close()
@@ -432,7 +374,7 @@ export default function Camera({
 
       if (!confirm.ok) throw new Error('Foto terunggah tapi gagal dicatat.')
 
-      photoId = null // sudah aman — jangan dibatalkan di blok finally
+      photoId = null
       setLastShot(URL.createObjectURL(shot.thumb))
       setNotice({ text: 'Tersimpan.', kind: 'ok' })
     } catch (err) {
@@ -441,11 +383,6 @@ export default function Camera({
         kind: 'error',
       })
     } finally {
-      /*
-       * Kembalikan jepretan yang sudah diklaim tapi tidak jadi foto. Tanpa ini,
-       * unggahan yang putus di tengah tetap memakan satu frame dari roll tamu
-       * tanpa memberi apa pun sebagai gantinya.
-       */
       if (photoId) {
         try {
           await fetch('/api/guest/shot', {
@@ -455,98 +392,59 @@ export default function Camera({
           })
           setShotsUsed((n) => Math.max(0, n - 1))
         } catch {
-          // Jaringannya memang sedang putus. Baris `pending` yang tertinggal
-          // tidak pernah muncul di galeri, dan jepretannya kembali terhitung
-          // benar begitu tamu memuat ulang halaman.
+          // Jaringan terputus
         }
       }
 
       setBusy(false)
       startLoop()
     }
-  }, [busy, eventId, frame, mirror, phase.kind, rollEmpty, softSkin, startLoop, stopLoop])
+  }, [busy, eventId, exposure, frame, mirror, phase.kind, playShutterSound, rollEmpty, sharpness, softSkin, startLoop, stopLoop])
 
-  /*
-   * Gaya bingkai untuk viewfinder, dihitung dari geometri yang sama dengan yang
-   * dipakai saat mengunduh (src/lib/frames.ts). Kalau pratinjau memakai
-   * angkanya sendiri, yang dilihat tamu dan yang mereka terima akan menyimpang.
-   *
-   * Padding CSS dalam persen selalu relatif LEBAR, sedangkan geometri bingkai
-   * memakai sisi terpendek foto — jadi konversinya dilakukan di sini, bukan
-   * diserahkan ke CSS.
-   */
   const framePreview = (() => {
     const f = getFrame(frame)
     if (!f || f.id === 'none' || !videoSize) return null
 
-    // Pratinjau memakai ukuran SESUDAH dipotong, sama seperti saat mengunduh.
-    // Kalau tidak, tamu membingkai lanskap penuh lalu menerima potret 4:5.
-    const { sw, sh } = cropRect(videoSize.w, videoSize.h, f.ratio)
-    const unit = Math.min(sw, sh)
-    const outW = sw + unit * (f.pad.left + f.pad.right)
-    const outH = sh + unit * (f.pad.top + f.pad.bottom)
-    const pct = (v: number) => `${((unit * v) / outW) * 100}%`
+    const rect = cropRect(videoSize.w, videoSize.h, f.ratio)
+    const ratio = rect.sw / rect.sh
+    const minSide = Math.min(rect.sw, rect.sh)
+    const bandHeight = (f.sprockets ? 0.09 : 0) * 100
 
     return {
       frame: f,
-      // Tinggi pita sprocket ikut dihitung di sini, bukan ditebak di CSS —
-      // sumber geometrinya harus satu.
-      bandStyle: { height: `${((unit * f.pad.top) / outH) * 100}%` } as React.CSSProperties,
-      style: {
-        aspectRatio: `${outW} / ${outH}`,
-        background: f.background,
-        paddingTop: pct(f.pad.top),
-        paddingRight: pct(f.pad.right),
-        paddingBottom: pct(f.pad.bottom),
-        paddingLeft: pct(f.pad.left),
+      containerStyle: {
+        aspectRatio: String(ratio),
+        maxWidth: `calc(100dvh * ${ratio})`,
+        padding: `${((f.pad.top * minSide) / rect.sh) * 100}% ${((f.pad.right * minSide) / rect.sw) * 100}% ${((f.pad.bottom * minSide) / rect.sh) * 100}% ${((f.pad.left * minSide) / rect.sw) * 100}%`,
+        backgroundColor: f.background,
+      } as React.CSSProperties,
+      bandStyle: {
+        height: `${bandHeight}%`,
       } as React.CSSProperties,
     }
   })()
 
-  // --- Tampilan ------------------------------------------------------------
-
   const controlsLocked = busy || phase.kind !== 'live'
 
   return (
-    <main className={`${styles.page} surface-dark`}>
-      {/*
-        Viewfinder mengisi seluruh layar dan semua kontrol mengambang di atasnya.
-        Sebelumnya lima jalur bertumpuk saling berebut tinggi layar, dan yang
-        paling dikorbankan justru fotonya — padahal menilai roll film adalah
-        satu-satunya alasan layar ini ada.
-      */}
+    <main className={styles.page}>
       <div className={styles.stage}>
-        {/* Video sumber tidak pernah ditampilkan. Yang terlihat hanya canvas
-            yang sudah melewati LUT, supaya tamu tidak sempat melihat versi
-            mentahnya sedetik pun. */}
+        {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
         <video ref={videoRef} playsInline muted className={styles.video} />
 
-        {/*
-          `contain`, bukan `cover`. Memenuhi layar akan memangkas tepi yang tetap
-          ikut tersimpan — tamu membingkai satu hal dan mendapat hal lain. Pita
-          hitam di atas-bawah justru berguna: di situlah kontrolnya duduk, tanpa
-          menutupi foto.
-        */}
-        {/*
-          Pembungkus ini SELALU ada, bergaya atau tidak. Merender canvas di dua
-          cabang JSX yang berbeda membuat React melepasnya lalu memasang elemen
-          baru setiap kali bingkai diganti — sementara FilmRenderer masih
-          memegang konteks WebGL milik canvas yang lama, jadi yang tampil
-          kosong. Yang boleh berubah cuma gayanya.
-        */}
         <div
           className={`${styles.framed} ${framePreview ? styles.framedOn : ''}`}
-          style={framePreview?.style}
+          style={framePreview?.containerStyle}
         >
           <canvas ref={canvasRef} className={styles.canvas} />
 
           {framePreview?.frame.sprockets && (
             <>
-              <span
+              <div
                 className={`${styles.sprockets} ${styles.sprocketsTop}`}
                 style={framePreview.bandStyle}
               />
-              <span
+              <div
                 className={`${styles.sprockets} ${styles.sprocketsBottom}`}
                 style={framePreview.bandStyle}
               />
@@ -596,12 +494,6 @@ export default function Camera({
           <ArrowLeft size={18} />
         </Link>
 
-        {/*
-          Nama tamu merangkap jalan masuk ke pembetulan nama. Halaman perkenalan
-          sudah tidak dilewati lagi setelah terdaftar, jadi tautannya harus ada
-          di sini — dan menempelkannya pada nama itu sendiri jauh lebih mudah
-          ditebak daripada menu tersendiri.
-        */}
         <Link href={`/a/${slug}?ganti=1`} className={styles.barTitle}>
           <span className={styles.eventName}>{title}</span>
           <span className={styles.guestName}>{guestName}</span>
@@ -623,10 +515,72 @@ export default function Camera({
       )}
 
       <div className={styles.dock}>
-        {/* Nama saja. Deskripsi karakter tiap roll ada tempatnya di landing page,
-            bukan di atas jempol orang yang sedang membidik. */}
-        {/* Bingkai tidak ikut tersimpan ke berkas — yang dicatat cuma pilihannya,
-            lalu ditempelkan saat foto diunduh. */}
+        {/* Floating Adjust Drawer (Exposure or Sharpness) */}
+        {activeDrawer === 'exposure' && (
+          <div className={styles.adjustDrawer}>
+            {EXPOSURE_OPTIONS.map((opt) => (
+              <button
+                key={opt.val}
+                type="button"
+                className={`${styles.adjustOption} ${exposure === opt.val ? styles.adjustOptionActive : ''}`}
+                onClick={() => setExposure(opt.val)}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {activeDrawer === 'sharpness' && (
+          <div className={styles.adjustDrawer}>
+            {SHARPNESS_OPTIONS.map((opt) => (
+              <button
+                key={opt.val}
+                type="button"
+                className={`${styles.adjustOption} ${sharpness === opt.val ? styles.adjustOptionActive : ''}`}
+                onClick={() => setSharpness(opt.val)}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Quick Tools Row (Pencahayaan, Penajaman, Kulit Halus) */}
+        <div className={styles.toolBar}>
+          <button
+            type="button"
+            className={`${styles.toolBtn} ${exposure !== 0.0 || activeDrawer === 'exposure' ? styles.toolBtnActive : ''}`}
+            onClick={() => setActiveDrawer((prev) => (prev === 'exposure' ? 'none' : 'exposure'))}
+            title="Atur pencahayaan kamera"
+          >
+            <Sun size={14} />
+            <span>{exposure === 0.0 ? 'Cahaya' : `${exposure > 0 ? '+' : ''}${exposure.toFixed(1)} EV`}</span>
+          </button>
+
+          <button
+            type="button"
+            className={`${styles.toolBtn} ${sharpness !== 0.15 || activeDrawer === 'sharpness' ? styles.toolBtnActive : ''}`}
+            onClick={() => setActiveDrawer((prev) => (prev === 'sharpness' ? 'none' : 'sharpness'))}
+            title="Atur ketajaman kamera"
+          >
+            <Zap size={14} />
+            <span>{sharpness >= 0.7 ? 'Ultra-HD' : sharpness >= 0.4 ? 'Tajam' : 'Alami'}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setSoftSkin((v) => !v)}
+            disabled={controlsLocked}
+            className={`${styles.toolBtn} ${softSkin ? styles.toolBtnActive : ''}`}
+            title="Penghalusan kulit"
+          >
+            <Sparkles size={14} />
+            <span>{softSkin ? 'Kulit Halus' : 'Kulit Asli'}</span>
+          </button>
+        </div>
+
+        {/* Pemilih Bingkai */}
         <div className={styles.rolls} role="group" aria-label="Pilih bingkai">
           {PHOTO_FRAMES.map((f) => (
             <button
@@ -643,6 +597,7 @@ export default function Camera({
           ))}
         </div>
 
+        {/* Pemilih Roll Film */}
         <div className={styles.rolls} role="group" aria-label="Pilih roll film">
           {FILM_PRESETS.map((p) => (
             <button
@@ -658,6 +613,7 @@ export default function Camera({
           ))}
         </div>
 
+        {/* Tombol Shutter & Balik Kamera */}
         <div className={styles.controls}>
           <Link
             href={`/a/${slug}/galeri`}
@@ -665,8 +621,6 @@ export default function Camera({
             aria-label="Buka galeri"
           >
             {lastShot ? (
-              // Blob URL sementara di memori — next/image tidak bisa
-              // mengoptimasi apa pun di sini dan hanya menambah lapisan.
               // eslint-disable-next-line @next/next/no-img-element
               <img src={lastShot} alt="" className={styles.thumb} />
             ) : (
@@ -690,22 +644,11 @@ export default function Camera({
 
           <button
             type="button"
-            onClick={() => setSoftSkin((v) => !v)}
-            disabled={controlsLocked}
-            aria-pressed={softSkin}
-            className={`${styles.iconBtn} ${softSkin ? styles.iconBtnOn : ''}`}
-            aria-label={softSkin ? 'Matikan kulit halus' : 'Nyalakan kulit halus'}
-            title="Kulit halus"
-          >
-            <Sparkles size={18} />
-          </button>
-
-          <button
-            type="button"
             onClick={() => setFacing((f) => (f === 'user' ? 'environment' : 'user'))}
             disabled={controlsLocked}
             className={styles.iconBtn}
             aria-label="Balik kamera"
+            title="Balik kamera depan/belakang"
           >
             <SwitchCamera size={20} />
           </button>

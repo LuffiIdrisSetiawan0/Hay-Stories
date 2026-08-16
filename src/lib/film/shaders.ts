@@ -2,12 +2,14 @@
  * Shader Emulasi Film Analog & Disposable Camera (Color Science Engine).
  *
  * Urutan pemrosesan mengikuti sifat kimiawi dan optik film 35mm:
- *   1. Soft Skin — reduksi micro-contrast pada area nada kulit YCbCr.
- *   2. Halation — pendaran cahaya menembus lapisan emulsi (red/amber bloom).
- *   3. Vignette — pelemahan cahaya di sudut optik lensa saku.
- *   4. 3D LUT Emulsion — transfer kurva warna emulsi film.
- *   5. Film Density & Tone Curve — lifted matte shadows (anti-keruh) & highlight roll-off lembut.
- *   6. Silver Grain — kristal perak 35mm multi-frekuensi di area midtones.
+ *   0a. Penajaman Kamera (Optical Unsharp Mask) — menajamkan detail & tekstur sensor HP.
+ *   0b. Pencahayaan (Exposure EV) — kompensasi pencahayaan fotografi.
+ *   0c. Soft Skin — reduksi micro-contrast pada area nada kulit YCbCr.
+ *   1. Halation — pendaran cahaya menembus lapisan emulsi (red/amber bloom).
+ *   2. Vignette — pelemahan cahaya di sudut optik lensa saku.
+ *   3. 3D LUT Emulsion — transfer kurva warna emulsi film.
+ *   4. Film Density & Tone Curve — lifted matte shadows (anti-keruh) & highlight roll-off lembut.
+ *   5. Silver Grain — kristal perak 35mm multi-frekuensi di area midtones.
  */
 
 export const VERTEX_SHADER = /* glsl */ `#version 300 es
@@ -35,6 +37,8 @@ uniform float uIntensity;
 uniform float uLumaLock;
 uniform float uContrast;
 uniform float uSmooth;
+uniform float uExposure;
+uniform float uSharpen;
 uniform bool  uMirror;
 uniform bool  uFlipY;
 
@@ -81,6 +85,32 @@ float hash(vec2 p) {
 }
 
 /**
+ * Penajaman Kamera (Optical Sharpening / Unsharp Mask).
+ * Mengangkat detail tepi, rambut, pakaian, dan mata agar hasil foto jernih & tajam.
+ */
+vec3 sharpen(vec2 uv, vec3 base, float amount) {
+  if (amount <= 0.0) return base;
+
+  vec2 step = 1.0 / uResolution;
+  vec3 n = texture(uSource, clamp(uv + vec2(0.0, -step.y), 0.0, 1.0)).rgb;
+  vec3 s = texture(uSource, clamp(uv + vec2(0.0, step.y), 0.0, 1.0)).rgb;
+  vec3 e = texture(uSource, clamp(uv + vec2(step.x, 0.0), 0.0, 1.0)).rgb;
+  vec3 w = texture(uSource, clamp(uv + vec2(-step.x, 0.0), 0.0, 1.0)).rgb;
+
+  vec3 laplacian = (base * 4.0) - (n + s + e + w);
+  return clamp(base + laplacian * amount * 0.85, 0.0, 1.0);
+}
+
+/**
+ * Kompensasi Pencahayaan (Exposure EV).
+ * Menaikkan/menurunkan kecerahan secara fotografis (EV Stops).
+ */
+vec3 applyExposure(vec3 col, float ev) {
+  if (abs(ev) <= 0.001) return col;
+  return col * pow(2.0, ev);
+}
+
+/**
  * Halation pendaran hangat di sekitar lampu, kilatan flash, dan sorotan terang.
  */
 vec3 halation(vec2 uv, float amount) {
@@ -98,7 +128,6 @@ vec3 halation(vec2 uv, float amount) {
   }
 
   sum /= 8.0;
-  // Pendaran hangat amber-merah khas emulsi film 35mm
   return sum * vec3(1.0, 0.36, 0.16) * amount * 2.6;
 }
 
@@ -163,7 +192,6 @@ vec3 applyFilmDensityCurve(vec3 col, float contrastAmount) {
   vec3 lifted = mix(vec3(0.038, 0.038, 0.044), col, 0.955);
 
   // 2. Smooth Highlight Roll-off (Shoulder kompresi halus)
-  // Menjaga detail gaun dan kilau kulit tetap creamy
   vec3 highlights = 1.0 - exp(-lifted * 1.08);
 
   // 3. Organik S-Curve Kontras Film
@@ -183,7 +211,13 @@ void main() {
 
   vec3 c = texture(uSource, uv).rgb;
 
-  // 0. Soft Skin (Alami & Sehat)
+  // 0a. Penajaman Kamera (Detail & Tekstur Jernih)
+  c = sharpen(uv, c, uSharpen);
+
+  // 0b. Pencahayaan & Exposure (Kompensasi Kecerahan)
+  c = applyExposure(c, uExposure);
+
+  // 0c. Soft Skin (Kulit Sehat Alami)
   c = smoothSkin(uv, c, uSmooth);
 
   // 1. Halation (Pendaran Hangat Emulsi 35mm)
@@ -219,7 +253,6 @@ void main() {
     float n = hash(gp) - 0.5;
 
     float l = luma(c);
-    // Grain paling terlihat di area mid-tones, memudar di deep shadow & extreme highlight
     float weight = 1.0 - abs(l * 2.0 - 1.0);
     weight = weight * weight * 0.80 + 0.20;
 
