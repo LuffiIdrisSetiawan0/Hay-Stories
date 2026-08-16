@@ -14,6 +14,10 @@ import styles from "./Hero.module.css";
 const HERO_PRESETS = FILM_PRESETS.slice(0, 6);
 
 const SCENES: Record<string, { src: string; alt: string }> = {
+  "natural-clean": {
+    src: "/img/scenes/01-pelaminan.jpg",
+    alt: "potret natural cerah dengan warna asli dan nada kulit alami",
+  },
   "golden-hour-400": {
     src: "/img/scenes/01-pelaminan.jpg",
     alt: "pasangan pengantin Indonesia tersenyum bahagia dalam busana pernikahan putih",

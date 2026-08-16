@@ -40,7 +40,7 @@ export const TIERS: readonly Tier[] = [
     retentionDays: 90,
     features: [
       '1 album acara',
-      '12 preset film analog',
+      'Preset Film Analog & Natural Clean',
       'Galeri interaktif',
       'Unduhan resolusi penuh',
     ],
@@ -113,6 +113,7 @@ export function formatGuestLimit(maxGuests: number | null): string {
 // ---------------------------------------------------------------------------
 
 export type PresetId =
+  | 'natural-clean'
   | 'golden-hour-400'
   | 'pastel-400'
   | 'everyday-100'
@@ -148,6 +149,18 @@ export interface FilmPreset {
 }
 
 export const FILM_PRESETS: readonly FilmPreset[] = [
+  {
+    id: 'natural-clean',
+    name: 'Natural Clean',
+    character: 'Warna asli jernih, nada kulit natural & realistis tanpa grading film tebal',
+    lut: '/luts/natural-clean.png',
+    strength: 0.0,
+    lumaLock: 1.0,
+    contrast: 0.0,
+    grain: 0.0,
+    vignette: 0.0,
+    halation: 0.0,
+  },
   {
     id: 'golden-hour-400',
     name: 'Kodak Gold 200',
