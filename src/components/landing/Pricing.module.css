@@ -1,48 +1,61 @@
 /* ===========================================================================
-   Harga
+   Pricing (Y-Vision Refined Style)
    =========================================================================== */
 
 .section {
-  padding-block: var(--section-py);
+  padding-block: clamp(4.5rem, 8vw, 7.5rem);
   background-color: var(--color-bg-primary);
   overflow: hidden;
 }
 
 .head {
-  max-width: 34rem;
+  max-width: 44rem;
+  margin-inline: auto;
+  text-align: center;
 }
 
 .eyebrow {
   font-family: var(--font-mono);
   font-size: 0.6875rem;
-  letter-spacing: 0.3em;
+  letter-spacing: 0.28em;
   text-transform: uppercase;
   color: var(--color-accent);
+  font-weight: 700;
+  margin-bottom: 0.75rem;
 }
 
 .title {
-  margin-top: 1rem;
-  font-size: var(--text-display-5);
-  font-weight: 700;
+  font-family: var(--font-sans);
+  font-size: clamp(1.65rem, 3.8vw, 2.75rem);
+  font-weight: 800;
+  line-height: 1.15;
   letter-spacing: -0.035em;
-  line-height: 1.1;
   color: var(--color-text-primary);
+  text-wrap: balance;
+  margin: 0;
 }
 
 .lede {
-  margin-top: 1rem;
-  font-size: var(--text-title-3);
-  line-height: 1.7;
+  font-family: var(--font-sans);
+  font-size: clamp(0.925rem, 1.3vw, 1.05rem);
+  font-weight: 400;
+  line-height: 1.6;
   color: var(--color-text-secondary);
+  max-width: 36rem;
+  margin: 1rem auto 0;
   text-wrap: pretty;
 }
 
-/* ===== Petak paket ===== */
+/* ===== Pricing Grid ===== */
 
 .grid {
   display: grid;
-  gap: 1rem;
-  margin-top: clamp(2.5rem, 6vw, 4rem);
+  gap: 1.25rem;
+  max-width: 72rem;
+  margin-inline: auto;
+  margin-top: clamp(2.5rem, 5vw, 4rem);
+  list-style: none;
+  padding: 0;
 }
 
 @media (min-width: 640px) {
@@ -64,42 +77,49 @@
   border: 1px solid var(--color-border);
   border-radius: var(--radius-xl);
   background: var(--color-bg-card);
-  /*
-   * Kartu ini beranimasi masuk lewat `.reveal-throw`, yang memegang `transform`
-   * dan `opacity`. Hover-nya karena itu hanya boleh menyentuh properti lain —
-   * transform apa pun di sini akan menimpa keadaan akhir animasi masuknya.
-   */
+  box-shadow: var(--shadow-sm);
   transition:
-    border-color var(--transition-base),
-    box-shadow var(--transition-base);
+    border-color 0.25s ease,
+    box-shadow 0.25s ease,
+    transform 0.25s ease;
+  position: relative;
 }
 
 .card:hover {
   border-color: var(--color-border-hover);
   box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
 }
 
 .cardBest {
-  border-color: var(--color-accent);
-  box-shadow: var(--shadow-md);
+  border: 1.5px solid var(--color-accent);
+  box-shadow: 0 12px 32px rgba(179, 139, 89, 0.12);
+  background: #ffffff;
+}
+
+.cardBest:hover {
+  box-shadow: 0 16px 40px rgba(179, 139, 89, 0.2);
 }
 
 .badge {
   align-self: flex-start;
-  margin-bottom: 0.9rem;
-  padding: 0.3rem 0.7rem;
+  margin-bottom: 0.85rem;
+  padding: 0.25rem 0.65rem;
   border-radius: var(--radius-full);
-  background: var(--color-accent-soft);
+  background: rgba(179, 139, 89, 0.12);
+  border: 1px solid rgba(179, 139, 89, 0.25);
   font-family: var(--font-mono);
-  font-size: 0.5625rem;
-  letter-spacing: 0.18em;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--color-accent);
 }
 
 .planName {
-  font-size: var(--text-title-1);
-  font-weight: 700;
+  font-family: var(--font-sans);
+  font-size: 1.2rem;
+  font-weight: 800;
   letter-spacing: -0.02em;
   color: var(--color-text-primary);
 }
@@ -107,7 +127,7 @@
 .planTagline {
   margin-top: 0.25rem;
   font-size: 0.8125rem;
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
 }
 
 .priceBlock {
@@ -115,7 +135,7 @@
   align-items: baseline;
   flex-wrap: wrap;
   gap: 0.5rem;
-  margin-top: 1.5rem;
+  margin-top: 1.25rem;
 }
 
 .wasPrice {
@@ -125,8 +145,9 @@
 }
 
 .price {
-  font-size: var(--text-display-6);
-  font-weight: 700;
+  font-family: var(--font-sans);
+  font-size: 1.75rem;
+  font-weight: 800;
   letter-spacing: -0.035em;
   line-height: 1;
   color: var(--color-text-primary);
@@ -134,77 +155,78 @@
 
 .guests {
   margin-top: 0.6rem;
-  padding-bottom: 1.35rem;
+  padding-bottom: 1.25rem;
   border-bottom: 1px solid var(--color-border);
   font-size: 0.8125rem;
+  font-weight: 500;
   color: var(--color-text-secondary);
 }
 
+/* Feature list */
 .features {
   display: flex;
   flex-direction: column;
   gap: 0.65rem;
-  margin-top: 1.35rem;
-  /* Mendorong tombol ke dasar kartu, jadi keempat tombol sejajar walau daftar
-     fiturnya berbeda panjang. */
-  flex: 1;
+  margin-top: 1.25rem;
+  flex-grow: 1;
+  list-style: none;
+  padding: 0;
 }
 
 .featureItem {
   display: flex;
   align-items: flex-start;
-  gap: 0.6rem;
+  gap: 0.65rem;
   font-size: 0.8125rem;
-  line-height: 1.55;
-  color: var(--color-text-secondary);
+  line-height: 1.45;
+  color: var(--color-text-primary);
 }
 
 .featureCheck {
-  flex-shrink: 0;
-  margin-top: 0.15rem;
   color: var(--color-accent);
+  flex-shrink: 0;
+  margin-top: 2px;
 }
 
+/* Button */
 .planBtn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.45rem;
+  width: 100%;
   margin-top: 1.75rem;
-  padding: 0.8rem 1.25rem;
+  padding: 0.75rem 1rem;
   border: 1px solid var(--color-border-hover);
   border-radius: var(--radius-full);
+  font-family: var(--font-sans);
   font-size: 0.875rem;
   font-weight: 600;
   color: var(--color-text-primary);
+  text-decoration: none;
+  background: transparent;
   transition:
-    background-color var(--transition-base),
-    border-color var(--transition-base),
-    color var(--transition-base);
+    background-color 0.25s ease,
+    color 0.25s ease,
+    border-color 0.25s ease,
+    transform 0.25s ease;
 }
 
 .planBtn:hover {
   background: var(--color-text-primary);
   border-color: var(--color-text-primary);
   color: var(--color-bg-primary);
+  transform: translateY(-1px);
 }
 
 .planBtnBest {
-  background: var(--color-accent);
-  border-color: var(--color-accent);
+  background: var(--color-text-primary);
+  border-color: var(--color-text-primary);
   color: #ffffff;
 }
 
 .planBtnBest:hover {
-  background: var(--color-accent-hover);
-  border-color: var(--color-accent-hover);
+  background: #000000;
+  border-color: #000000;
   color: #ffffff;
-}
-
-.planBtn svg {
-  transition: transform var(--transition-base);
-}
-
-.planBtn:hover svg {
-  transform: translateX(3px);
 }

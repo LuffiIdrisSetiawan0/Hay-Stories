@@ -5,26 +5,11 @@ import { FILM_PRESETS } from "@/lib/catalog";
 import { FilmRenderer, isFilmSupported } from "@/lib/film";
 import { Section } from "@/components/ui/Section";
 import { useInView } from "@/components/ui/useInView";
+import SplitText from "@/components/ui/SplitText";
 import styles from "./FilmShowcase.module.css";
 
-/*
- * Satu adegan untuk keenam roll — di sini itu memang yang benar. Seksi ini soal
- * MEMBANDINGKAN roll, dan perbandingan hanya berarti kalau yang dibandingkan
- * sama. Hero yang memakai enam adegan berbeda; tugasnya berbeda.
- */
 const SAMPLE = "/img/scenes/01-pelaminan.jpg";
 
-/**
- * Daftar roll bernomor di samping, satu contoh besar di sebelahnya.
- *
- * Keenam kanvas tetap ada di DOM sepanjang waktu; berpindah roll hanya
- * memudarkan yang aktif ke depan. Tidak ada yang dilepas — melepasnya membuat
- * React memasang elemen baru sementara konteks WebGL masih memegang kanvas
- * lama, dan yang tampil jadi kosong. Bug itu sudah pernah terjadi di viewfinder
- * kamera; tidak perlu diulang di sini.
- *
- * Render dimulai saat seksi masuk viewport, supaya tidak membebani muat awal.
- */
 export default function FilmShowcase() {
   const { ref: sectionRef, inView } = useInView<HTMLDivElement>({ threshold: 0.05 });
   const [failed, setFailed] = useState(false);
@@ -74,6 +59,7 @@ export default function FilmShowcase() {
             lumaLock: preset.lumaLock,
             contrast: preset.contrast,
           });
+          if (cancelled) return;
 
           target.width = bitmap.width;
           target.height = bitmap.height;
@@ -98,7 +84,7 @@ export default function FilmShowcase() {
     <Section id="preset" tone="dark">
       <div ref={sectionRef} className={styles.inner}>
         <div className={styles.head}>
-          <p className={styles.eyebrow}>Roll Film</p>
+          <p className={styles.eyebrow}>Preset Roll Film 35mm</p>
           <p className={styles.counter} aria-hidden="true">
             {String(active + 1).padStart(2, "0")}
             <span className={styles.counterTotal}>
@@ -108,10 +94,14 @@ export default function FilmShowcase() {
           </p>
         </div>
 
-        <h2 className={styles.title}>Enam roll, enam kondisi acara</h2>
+        <h2 className={styles.title}>
+          <SplitText by="word" delay={60}>
+            Enam Karakter Warna untuk Setiap Suasana Acara
+          </SplitText>
+        </h2>
 
         <div className={styles.layout}>
-          {/* Daftar bernomor; menekan salah satunya mengganti contoh di sebelah. */}
+          {/* Film Selection List */}
           <ul className={styles.list}>
             {FILM_PRESETS.map((preset, i) => (
               <li key={preset.id}>
@@ -122,12 +112,16 @@ export default function FilmShowcase() {
                   className={`${styles.listItem} ${i === active ? styles.listItemActive : ""}`}
                 >
                   <span className={styles.listNumber}>{String(i + 1).padStart(2, "0")}</span>
-                  <span className={styles.listName}>{preset.name}</span>
+                  <div className={styles.listMeta}>
+                    <span className={styles.listName}>{preset.name}</span>
+                    <span className={styles.listDesc}>{preset.character}</span>
+                  </div>
                 </button>
               </li>
             ))}
           </ul>
 
+          {/* Interactive Frame Viewer */}
           <div className={styles.feature}>
             <div className={styles.frame}>
               {FILM_PRESETS.map((preset, i) => (
@@ -143,10 +137,13 @@ export default function FilmShowcase() {
             </div>
 
             <div className={styles.featureMeta}>
-              <h3 className={styles.featureName}>{current.name}</h3>
+              <div className={styles.metaBadgeRow}>
+                <h3 className={styles.featureName}>{current.name}</h3>
+                <span className={styles.presetBadge}>35mm Film Roll</span>
+              </div>
               <p className={styles.featureCharacter}>{current.character}</p>
               <p className={styles.footnote}>
-                Dirender di perangkatmu dengan mesin film yang sama dengan kamera tamu.
+                Dirender di perangkatmu dengan WebGL shader emulsi film 35mm otentik.
               </p>
             </div>
           </div>

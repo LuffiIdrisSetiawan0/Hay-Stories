@@ -1,75 +1,130 @@
 /* ===========================================================================
-   Cara kerja — tiga langkah
+   How It Works (Y-Vision Refined Style)
    =========================================================================== */
 
 .section {
-  padding-block: var(--section-py);
+  padding-block: clamp(4.5rem, 8vw, 7.5rem);
   background-color: var(--color-bg-secondary);
   overflow: hidden;
 }
 
 .head {
-  display: flex;
-  justify-content: center;
-}
-
-.lede {
-  max-width: 26em;
+  max-width: 44rem;
   margin-inline: auto;
-  margin-top: clamp(1.75rem, 4vw, 2.5rem);
   text-align: center;
-  font-size: var(--text-title-2);
-  line-height: 1.6;
-  color: var(--color-text-secondary);
-  text-wrap: pretty;
 }
 
-.steps {
-  display: grid;
-  gap: clamp(2.5rem, 5vw, 3rem);
-  margin-top: clamp(3rem, 7vw, 5rem);
-}
-
-@media (min-width: 820px) {
-  .steps {
-    grid-template-columns: repeat(3, 1fr);
-    gap: clamp(2rem, 4vw, 3.5rem);
-  }
-}
-
-/*
- * Garis di atas tiap langkah memanjang dari kiri saat masuk viewport. Ia yang
- * memberi urutan — mata mengikuti garis yang tumbuh sebelum angkanya terbaca.
- */
-.rule {
-  display: block;
-  height: 1px;
-  margin-bottom: 1.75rem;
-  background: var(--color-border-hover);
-}
-
-.number {
-  display: block;
+.eyebrow {
   font-family: var(--font-mono);
-  font-size: 0.75rem;
-  letter-spacing: 0.24em;
+  font-size: 0.6875rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
   color: var(--color-accent);
+  font-weight: 700;
+  margin-bottom: 0.75rem;
 }
 
 .title {
-  margin-top: 1rem;
-  font-size: var(--text-display-6);
-  font-weight: 700;
-  letter-spacing: -0.03em;
+  font-family: var(--font-sans);
+  font-size: clamp(1.65rem, 3.8vw, 2.75rem);
+  font-weight: 800;
   line-height: 1.15;
+  letter-spacing: -0.035em;
   color: var(--color-text-primary);
+  text-wrap: balance;
+  margin: 0;
+}
+
+.lede {
+  font-family: var(--font-sans);
+  font-size: clamp(0.925rem, 1.3vw, 1.05rem);
+  font-weight: 400;
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+  max-width: 36rem;
+  margin: 1rem auto 0;
+  text-wrap: pretty;
+}
+
+/* 3 Step Cards Grid */
+.steps {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.25rem;
+  max-width: 68rem;
+  margin-inline: auto;
+  margin-top: clamp(2.5rem, 5vw, 4rem);
+  list-style: none;
+  padding: 0;
+}
+
+@media (min-width: 768px) {
+  .steps {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+  }
+}
+
+.stepCard {
+  display: flex;
+  flex-direction: column;
+  padding: clamp(1.5rem, 3vw, 2rem);
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
+  transition:
+    transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.3s ease,
+    border-color 0.3s ease;
+}
+
+.stepCard:hover {
+  transform: translateY(-3px);
+  border-color: var(--color-accent);
+  box-shadow: var(--shadow-md);
+}
+
+.cardTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+}
+
+.number {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  color: var(--color-accent);
+}
+
+.iconWrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: rgba(179, 139, 89, 0.1);
+  color: var(--color-accent);
+}
+
+.stepTitle {
+  font-family: var(--font-sans);
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--color-text-primary);
+  margin-bottom: 0.6rem;
+  line-height: 1.25;
 }
 
 .desc {
-  margin-top: 0.85rem;
-  max-width: 30em;
-  font-size: var(--text-title-4);
-  line-height: 1.75;
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  line-height: 1.55;
   color: var(--color-text-secondary);
-  text-wrap: pretty;
+  margin: 0;
 }

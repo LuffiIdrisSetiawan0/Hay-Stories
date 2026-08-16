@@ -1,5 +1,5 @@
 /* ===========================================================================
-   Etalase roll film
+   Film Showcase (Y-Vision Refined Style)
    =========================================================================== */
 
 .inner {
@@ -15,8 +15,7 @@
   }
 }
 
-/* ===== Kepala ===== */
-
+/* Head */
 .head {
   display: flex;
   align-items: baseline;
@@ -29,9 +28,10 @@
 .eyebrow {
   font-family: var(--font-mono);
   font-size: 0.6875rem;
-  letter-spacing: 0.3em;
+  letter-spacing: 0.28em;
   text-transform: uppercase;
   color: var(--color-accent);
+  font-weight: 700;
 }
 
 .counter {
@@ -43,39 +43,36 @@
 }
 
 .counterTotal {
-  color: var(--color-text-faint);
+  color: var(--color-text-muted);
 }
 
 .title {
   margin-top: clamp(1.5rem, 4vw, 2.25rem);
-  max-width: 14em;
-  font-size: var(--text-display-5);
-  font-weight: 700;
+  max-width: 24ch;
+  font-family: var(--font-sans);
+  font-size: clamp(1.65rem, 3.8vw, 2.75rem);
+  font-weight: 800;
   letter-spacing: -0.035em;
-  line-height: 1.1;
+  line-height: 1.15;
   color: var(--color-text-primary);
   text-wrap: balance;
 }
 
-/* ===== Tata letak ===== */
-
+/* Layout */
 .layout {
   display: grid;
   gap: clamp(2rem, 5vw, 3.5rem);
-  margin-top: clamp(2.25rem, 5vw, 3.5rem);
+  margin-top: clamp(2.5rem, 5vw, 3.75rem);
 }
 
 @media (min-width: 900px) {
   .layout {
-    /* Daftar sengaja lebih sempit: contoh fotonya yang harus jadi pusat
-       perhatian, bukan menu di sebelahnya. */
-    grid-template-columns: 0.8fr 1.2fr;
+    grid-template-columns: 0.9fr 1.1fr;
     align-items: start;
   }
 }
 
-/* ===== Daftar roll ===== */
-
+/* List */
 .list {
   border-top: 1px solid var(--color-border);
 }
@@ -87,67 +84,91 @@
 .listItem {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 1.25rem;
   width: 100%;
-  padding-block: 0.95rem;
+  padding: 1.1rem 0.5rem;
   text-align: left;
+  background: transparent;
+  border: none;
+  cursor: pointer;
   color: var(--color-text-muted);
   transition:
-    color var(--transition-slow),
-    padding-left var(--transition-slow);
+    color 0.25s ease,
+    background-color 0.25s ease,
+    padding-left 0.25s ease;
+  border-radius: var(--radius-md);
 }
 
 .listItem:hover {
   color: var(--color-text-primary);
-  padding-left: 0.5rem;
+  background: rgba(255, 255, 255, 0.03);
+  padding-left: 0.85rem;
 }
 
 .listItemActive {
   color: var(--color-text-primary);
-  padding-left: 0.5rem;
+  background: rgba(201, 155, 100, 0.08);
+  padding-left: 0.85rem;
 }
 
 .listNumber {
   font-family: var(--font-mono);
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   letter-spacing: 0.12em;
   color: var(--color-text-faint);
+  font-weight: 600;
 }
 
 .listItemActive .listNumber {
   color: var(--color-accent);
 }
 
-.listName {
-  font-size: var(--text-title-3);
-  font-weight: 600;
+.listMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
 }
 
-/* ===== Contoh besar ===== */
+.listName {
+  font-family: var(--font-sans);
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  color: inherit;
+}
+
+.listDesc {
+  font-size: 0.8125rem;
+  color: var(--color-text-secondary);
+  font-weight: 400;
+}
+
+/* Frame Viewer */
+.feature {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
 
 .frame {
   position: relative;
   display: grid;
   aspect-ratio: 4 / 3;
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-xl);
   overflow: hidden;
-  background: #1f1b16;
+  background: #14120f;
+  border: 1px solid var(--color-border);
   box-shadow: var(--shadow-lg);
 }
 
-/*
- * Keenam kanvas tetap ada di DOM sepanjang waktu dan menempati sel grid yang
- * sama; berpindah roll hanya memudarkan yang aktif ke depan. Tidak ada yang
- * dilepas — melepasnya membuat React memasang elemen baru sementara konteks
- * WebGL masih memegang kanvas lama, dan yang tampil jadi kosong.
- */
 .canvas {
   grid-area: 1 / 1;
   width: 100%;
   height: 100%;
   object-fit: cover;
   opacity: 0;
-  transition: opacity 0.5s var(--ease-ref);
+  transition: opacity 0.4s ease;
+  pointer-events: none;
 }
 
 .canvasActive {
@@ -156,37 +177,57 @@
 
 .fallback {
   grid-area: 1 / 1;
-  align-self: center;
-  padding: 2rem;
-  text-align: center;
-  font-size: var(--text-title-3);
-  color: var(--color-text-secondary);
+  display: grid;
+  place-items: center;
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
 }
 
+/* Feature Metadata */
 .featureMeta {
-  margin-top: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.5rem 0.25rem;
+}
+
+.metaBadgeRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
 }
 
 .featureName {
-  font-size: var(--text-display-6);
-  font-weight: 700;
-  letter-spacing: -0.03em;
+  font-family: var(--font-sans);
+  font-size: 1.25rem;
+  font-weight: 800;
   color: var(--color-text-primary);
+  letter-spacing: -0.02em;
+}
+
+.presetBadge {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+  background: rgba(201, 155, 100, 0.12);
+  border: 1px solid rgba(201, 155, 100, 0.24);
+  padding: 0.25rem 0.6rem;
+  border-radius: var(--radius-full);
 }
 
 .featureCharacter {
-  margin-top: 0.5rem;
-  font-size: var(--text-title-3);
-  line-height: 1.6;
+  font-size: 0.9375rem;
   color: var(--color-text-secondary);
-  text-wrap: pretty;
+  line-height: 1.5;
 }
 
 .footnote {
-  margin-top: 1rem;
-  font-family: var(--font-mono);
-  font-size: 0.6875rem;
-  letter-spacing: 0.08em;
-  line-height: 1.7;
+  font-size: 0.75rem;
   color: var(--color-text-muted);
+  font-family: var(--font-mono);
+  margin-top: 0.25rem;
 }
