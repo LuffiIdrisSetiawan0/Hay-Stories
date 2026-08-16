@@ -43,6 +43,11 @@ interface FocusPoint {
   time: number
 }
 
+interface FlyingPhoto {
+  src: string
+  id: number
+}
+
 const EXPOSURE_OPTIONS = [
   { label: 'Redup -0.5 EV', val: -0.5 },
   { label: 'Normal 0 EV', val: 0.0 },
@@ -67,6 +72,8 @@ export default function Camera({
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const rendererRef = useRef<FilmRenderer | null>(null)
+  const captureCanvasRef = useRef<HTMLCanvasElement | null>(null)
+  const captureRendererRef = useRef<FilmRenderer | null>(null)
   const streamRef = useRef<MediaStream | null>(null)
   const loopRef = useRef<{ kind: 'raf' | 'rvfc'; id: number } | null>(null)
 
@@ -83,16 +90,18 @@ export default function Camera({
   const [focusPoint, setFocusPoint] = useState<FocusPoint | null>(null)
 
   const [shotsUsed, setShotsUsed] = useState(initialShotsUsed)
-  const [busy, setBusy] = useState(false)
   const [flash, setFlash] = useState(false)
+  const [shutterBounce, setShutterBounce] = useState(false)
   const [lastShot, setLastShot] = useState<string | null>(null)
+  const [flyingPhoto, setFlyingPhoto] = useState<FlyingPhoto | null>(null)
+  const [thumbPop, setThumbPop] = useState(false)
   const [videoSize, setVideoSize] = useState<{ w: number; h: number } | null>(null)
 
   const [notice, setNotice] = useState<{ text: string; kind: 'ok' | 'error' } | null>(null)
 
   useEffect(() => {
     if (notice?.kind !== 'ok') return
-    const timer = setTimeout(() => setNotice(null), 2200)
+    const timer = setTimeout(() => setNotice(null), 2500)
     return () => clearTimeout(timer)
   }, [notice])
 
@@ -225,6 +234,12 @@ export default function Camera({
           await rendererRef.current.loadPreset(presetRef.current)
         }
 
+        // Initialize dedicated offscreen capture renderer
+        if (!captureCanvasRef.current) {
+          captureCanvasRef.current = document.createElement('canvas')
+          captureRendererRef.current = new FilmRenderer(captureCanvasRef.current)
+        }
+
         setPhase({ kind: 'live' })
         startLoop()
       } catch (err) {
@@ -259,6 +274,9 @@ export default function Camera({
       stopLoop()
       streamRef.current?.getTracks().forEach((t) => t.stop())
       streamRef.current = null
+      captureRendererRef.current?.dispose()
+      captureRendererRef.current = null
+      captureCanvasRef.current = null
     }
   }, [facing, startLoop, stopLoop])
 
@@ -266,7 +284,7 @@ export default function Camera({
 
   const handleTapToFocus = useCallback(
     async (e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>) => {
-      if (phase.kind !== 'live' || busy) return
+      if (phase.kind !== 'live') return
 
       const target = e.currentTarget.getBoundingClientRect()
       const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
@@ -304,7 +322,7 @@ export default function Camera({
         }
       }
     },
-    [busy, phase.kind]
+    [phase.kind]
   )
 
   // --- Mengganti preset ----------------------------------------------------
@@ -366,113 +384,150 @@ export default function Camera({
     }
   }, [])
 
-  // --- Menjepret -----------------------------------------------------------
+  // --- Background Upload Worker (Non-blocking) ------------------------------
 
-  const capture = useCallback(async () => {
-    if (busy || rollEmpty || phase.kind !== 'live') return
-    const video = videoRef.current
-    const renderer = rendererRef.current
-    if (!video || !renderer || video.readyState < 2) return
-
-    setBusy(true)
-    stopLoop()
-
-    setFlash(true)
-    playShutterSound()
-    setTimeout(() => setFlash(false), 200)
-
-    let photoId: string | null = null
-
-    try {
-      const size = captureSize(video.videoWidth, video.videoHeight)
-      const claimPromise = fetch('/api/guest/shot', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          eventId,
-          preset: presetRef.current.id,
-          frame,
-          width: size.width,
-          height: size.height,
-        }),
-      })
-
-      const bitmap = await videoToBitmap(video)
-      let shot
+  const uploadInBackground = useCallback(
+    async (
+      bitmap: ImageBitmap,
+      shotPreset: FilmPreset,
+      shotFrame: FrameId,
+      shotOptions: { mirror?: boolean; smooth?: number; exposure?: number; sharpen?: number }
+    ) => {
+      let photoId: string | null = null
       try {
-        shot = await processCapture(renderer, bitmap, presetRef.current, {
-          mirror,
-          smooth: softSkin ? SKIN_SMOOTH : 0,
-          exposure,
-          sharpen: sharpness,
+        let renderer = captureRendererRef.current
+        if (!renderer) {
+          if (!captureCanvasRef.current) captureCanvasRef.current = document.createElement('canvas')
+          renderer = new FilmRenderer(captureCanvasRef.current)
+          captureRendererRef.current = renderer
+        }
+
+        const size = captureSize(bitmap.width, bitmap.height)
+        const claimPromise = fetch('/api/guest/shot', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            eventId,
+            preset: shotPreset.id,
+            frame: shotFrame,
+            width: size.width,
+            height: size.height,
+          }),
+        })
+
+        const shot = await processCapture(renderer, bitmap, shotPreset, shotOptions)
+        const claim = await claimPromise
+        const claimBody = await claim.json()
+
+        if (!claim.ok) {
+          if (typeof claimBody.shotsUsed === 'number') setShotsUsed(claimBody.shotsUsed)
+          throw new Error(claimBody.error ?? 'Gagal memesan slot jepretan.')
+        }
+
+        photoId = claimBody.photoId as string
+
+        const supabase = createClient()
+        const uploads = await Promise.all([
+          supabase.storage
+            .from('photos')
+            .uploadToSignedUrl(claimBody.full.path, claimBody.full.token, shot.full, {
+              contentType: 'image/jpeg',
+            }),
+          supabase.storage
+            .from('photos')
+            .uploadToSignedUrl(claimBody.thumb.path, claimBody.thumb.token, shot.thumb, {
+              contentType: 'image/jpeg',
+            }),
+        ])
+
+        const failed = uploads.find((u) => u.error)
+        if (failed) throw new Error(failed.error?.message ?? 'Unggahan gagal.')
+
+        const confirm = await fetch('/api/guest/shot', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ eventId, photoId, bytes: shot.full.size }),
+        })
+
+        if (!confirm.ok) throw new Error('Foto terunggah tapi gagal dicatat.')
+
+        photoId = null
+      } catch (err) {
+        console.error('Background upload error:', err)
+        // Rollback optimistic count
+        setShotsUsed((n) => Math.max(0, n - 1))
+        setNotice({
+          text: err instanceof Error ? err.message : 'Jepretan gagal diunggah.',
+          kind: 'error',
         })
       } finally {
         bitmap.close()
-      }
-
-      const claim = await claimPromise
-      const claimBody = await claim.json()
-
-      if (!claim.ok) {
-        if (typeof claimBody.shotsUsed === 'number') setShotsUsed(claimBody.shotsUsed)
-        setNotice({ text: claimBody.error ?? 'Gagal menyiapkan jepretan.', kind: 'error' })
-        return
-      }
-
-      photoId = claimBody.photoId as string
-      setShotsUsed(claimBody.shotsUsed)
-
-      const supabase = createClient()
-      const uploads = await Promise.all([
-        supabase.storage
-          .from('photos')
-          .uploadToSignedUrl(claimBody.full.path, claimBody.full.token, shot.full, {
-            contentType: 'image/jpeg',
-          }),
-        supabase.storage
-          .from('photos')
-          .uploadToSignedUrl(claimBody.thumb.path, claimBody.thumb.token, shot.thumb, {
-            contentType: 'image/jpeg',
-          }),
-      ])
-
-      const failed = uploads.find((u) => u.error)
-      if (failed) throw new Error(failed.error?.message ?? 'Unggahan gagal.')
-
-      const confirm = await fetch('/api/guest/shot', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ eventId, photoId, bytes: shot.full.size }),
-      })
-
-      if (!confirm.ok) throw new Error('Foto terunggah tapi gagal dicatat.')
-
-      photoId = null
-      setLastShot(URL.createObjectURL(shot.thumb))
-      setNotice({ text: 'Tersimpan.', kind: 'ok' })
-    } catch (err) {
-      setNotice({
-        text: err instanceof Error ? err.message : 'Jepretan gagal disimpan.',
-        kind: 'error',
-      })
-    } finally {
-      if (photoId) {
-        try {
-          await fetch('/api/guest/shot', {
-            method: 'DELETE',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ eventId, photoId }),
-          })
-          setShotsUsed((n) => Math.max(0, n - 1))
-        } catch {
-          // Jaringan terputus
+        if (photoId) {
+          try {
+            await fetch('/api/guest/shot', {
+              method: 'DELETE',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ eventId, photoId }),
+            })
+          } catch {}
         }
       }
+    },
+    [eventId]
+  )
 
-      setBusy(false)
-      startLoop()
+  // --- Menjepret Instan (0-Latency Optimistic Capture) ----------------------
+
+  const capture = useCallback(async () => {
+    if (shutterBounce || rollEmpty || phase.kind !== 'live') return
+    const video = videoRef.current
+    if (!video || video.readyState < 2) return
+
+    // 1. Shutter bounce & sensory feedback
+    setShutterBounce(true)
+    setTimeout(() => setShutterBounce(false), 220)
+    setFlash(true)
+    playShutterSound()
+    setTimeout(() => setFlash(false), 180)
+
+    // 2. Instant visual snapshot from live canvas
+    let instantSnapshot = ''
+    const liveCanvas = canvasRef.current
+    if (liveCanvas) {
+      try {
+        instantSnapshot = liveCanvas.toDataURL('image/jpeg', 0.85)
+      } catch {
+        // Ignore canvas export errors
+      }
     }
-  }, [busy, eventId, exposure, frame, mirror, phase.kind, playShutterSound, rollEmpty, sharpness, softSkin, startLoop, stopLoop])
+
+    // 3. Trigger flying photo animation to gallery slot
+    if (instantSnapshot) {
+      setFlyingPhoto({ src: instantSnapshot, id: Date.now() })
+      setTimeout(() => {
+        setLastShot(instantSnapshot)
+        setThumbPop(true)
+        setTimeout(() => setThumbPop(false), 450)
+        setFlyingPhoto(null)
+      }, 550)
+    }
+
+    // 4. Optimistic roll counter increment
+    setShotsUsed((prev) => prev + 1)
+
+    // 5. Capture bitmap and delegate to background upload worker
+    try {
+      const bitmap = await videoToBitmap(video)
+      void uploadInBackground(bitmap, presetRef.current, frame, {
+        mirror,
+        smooth: softSkin ? SKIN_SMOOTH : 0,
+        exposure,
+        sharpen: sharpness,
+      })
+    } catch (err) {
+      console.error('Bitmap grab error:', err)
+    }
+  }, [shutterBounce, rollEmpty, phase.kind, playShutterSound, uploadInBackground, frame, mirror, softSkin, exposure, sharpness])
 
   const framePreview = (() => {
     const f = getFrame(frame)
@@ -497,7 +552,7 @@ export default function Camera({
     }
   })()
 
-  const controlsLocked = busy || phase.kind !== 'live'
+  const controlsLocked = phase.kind !== 'live'
 
   return (
     <main className={styles.page}>
@@ -544,6 +599,19 @@ export default function Camera({
             </span>
           )}
         </div>
+
+        {/* Flying Photo to Gallery Animation */}
+        {flyingPhoto && (
+          <div className={styles.flyingPhotoContainer}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              key={flyingPhoto.id}
+              src={flyingPhoto.src}
+              alt="Foto yang baru dijepret"
+              className={styles.flyingPhoto}
+            />
+          </div>
+        )}
 
         {flash && <div className={styles.flash} />}
 
@@ -674,7 +742,6 @@ export default function Camera({
               type="button"
               onClick={() => setFrame(f.id)}
               aria-pressed={f.id === frame}
-              disabled={busy}
               title={f.hint}
               className={`${styles.roll} ${f.id === frame ? styles.rollActive : ''}`}
             >
@@ -691,7 +758,6 @@ export default function Camera({
               type="button"
               onClick={() => changePreset(p)}
               aria-pressed={p.id === preset.id}
-              disabled={busy}
               className={`${styles.roll} ${p.id === preset.id ? styles.rollActive : ''}`}
             >
               {p.name}
@@ -703,12 +769,12 @@ export default function Camera({
         <div className={styles.controls}>
           <Link
             href={`/a/${slug}/galeri`}
-            className={styles.thumbSlot}
+            className={`${styles.thumbSlot} ${thumbPop ? styles.thumbSlotPop : ''}`}
             aria-label="Buka galeri"
           >
             {lastShot ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={lastShot} alt="" className={styles.thumb} />
+              <img src={lastShot} alt="Galeri foto" className={styles.thumb} />
             ) : (
               <Images size={18} />
             )}
@@ -721,11 +787,7 @@ export default function Camera({
             className={styles.shutter}
             aria-label="Jepret"
           >
-            {busy ? (
-              <Loader2 size={22} className="animate-spin" />
-            ) : (
-              <span className={styles.shutterDot} />
-            )}
+            <span className={styles.shutterDot} />
           </button>
 
           <button
