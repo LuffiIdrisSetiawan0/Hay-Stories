@@ -1,0 +1,139 @@
+/* ===========================================================================
+   Page Transition Curtain (Y-Vision Style)
+   =========================================================================== */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  pointer-events: all;
+  overflow: hidden;
+}
+
+.curtain {
+  position: absolute;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: #0c0b09;
+  will-change: transform;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Entering: Slide up from bottom (100% -> 0%) */
+.entering .curtain {
+  animation: slideUpEnter 0.54s cubic-bezier(0.76, 0, 0.24, 1) forwards;
+}
+
+/* Holding: Stay covering the screen */
+.holding .curtain {
+  transform: translateY(0%);
+}
+
+/* Exiting: Slide up off the top (0% -> -100%) */
+.exiting .curtain {
+  animation: slideUpExit 0.54s cubic-bezier(0.76, 0, 0.24, 1) forwards;
+}
+
+@keyframes slideUpEnter {
+  0% {
+    transform: translateY(100%);
+  }
+  100% {
+    transform: translateY(0%);
+  }
+}
+
+@keyframes slideUpExit {
+  0% {
+    transform: translateY(0%);
+  }
+  100% {
+    transform: translateY(-100%);
+  }
+}
+
+/* Subtle Film Noise Backdrop */
+.noise {
+  position: absolute;
+  inset: 0;
+  opacity: 0.08;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+}
+
+/* Viewfinder Frame Corner Accents */
+.frame {
+  position: absolute;
+  inset: clamp(1.5rem, 5vw, 3.5rem);
+  pointer-events: none;
+  border-radius: 4px;
+}
+
+.cornerTL,
+.cornerTR,
+.cornerBL,
+.cornerBR {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border-color: rgba(201, 155, 100, 0.45);
+  border-style: solid;
+}
+
+.cornerTL {
+  top: 0;
+  left: 0;
+  border-width: 1.5px 0 0 1.5px;
+}
+
+.cornerTR {
+  top: 0;
+  right: 0;
+  border-width: 1.5px 1.5px 0 0;
+}
+
+.cornerBL {
+  bottom: 0;
+  left: 0;
+  border-width: 0 0 1.5px 1.5px;
+}
+
+.cornerBR {
+  bottom: 0;
+  right: 0;
+  border-width: 0 1.5px 1.5px 0;
+}
+
+/* Centered Brand Mark */
+.brand {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.65rem;
+  user-select: none;
+  text-align: center;
+  padding-inline: 1rem;
+}
+
+.logoText {
+  font-family: var(--font-sans);
+  font-size: clamp(2rem, 5.5vw, 4.25rem);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  color: #fdfbf7;
+  line-height: 1;
+}
+
+.tagline {
+  font-family: var(--font-mono);
+  font-size: clamp(0.6875rem, 1.2vw, 0.8125rem);
+  font-weight: 700;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+}

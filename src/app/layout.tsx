@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
+import PageTransition from "@/components/ui/PageTransition";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -58,15 +60,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body>
-        {/*
-          Animasi masuk mulai dari opacity 0 dan baru dilepas oleh
-          IntersectionObserver. Tanpa JavaScript, observer itu tidak pernah
-          jalan dan seluruh halaman akan kosong. Aturan di bawah memastikan
-          kontennya tetap terbaca.
-        */}
         <noscript>
           <style>{`.reveal { opacity: 1 !important; transform: none !important; filter: none !important; clip-path: none !important; transition: none !important; } .reveal-sweep { transform: scaleX(1) !important; }`}</style>
         </noscript>
+        <Suspense fallback={null}>
+          <PageTransition />
+        </Suspense>
         {children}
       </body>
     </html>
