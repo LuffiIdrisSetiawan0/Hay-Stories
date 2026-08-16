@@ -44,13 +44,13 @@
 }
 
 .headline {
-  margin-top: 1.5rem;
-  max-width: 16ch;
+  margin-top: 1rem;
+  max-width: 26ch;
   font-family: var(--font-sans);
-  font-size: clamp(2.35rem, 4.5vw + 0.5rem, 4.25rem);
+  font-size: clamp(2.15rem, 4.2vw + 0.5rem, 3.85rem);
   font-weight: 800;
-  line-height: 1.08;
-  letter-spacing: -0.04em;
+  line-height: 1.15;
+  letter-spacing: -0.035em;
   color: var(--color-text-primary);
   text-wrap: balance;
 }
@@ -58,79 +58,76 @@
 /* ===== Tumpukan kartu ===== */
 
 .deck {
-  --card-w: clamp(10rem, 19vw, 15.5rem);
-  /* Sejauh mana kartu terluar bergeser dari pusat, sebagai satuan dasar.
-     Faktor per kartu dikalikan ke sini lewat --x / --y. */
-  --spread: clamp(2.8rem, 7vw, 6.8rem);
-
-  display: grid;
-  place-items: center;
+  position: relative;
   width: 100%;
-  min-height: calc(var(--card-w) * 1.52);
-  margin-block: clamp(2.5rem, 5vw, 4.5rem);
+  max-width: 72rem;
+  height: clamp(14rem, 28vw, 22rem);
+  margin-top: clamp(1.75rem, 4vw, 2.75rem);
+  perspective: 1200px;
 }
 
-/*
- * Pembungkus luar. Hanya mengurus DI MANA kartu berada: posisi kipas dan
- * animasi terlempar saat masuk. Tidak ada gaya visual di sini — semuanya di
- * lapis dalam, supaya bayangannya ikut membesar saat kartunya membesar.
- */
 .card {
-  /* Keenam kartu menempati sel yang sama — inilah yang membuat keadaan awalnya
-     benar-benar setumpuk, bukan berjajar lalu dirapatkan. */
-  grid-area: 1 / 1;
-  width: var(--card-w);
-  z-index: var(--z, 0);
-
-  transform-origin: bottom center;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: clamp(8.5rem, 16vw, 13.5rem);
+  aspect-ratio: 3 / 4;
+  margin-top: calc(-1 * clamp(8.5rem, 16vw, 13.5rem) * 4 / 6);
+  margin-left: calc(-1 * clamp(8.5rem, 16vw, 13.5rem) / 2);
+  transform-origin: center 120%;
+  transform: translate3d(0, 0, 0) rotate(0deg);
   opacity: 0;
-  transform: translateY(150px) scale(1.12) rotate(-10deg);
   transition:
-    opacity 0.9s var(--ease-ref),
-    transform 1.05s var(--ease-ref);
-  transition-delay: calc(var(--i, 0) * 90ms);
-  will-change: opacity, transform;
+    transform 1s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  transition-delay: calc(var(--i) * 55ms);
+  z-index: var(--z);
 }
 
 .deckDealt .card {
   opacity: 1;
-  transform: translate(calc(var(--x) * var(--spread)), calc(var(--y) * var(--spread)))
+  transform: translate3d(calc(var(--x) * clamp(2.5rem, 5.2vw, 4.5rem)), calc(var(--y) * clamp(1.5rem, 3.5vw, 3rem)), 0)
     rotate(var(--r));
-  will-change: auto;
 }
 
-/*
- * Lapis dalam. Mengurus RUPA kartu dan seluruh reaksi hover-nya, dengan
- * transisinya sendiri yang jauh lebih pendek daripada animasi masuk di atas.
- */
 .cardInner {
+  position: relative;
   display: block;
-  padding: 0.5rem 0.5rem 0;
-  border-radius: var(--radius-md);
+  width: 100%;
+  height: 100%;
+  border-radius: var(--radius-lg);
+  padding: 0.35rem 0.35rem 0.65rem;
   background: #14120f;
-  box-shadow: var(--shadow-lg);
-  transform-origin: bottom center;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.45);
   transition:
-    transform 0.4s var(--ease-ref),
-    box-shadow 0.4s var(--ease-ref),
-    filter 0.35s var(--ease-ref);
+    transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.35s ease,
+    border-color 0.35s ease;
+  cursor: pointer;
+}
+
+.card:hover .cardInner {
+  transform: translateY(-8px) scale(1.04);
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.65), 0 0 20px rgba(201, 155, 100, 0.2);
+  border-color: rgba(201, 155, 100, 0.45);
 }
 
 .cardMedia {
   position: relative;
   width: 100%;
-  aspect-ratio: 3 / 4;
-  border-radius: calc(var(--radius-md) - 0.25rem);
+  height: calc(100% - 1.5rem);
+  border-radius: calc(var(--radius-lg) - 4px);
   overflow: hidden;
-  background: #1f1b16;
+  background: #000;
 }
 
 .cardImg {
-  display: block;
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: inherit;
 }
 
 .canvas {
@@ -139,175 +136,89 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: inherit;
-  pointer-events: none;
 }
 
 .tag {
-  padding-block: 0.5rem 0.55rem;
+  display: block;
+  margin-top: 0.35rem;
   font-family: var(--font-mono);
-  font-size: 0.55rem;
-  letter-spacing: 0.14em;
+  font-size: 0.5625rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
+  text-align: center;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  transition: color 0.35s var(--ease-ref);
 }
 
-/* ===========================================================================
-   Hover kartu
-
-   Seluruhnya dikurung dalam `hover: hover`. Di layar sentuh tidak ada kursor,
-   dan tanpa kurungan ini sekali sentuh akan meninggalkan satu kartu terkunci
-   dalam keadaan membesar sampai ada yang disentuh berikutnya.
-   =========================================================================== */
-
-@media (hover: hover) {
-  /* Kartu yang disentuh naik ke paling depan, melewati z-index kartu lainnya */
-  .card:hover {
-    z-index: 100 !important;
-  }
-
-  /*
-   * Yang lain tetap 100% solid/opaque (TIDAK tembus pandang), hanya diredupkan
-   * secara elegan melalui brightness & saturation.
-   */
-  .deck:has(.card:hover) .cardInner {
-    filter: brightness(0.65) saturate(0.85);
-  }
-
-  .card:hover .cardInner {
-    filter: brightness(1.05) saturate(1.05);
-    box-shadow: 0 32px 64px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(255, 255, 255, 0.15);
-  }
-
-  .card:hover .tag {
-    color: var(--color-text-primary);
-  }
-}
-
-@media (hover: hover) and (prefers-reduced-motion: no-preference) {
-  .card:hover .cardInner {
-    /*
-     * Rotasi dibatalkan lebih dulu, baru diangkat tegak ke atas.
-     */
-    transform: rotate(calc(var(--r) * -1)) translateY(-0.85rem) scale(1.15);
-    box-shadow: 0 40px 80px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(255, 255, 255, 0.2);
-  }
-}
-
-/* ===== Lede & tombol ===== */
+/* ===== Paragraf penjelas ===== */
 
 .lede {
-  max-width: 34em;
-  font-size: var(--text-title-3);
+  max-width: 38rem;
+  margin-top: clamp(2rem, 4.5vw, 3.25rem);
+  font-family: var(--font-sans);
+  font-size: clamp(0.95rem, 1.4vw, 1.1rem);
+  font-weight: 400;
   line-height: 1.65;
   color: var(--color-text-secondary);
   text-wrap: pretty;
 }
 
+/* ===== Tombol aksi ===== */
+
 .actions {
   display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 0.75rem;
-  margin-block: clamp(1.75rem, 4vw, 2.5rem) clamp(2rem, 5vw, 3rem);
-}
-
-.primaryBtn,
-.ghostBtn {
-  display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.9rem 1.9rem;
-  border-radius: var(--radius-full);
-  font-size: 0.9375rem;
-  font-weight: 600;
-  transition:
-    background-color var(--transition-base),
-    border-color var(--transition-base),
-    color var(--transition-base),
-    transform var(--transition-fast);
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: clamp(1.75rem, 4vw, 2.5rem);
 }
 
 .primaryBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.85rem 1.65rem;
+  border-radius: var(--radius-full);
   background: var(--color-text-primary);
-  color: #14120f;
+  color: var(--color-bg-primary);
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition:
+    transform 0.25s ease,
+    background-color 0.25s ease,
+    box-shadow 0.25s ease;
 }
 
 .primaryBtn:hover {
-  background: #ffffff;
   transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(255, 255, 255, 0.15);
 }
 
 .ghostBtn {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.85rem 1.65rem;
+  border-radius: var(--radius-full);
   border: 1px solid var(--color-border);
   color: var(--color-text-primary);
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition:
+    border-color 0.25s ease,
+    background-color 0.25s ease,
+    transform 0.25s ease;
 }
 
 .ghostBtn:hover {
   border-color: var(--color-border-hover);
-  background: var(--color-bg-hover);
-}
-
-.primaryBtn svg {
-  transition: transform var(--transition-base);
-}
-
-.primaryBtn:hover svg {
-  transform: translateX(3px);
-}
-
-/* ===== Baris roll di tepi bawah ===== */
-
-.rollBand {
-  border-top: 1px solid var(--color-border);
-  padding-block: 1rem;
-}
-
-.rollItem {
-  display: inline-flex;
-  align-items: center;
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--color-text-muted);
-  white-space: nowrap;
-}
-
-.rollAt {
-  color: var(--color-accent);
-  margin-right: 0.15em;
-}
-
-/* Titik pemisah antar nama. Dipasang di sini dan bukan sebagai teks supaya
-   pembaca layar tidak ikut membacanya sebagai karakter. */
-.rollDot {
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background: var(--color-text-faint);
-  margin-inline: 1.75rem;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .card {
-    opacity: 1;
-    transform: translate(calc(var(--x) * var(--spread)), calc(var(--y) * var(--spread)))
-      rotate(var(--r));
-    transition: none;
-  }
-
-  /*
-   * Kartu tidak lagi membesar saat disentuh kursor — blok transform-nya memang
-   * dikurung di `prefers-reduced-motion: no-preference`. Yang tersisa cuma
-   * terang-redup, dan itu pun langsung tanpa transisi.
-   */
-  .cardInner,
-  .tag {
-    transition: none;
-  }
+  background: rgba(255, 255, 255, 0.05);
+  transform: translateY(-2px);
 }

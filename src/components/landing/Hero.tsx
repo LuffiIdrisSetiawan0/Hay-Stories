@@ -119,7 +119,7 @@ export default function Hero() {
       <div className={styles.inner}>
         <h1 className={styles.headline}>
           <SplitText by="word" delay={60}>
-            Hari Terbaikmu, Terabadikan dari Sudut Pandang Tamu
+            Abadikan Hari Bahagia, Lewat Sudut Pandang Tamu
           </SplitText>
         </h1>
 
