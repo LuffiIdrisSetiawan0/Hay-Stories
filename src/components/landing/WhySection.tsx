@@ -1,35 +1,65 @@
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, QrCode, Film, Sparkles } from "lucide-react";
 import Reveal from "@/components/ui/Reveal";
 import SplitText from "@/components/ui/SplitText";
-import BigWord from "@/components/ui/BigWord";
 import styles from "./WhySection.module.css";
 
-const LINES = [
-  "Foto terbaik acaramu ada di HP tamu.",
-  "Tanpa minta satu per satu, tanpa kompresi kualitas.",
-  "Semua momen candid terkumpul otomatis di satu album.",
+const REASONS = [
+  {
+    icon: QrCode,
+    title: "Nol Hambatan untuk Tamu",
+    desc: "Cukup scan QR code di meja. Tamu langsung motret lewat browser tanpa perlu download aplikasi atau registrasi.",
+  },
+  {
+    icon: Film,
+    title: "Warna Analog Otentik",
+    desc: "6 preset film 35mm klasik yang memberi nuansa hangat, berkarakter, dan timeless tanpa filter murahan.",
+  },
+  {
+    icon: Sparkles,
+    title: "Terkumpul Otomatis & Live",
+    desc: "Semua foto candid langsung tersimpan di galeri HD acaramu dan bisa langsung tayang di proyektor venue.",
+  },
 ] as const;
 
 export default function WhySection() {
   return (
     <section id="kenapa" className={styles.section}>
       <div className="container">
-        <Reveal className={styles.head} direction="blur">
-          <BigWord as="h2">Kenapa</BigWord>
-        </Reveal>
+        <div className={styles.header}>
+          <Reveal>
+            <p className={styles.eyebrow}>Kenapa HAY Stories</p>
+          </Reveal>
 
-        <div className={styles.body}>
-          {LINES.map((line, i) => (
-            <p key={line} className={i === LINES.length - 1 ? styles.lineLast : styles.line}>
-              <SplitText by="char" direction="blur" delay={i * 140}>
-                {line}
-              </SplitText>
+          <h2 className={styles.title}>
+            <SplitText by="word" delay={60}>
+              Sudut Pandang Otentik yang Tak Terjangkau Fotografer
+            </SplitText>
+          </h2>
+
+          <Reveal delay={120}>
+            <p className={styles.lede}>
+              Fotografer resmi fokus pada panggung utama. HAY Stories memberi tamu kamera analog digital di genggaman mereka untuk mengabadikan tawa, kehangatan, dan momen spontan dari setiap meja.
             </p>
-          ))}
+          </Reveal>
         </div>
 
-        <Reveal delay={280} className={styles.actionWrap}>
+        <div className={styles.grid}>
+          {REASONS.map((item, i) => {
+            const Icon = item.icon;
+            return (
+              <Reveal key={item.title} delay={160 + i * 80} className={styles.card}>
+                <div className={styles.iconWrap} aria-hidden="true">
+                  <Icon size={22} strokeWidth={1.75} />
+                </div>
+                <h3 className={styles.cardTitle}>{item.title}</h3>
+                <p className={styles.cardDesc}>{item.desc}</p>
+              </Reveal>
+            );
+          })}
+        </div>
+
+        <Reveal delay={320} className={styles.actionWrap}>
           <Link href="#cara-kerja" className={styles.outlineBtn}>
             Lihat Cara Kerjanya
             <ArrowRight size={16} />
