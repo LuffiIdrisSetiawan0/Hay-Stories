@@ -48,13 +48,6 @@ interface FlyingPhoto {
   id: number
 }
 
-const EXPOSURE_OPTIONS = [
-  { label: 'Redup -0.5 EV', val: -0.5 },
-  { label: 'Normal 0 EV', val: 0.0 },
-  { label: 'Terang +0.4 EV', val: 0.4 },
-  { label: 'Indoor Boost +0.8 EV', val: 0.8 },
-] as const
-
 const SHARPNESS_OPTIONS = [
   { label: 'Alami (Lembut)', val: 0.15 },
   { label: 'Tajam (Standar HD)', val: 0.45 },
@@ -86,7 +79,7 @@ export default function Camera({
   const [softSkin, setSoftSkin] = useState(true)
   const [exposure, setExposure] = useState<number>(0.0)
   const [sharpness, setSharpness] = useState<number>(0.45)
-  const [activeDrawer, setActiveDrawer] = useState<'none' | 'exposure' | 'sharpness'>('none')
+  const [activeDrawer, setActiveDrawer] = useState<'none' | 'sharpness'>('none')
   
   // Focus & Gesture Exposure states
   const [focusPoint, setFocusPoint] = useState<FocusPoint | null>(null)
@@ -740,22 +733,7 @@ export default function Camera({
       )}
 
       <div className={styles.dock}>
-        {/* Floating Adjust Drawer (Exposure or Sharpness) */}
-        {activeDrawer === 'exposure' && (
-          <div className={styles.adjustDrawer}>
-            {EXPOSURE_OPTIONS.map((opt) => (
-              <button
-                key={opt.val}
-                type="button"
-                className={`${styles.adjustOption} ${exposure === opt.val ? styles.adjustOptionActive : ''}`}
-                onClick={() => setExposure(opt.val)}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
-        )}
-
+        {/* Floating Adjust Drawer (Sharpness) */}
         {activeDrawer === 'sharpness' && (
           <div className={styles.adjustDrawer}>
             {SHARPNESS_OPTIONS.map((opt) => (
@@ -771,18 +749,8 @@ export default function Camera({
           </div>
         )}
 
-        {/* Quick Tools Row (Pencahayaan, Penajaman, Kulit Halus) */}
+        {/* Quick Tools Row (Penajaman & Kulit Halus) */}
         <div className={styles.toolBar}>
-          <button
-            type="button"
-            className={`${styles.toolBtn} ${exposure !== 0.0 || activeDrawer === 'exposure' ? styles.toolBtnActive : ''}`}
-            onClick={() => setActiveDrawer((prev) => (prev === 'exposure' ? 'none' : 'exposure'))}
-            title="Atur pencahayaan kamera"
-          >
-            <Sun size={14} />
-            <span>{exposure === 0.0 ? 'Cahaya' : `${exposure > 0 ? '+' : ''}${exposure.toFixed(1)} EV`}</span>
-          </button>
-
           <button
             type="button"
             className={`${styles.toolBtn} ${sharpness !== 0.15 || activeDrawer === 'sharpness' ? styles.toolBtnActive : ''}`}
