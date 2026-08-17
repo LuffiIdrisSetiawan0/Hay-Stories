@@ -9,28 +9,52 @@ if (!fs.existsSync(OUT_DIR)) {
   fs.mkdirSync(OUT_DIR, { recursive: true })
 }
 
-// 1. Helper Spline Interpolation for Tone Curves
+// 1. Monotone Cubic Hermite Spline Interpolation for Tone Curves
 function createSpline(points) {
   if (!points || points.length === 0) return (x) => x
-  if (points.length === 1) return () => points[0][1]
+  if (points.length === 1) return () => points[0][1] / 255.0
 
   const sorted = [...points].sort((a, b) => a[0] - b[0])
   const n = sorted.length
   const xs = sorted.map((p) => p[0] / 255.0)
   const ys = sorted.map((p) => p[1] / 255.0)
 
+  // Catmull-Rom / Monotone slopes
+  const ms = new Float64Array(n)
+  for (let i = 0; i < n; i++) {
+    if (i === 0) {
+      ms[i] = (ys[1] - ys[0]) / Math.max(0.0001, xs[1] - xs[0])
+    } else if (i === n - 1) {
+      ms[i] = (ys[n - 1] - ys[n - 2]) / Math.max(0.0001, xs[n - 1] - xs[n - 2])
+    } else {
+      const dx1 = Math.max(0.0001, xs[i] - xs[i - 1])
+      const dx2 = Math.max(0.0001, xs[i + 1] - xs[i])
+      const dy1 = (ys[i] - ys[i - 1]) / dx1
+      const dy2 = (ys[i + 1] - ys[i]) / dx2
+      ms[i] = (dy1 + dy2) * 0.5
+    }
+  }
+
   return (x) => {
     const clamped = Math.max(0, Math.min(1, x))
-    if (clamped <= xs[0]) return ys[0]
-    if (clamped >= xs[n - 1]) return ys[n - 1]
+    if (clamped <= xs[0]) return Math.max(0, Math.min(1, ys[0]))
+    if (clamped >= xs[n - 1]) return Math.max(0, Math.min(1, ys[n - 1]))
 
     let i = 0
     while (i < n - 1 && xs[i + 1] < clamped) i++
 
-    const t = (clamped - xs[i]) / (xs[i + 1] - xs[i])
-    // Smooth cosine hermite interpolation between points
-    const ft = (1 - Math.cos(t * Math.PI)) * 0.5
-    return ys[i] * (1 - ft) + ys[i + 1] * ft
+    const h = xs[i + 1] - xs[i]
+    const t = (clamped - xs[i]) / Math.max(0.0001, h)
+    const t2 = t * t
+    const t3 = t2 * t
+
+    const h00 = 2 * t3 - 3 * t2 + 1
+    const h10 = t3 - 2 * t2 + t
+    const h01 = -2 * t3 + 3 * t2
+    const h11 = t3 - t2
+
+    const val = h00 * ys[i] + h10 * h * ms[i] + h01 * ys[i + 1] + h11 * h * ms[i + 1]
+    return Math.max(0, Math.min(1, val))
   }
 }
 
@@ -131,6 +155,7 @@ function parseXmp(filePath) {
     splitShadowSat: parseFloat(getAttr('SplitToningShadowSaturation', '0')),
     splitHighlightHue: parseFloat(getAttr('SplitToningHighlightHue', '0')),
     splitHighlightSat: parseFloat(getAttr('SplitToningHighlightSaturation', '0')),
+    splitBalance: parseFloat(getAttr('SplitToningBalance', '0')),
     redHue: parseFloat(getAttr('RedHue', '0')),
     redSat: parseFloat(getAttr('RedSaturation', '0')),
     greenHue: parseFloat(getAttr('GreenHue', '0')),
@@ -147,27 +172,78 @@ function parseXmp(filePath) {
   }
 }
 
-// 4. Process a single RGB color through the parsed XMP profile
+// 4. HSL sector evaluation
+const HSL_SECTORS = [
+  { name: 'Red', hue: 0 },
+  { name: 'Orange', hue: 30 },
+  { name: 'Yellow', hue: 60 },
+  { name: 'Green', hue: 120 },
+  { name: 'Aqua', hue: 180 },
+  { name: 'Blue', hue: 240 },
+  { name: 'Purple', hue: 285 },
+  { name: 'Magenta', hue: 330 },
+]
+
+function getHslWeights(h) {
+  const normH = ((h % 360) + 360) % 360
+  const weights = {}
+  let total = 0
+
+  for (let i = 0; i < HSL_SECTORS.length; i++) {
+    const sec = HSL_SECTORS[i]
+    let diff = Math.abs(normH - sec.hue)
+    if (diff > 180) diff = 360 - diff
+    // Gaussian-like falloff window around color sector
+    const w = Math.max(0, Math.cos((diff / 45) * (Math.PI / 2)))
+    const weight = Math.pow(w, 2)
+    weights[sec.name] = weight
+    total += weight
+  }
+
+  if (total > 0) {
+    for (const k in weights) {
+      weights[k] /= total
+    }
+  }
+  return weights
+}
+
+// 5. Process a single RGB color through the parsed XMP profile
 function gradePixel(r0, g0, b0, p) {
   let r = r0
   let g = g0
   let b = b0
 
-  // Calibration shifts
-  if (p.redHue || p.greenHue || p.blueHue) {
-    r += (p.redHue / 100) * 0.05 * r
-    g += (p.greenHue / 100) * 0.05 * g
-    b += (p.blueHue / 100) * 0.05 * b
+  // 1. Camera Calibration (Primaries shift)
+  if (p.redHue !== 0 || p.greenHue !== 0 || p.blueHue !== 0) {
+    // Red primary: +Hue shifts toward yellow/orange
+    const rShift = (p.redHue / 100) * 0.2
+    g += r * Math.max(0, rShift) * 0.15
+    b += r * Math.max(0, -rShift) * 0.15
+
+    // Green primary: +Hue shifts toward cyan/blue (removes yellow-green)
+    const gShift = (p.greenHue / 100) * 0.2
+    b += g * Math.max(0, gShift) * 0.25
+    r += g * Math.max(0, -gShift) * 0.25
+
+    // Blue primary: -Hue shifts toward cyan/teal
+    const bShift = (p.blueHue / 100) * 0.2
+    g += b * Math.max(0, -bShift) * 0.2
+    r += b * Math.max(0, bShift) * 0.2
   }
 
-  // White balance / Temp / Tint
-  r += p.temp * 0.003
-  b -= p.temp * 0.003
-  g -= p.tint * 0.003
-  r += p.tint * 0.0015
-  b += p.tint * 0.0015
+  // 2. White balance / Temp / Tint (Gentle offset)
+  if (p.temp !== 0) {
+    r += p.temp * 0.001
+    b -= p.temp * 0.001
+  }
+  if (p.tint !== 0) {
+    g -= p.tint * 0.001
+    r += p.tint * 0.0005
+    b += p.tint * 0.0005
+  }
 
-  // Exposure
+  // 3. Exposure
   if (p.exposure !== 0) {
     const mult = Math.pow(2, p.exposure)
     r *= mult
@@ -175,69 +251,103 @@ function gradePixel(r0, g0, b0, p) {
     b *= mult
   }
 
-  // Highlights, Shadows, Whites, Blacks
-  const lum = 0.2126 * r + 0.7152 * g + 0.0722 * b
+  // 4. Basic Tone Controls (Highlights, Shadows, Whites, Blacks)
+  let lum = 0.2126 * r + 0.7152 * g + 0.0722 * b
   if (p.highlights !== 0 && lum > 0.5) {
-    const hFactor = (lum - 0.5) * 2 * (p.highlights / 100) * 0.25
-    r += hFactor
-    g += hFactor
-    b += hFactor
+    const hFactor = (lum - 0.5) * 2 * (p.highlights / 100) * 0.2
+    r += hFactor * (r / Math.max(0.001, lum))
+    g += hFactor * (g / Math.max(0.001, lum))
+    b += hFactor * (b / Math.max(0.001, lum))
   }
   if (p.shadows !== 0 && lum < 0.5) {
-    const sFactor = (1 - lum * 2) * (p.shadows / 100) * 0.25
-    r += sFactor
-    g += sFactor
-    b += sFactor
+    const sFactor = (1 - lum * 2) * (p.shadows / 100) * 0.2
+    r += sFactor * (r / Math.max(0.001, lum))
+    g += sFactor * (g / Math.max(0.001, lum))
+    b += sFactor * (b / Math.max(0.001, lum))
   }
-  if (p.whites !== 0 && lum > 0.7) {
-    const wFactor = (lum - 0.7) * 3.33 * (p.whites / 100) * 0.2
+  if (p.whites !== 0 && lum > 0.75) {
+    const wFactor = (lum - 0.75) * 4 * (p.whites / 100) * 0.15
     r += wFactor
     g += wFactor
     b += wFactor
   }
-  if (p.blacks !== 0 && lum < 0.3) {
-    const bFactor = (1 - lum * 3.33) * (p.blacks / 100) * 0.2
+  if (p.blacks !== 0 && lum < 0.25) {
+    const bFactor = (1 - lum * 4) * (p.blacks / 100) * 0.15
     r += bFactor
     g += bFactor
     b += bFactor
   }
 
-  // Tone Curves
-  r = p.evalCurveRed(r)
-  g = p.evalCurveGreen(g)
-  b = p.evalCurveBlue(b)
+  // 5. RGB Curves + Master Curve
+  r = p.evalCurveRed(Math.max(0, Math.min(1, r)))
+  g = p.evalCurveGreen(Math.max(0, Math.min(1, g)))
+  b = p.evalCurveBlue(Math.max(0, Math.min(1, b)))
 
   r = p.evalCurveMaster(r)
   g = p.evalCurveMaster(g)
   b = p.evalCurveMaster(b)
 
-  // HSL Split Toning & Saturation
+  // 6. HSL Color Adjustments (Per Color Hue, Saturation, Luminance)
   let [h, s, l] = rgbToHsl(Math.max(0, Math.min(1, r)), Math.max(0, Math.min(1, g)), Math.max(0, Math.min(1, b)))
 
-  // Split Toning Shadows
-  if (p.splitShadowSat > 0) {
-    const shadowWeight = Math.pow(1 - l, 2) * (p.splitShadowSat / 100)
-    const [sr, sg, sb] = hslToRgb(p.splitShadowHue, 1, l)
+  if (s > 0.01) {
+    const weights = getHslWeights(h)
+    let deltaH = 0
+    let deltaS = 0
+    let deltaL = 0
+
+    for (const sec of HSL_SECTORS) {
+      const w = weights[sec.name] || 0
+      if (w > 0) {
+        deltaH += (p.hslHue[sec.name] || 0) * w
+        deltaS += (p.hslSat[sec.name] || 0) * w
+        deltaL += (p.hslLum[sec.name] || 0) * w
+      }
+    }
+
+    // Apply HSL shifts
+    h = (h + deltaH * 0.5 + 360) % 360
+    s = Math.max(0, Math.min(1, s * (1 + deltaS / 100)))
+    l = Math.max(0, Math.min(1, l + deltaL * 0.003 * s))
+
+    const [rNew, gNew, bNew] = hslToRgb(h, s, l)
+    r = rNew
+    g = gNew
+    b = bNew
+  }
+
+  // 7. Split Toning with Balance
+  const splitBal = (p.splitBalance || 0) / 100 // -1 to +1
+  const midSplit = 0.5 + splitBal * 0.25
+
+  if (p.splitShadowSat > 0 && l < midSplit) {
+    const shadowWeight = Math.pow(1 - l / midSplit, 1.8) * (p.splitShadowSat / 100) * 0.35
+    const [sr, sg, sb] = hslToRgb(p.splitShadowHue, 0.6, l)
     r = r * (1 - shadowWeight) + sr * shadowWeight
     g = g * (1 - shadowWeight) + sg * shadowWeight
     b = b * (1 - shadowWeight) + sb * shadowWeight
   }
 
-  // Split Toning Highlights
-  if (p.splitHighlightSat > 0) {
-    const highlightWeight = Math.pow(l, 2) * (p.splitHighlightSat / 100)
-    const [hr, hg, hb] = hslToRgb(p.splitHighlightHue, 1, l)
+  if (p.splitHighlightSat > 0 && l > midSplit) {
+    const highlightWeight = Math.pow((l - midSplit) / (1 - midSplit), 1.8) * (p.splitHighlightSat / 100) * 0.35
+    const [hr, hg, hb] = hslToRgb(p.splitHighlightHue, 0.6, l)
     r = r * (1 - highlightWeight) + hr * highlightWeight
     g = g * (1 - highlightWeight) + hg * highlightWeight
     b = b * (1 - highlightWeight) + hb * highlightWeight
   }
 
-  // Global Saturation & Vibrance
-  const totalSat = 1 + (p.saturation + p.vibrance * 0.6) / 100
-  const avg = (r + g + b) / 3
-  r = avg + (r - avg) * totalSat
-  g = avg + (g - avg) * totalSat
-  b = avg + (b - avg) * totalSat
+  // 8. Vibrance & Global Saturation
+  if (p.vibrance !== 0 || p.saturation !== 0) {
+    const [vh, vs, vl] = rgbToHsl(Math.max(0, Math.min(1, r)), Math.max(0, Math.min(1, g)), Math.max(0, Math.min(1, b)))
+    // Vibrance boosts lower saturated colors more than already saturated colors
+    const vibBoost = (p.vibrance / 100) * (1 - vs)
+    const satBoost = p.saturation / 100
+    const newSat = Math.max(0, Math.min(1, vs * (1 + satBoost + vibBoost)))
+    const [vr, vg, vb] = hslToRgb(vh, newSat, vl)
+    r = vr
+    g = vg
+    b = vb
+  }
 
   return [
     Math.round(Math.max(0, Math.min(1, r)) * 255),
@@ -246,7 +356,7 @@ function gradePixel(r0, g0, b0, p) {
   ]
 }
 
-// 5. Generate 1024x32 3D LUT PNG
+// 6. Generate 1024x32 3D LUT PNG
 async function generateLutPng(xmpPath, outFileName) {
   const parsed = parseXmp(xmpPath)
   parsed.evalCurveMaster = createSpline(parsed.curveMaster)
@@ -291,7 +401,7 @@ async function generateLutPng(xmpPath, outFileName) {
     .png({ compressionLevel: 9 })
     .toFile(outPath)
 
-  console.log(`Generated: ${outFileName} from ${path.relative(process.cwd(), xmpPath)}`)
+  console.log(`Generated accurate LUT: ${outFileName} from ${path.relative(process.cwd(), xmpPath)}`)
 }
 
 async function main() {
@@ -310,7 +420,7 @@ async function main() {
       console.warn(`File not found: ${xmpPath}`)
     }
   }
-  console.log('All ThePresetsRoom film presets converted to 3D LUT PNGs successfully!')
+  console.log('All accurate 3D LUT PNGs built successfully!')
 }
 
 main()

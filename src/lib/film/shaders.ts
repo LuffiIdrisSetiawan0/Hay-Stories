@@ -188,20 +188,12 @@ vec3 smoothSkin(vec2 uv, vec3 base, float amount) {
  * - S-Curve kontras organik
  */
 vec3 applyFilmDensityCurve(vec3 col, float contrastAmount) {
-  // 1. Lifted Matte Shadows (Lantai dasar bayangan film ~4.5%)
-  vec3 lifted = mix(vec3(0.038, 0.038, 0.044), col, 0.955);
-
-  // 2. Smooth Highlight Roll-off (Shoulder kompresi halus)
-  vec3 highlights = 1.0 - exp(-lifted * 1.08);
-
-  // 3. Organik S-Curve Kontras Film
   if (contrastAmount > 0.0) {
-    vec3 sc = clamp(highlights, 0.0, 1.0);
+    vec3 sc = clamp(col, 0.0, 1.0);
     vec3 sCurve = sc * sc * (3.0 - 2.0 * sc);
-    return mix(highlights, sCurve, contrastAmount * 0.75);
+    return mix(col, sCurve, contrastAmount * 0.5);
   }
-
-  return highlights;
+  return col;
 }
 
 void main() {
