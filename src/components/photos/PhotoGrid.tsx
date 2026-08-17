@@ -1,9 +1,9 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { Download, X, ChevronLeft, ChevronRight, Loader2, Trash2 } from 'lucide-react'
+import { Download, X, ChevronLeft, ChevronRight, Loader2, Trash2, Share2 } from 'lucide-react'
 import { getPreset } from '@/lib/catalog'
-import { photoFilename } from '@/lib/photo-links'
+import { photoFilename, downloadUrl } from '@/lib/photo-links'
 import { drawFramed, getFrame } from '@/lib/frames'
 import type { SignedPhoto } from '@/lib/photos'
 import styles from './PhotoGrid.module.css'
@@ -48,7 +48,7 @@ export default function PhotoGrid({
 
   useEffect(() => {
     if (!toast) return
-    const t = setTimeout(() => setToast(null), 3000)
+    const t = setTimeout(() => setToast(null), 3500)
     return () => clearTimeout(t)
   }, [toast])
 
@@ -129,50 +129,128 @@ export default function PhotoGrid({
   )
 
   /**
-   * Unduh foto dengan bingkai yang diterapkan di browser.
+   * Unduh / Simpan foto ke perangkat (Kompatibel dengan iOS Safari, Android Chrome, & Desktop).
    */
   const download = useCallback(
     async (photo: GridPhotoRow) => {
       setSaving(true)
+      setToast('Menyiapkan foto kualitas tinggi…')
       try {
+        const filename = photoFilename(eventTitle, photo.id)
         const frame = getFrame(photo.frame ?? 'none')
-        const res = await fetch(photo.fullUrl)
-        if (!res.ok) throw new Error(String(res.status))
-        const blob = await res.blob()
 
-        let out = blob
-        if (frame && frame.id !== 'none') {
-          const bitmap = await createImageBitmap(blob)
+        let outBlob: Blob | null = null
+
+        try {
+          const res = await fetch(photo.fullUrl)
+          if (res.ok) {
+            const rawBlob = await res.blob()
+
+            if (frame && frame.id !== 'none') {
+              // Render bingkai pada canvas
+              const objectUrl = URL.createObjectURL(rawBlob)
+              try {
+                let imgWidth = 0
+                let imgHeight = 0
+                let imgElem: HTMLImageElement | ImageBitmap
+
+                if (typeof createImageBitmap === 'function') {
+                  const bmp = await createImageBitmap(rawBlob)
+                  imgWidth = bmp.width
+                  imgHeight = bmp.height
+                  imgElem = bmp
+                } else {
+                  const img = new Image()
+                  img.crossOrigin = 'anonymous'
+                  img.src = objectUrl
+                  await new Promise((resolve, reject) => {
+                    img.onload = () => resolve(img)
+                    img.onerror = reject
+                  })
+                  imgWidth = img.naturalWidth
+                  imgHeight = img.naturalHeight
+                  imgElem = img
+                }
+
+                const canvas = drawFramed(imgElem, imgWidth, imgHeight, frame, {
+                  title: eventTitle,
+                  takenAt: photo.taken_at ? new Date(photo.taken_at) : null,
+                })
+
+                outBlob = await new Promise<Blob>((resolve, reject) =>
+                  canvas.toBlob(
+                    (b) => (b ? resolve(b) : reject(new Error('Gagal memproses gambar.'))),
+                    'image/jpeg',
+                    0.95
+                  )
+                )
+
+                if ('close' in imgElem && typeof (imgElem as ImageBitmap).close === 'function') {
+                  (imgElem as ImageBitmap).close()
+                }
+              } finally {
+                URL.revokeObjectURL(objectUrl)
+              }
+            } else {
+              outBlob = rawBlob
+            }
+          }
+        } catch (fetchErr) {
+          console.warn('Fetch blob gagal, beralih ke direct download URL:', fetchErr)
+        }
+
+        // 1. Coba Web Share API bawaan HP (iOS Safari / Android Chrome)
+        // Membuka menu sistem HP untuk "Simpan Gambar" / "Save Image" langsung ke galeri foto HP
+        if (outBlob && typeof navigator !== 'undefined') {
           try {
-            const canvas = drawFramed(bitmap, bitmap.width, bitmap.height, frame, {
-              title: eventTitle,
-              takenAt: photo.taken_at ? new Date(photo.taken_at) : null,
-            })
-            out = await new Promise<Blob>((resolve, reject) =>
-              canvas.toBlob(
-                (b) => (b ? resolve(b) : reject(new Error('Gagal membuat berkas.'))),
-                'image/jpeg',
-                0.95
-              )
-            )
-          } finally {
-            bitmap.close()
+            const file = new File([outBlob], filename, { type: 'image/jpeg' })
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+              await navigator.share({
+                files: [file],
+                title: eventTitle,
+                text: `Foto dari ${eventTitle}`,
+              })
+              setToast('Foto siap disimpan / dibagikan! 🎉')
+              return
+            }
+          } catch (shareErr) {
+            // User membatalkan menu share
+            if (shareErr instanceof Error && shareErr.name === 'AbortError') {
+              return
+            }
+            console.warn('navigator.share dibatalkan/gagal, beralih ke download langsung:', shareErr)
           }
         }
 
-        const href = URL.createObjectURL(out)
+        // 2. Direct browser download
+        let downloadHref = ''
+        if (outBlob) {
+          downloadHref = URL.createObjectURL(outBlob)
+        } else {
+          // Fallback Supabase Content-Disposition attachment
+          downloadHref = downloadUrl(photo.fullUrl, filename)
+        }
+
         const a = document.createElement('a')
-        a.href = href
-        a.download = photoFilename(eventTitle, photo.id)
-        a.target = '_blank'
+        a.href = downloadHref
+        a.download = filename
+        a.rel = 'noopener'
         document.body.appendChild(a)
         a.click()
+
+        setToast('Mengunduh foto ke perangkatmu… 📥')
+
         setTimeout(() => {
-          document.body.removeChild(a)
-          URL.revokeObjectURL(href)
-        }, 4000)
+          if (document.body.contains(a)) {
+            document.body.removeChild(a)
+          }
+          if (outBlob && downloadHref.startsWith('blob:')) {
+            URL.revokeObjectURL(downloadHref)
+          }
+        }, 6000)
       } catch (err) {
         console.error('Download error:', err)
+        setToast('Gagal mengunduh foto. Kamu juga bisa tekan lama fotonya lalu pilih Simpan Gambar.')
       } finally {
         setSaving(false)
       }
@@ -259,6 +337,17 @@ export default function PhotoGrid({
             </div>
 
             <div className={styles.topActions}>
+              <button
+                type="button"
+                onClick={() => download(open)}
+                disabled={saving}
+                className={styles.iconButton}
+                title="Unduh / Simpan Foto"
+                aria-label="Unduh foto"
+              >
+                {saving ? <Loader2 size={18} className="animate-spin" /> : <Download size={18} />}
+              </button>
+
               {(isHost || (Boolean(currentGuestId) && open.guest_id === currentGuestId)) &&
                 onDeletePhoto && (
                   <button
@@ -344,7 +433,7 @@ export default function PhotoGrid({
               className={styles.downloadBtn}
             >
               {saving ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
-              <span>{saving ? 'Menyiapkan…' : 'Unduh Foto'}</span>
+              <span>{saving ? 'Menyiapkan…' : 'Unduh / Simpan Foto'}</span>
             </button>
           </footer>
         </div>
