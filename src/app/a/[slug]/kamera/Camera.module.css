@@ -4,6 +4,7 @@
    =========================================================================== */
 
 .page {
+  --color-focus-ring: #ffcc00;
   position: relative;
   height: 100dvh;
   overflow: hidden;
@@ -354,6 +355,11 @@
   border-color: rgba(255, 255, 255, 0.3);
 }
 
+.toastOk {
+  background: rgba(20, 83, 45, 0.94);
+  border-color: rgba(187, 247, 208, 0.35);
+}
+
 @keyframes toastFade {
   from {
     opacity: 0;
@@ -385,6 +391,318 @@
   pointer-events: auto;
 }
 
+.captureMeta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 1.5rem;
+  padding: 0 1rem;
+  color: rgba(245, 242, 236, 0.72);
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.025em;
+  pointer-events: none;
+}
+
+.qualityMeta,
+.syncMeta {
+  padding: 0.27rem 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  border-radius: var(--radius-full);
+  background: rgba(8, 8, 8, 0.56);
+  backdrop-filter: blur(9px);
+  -webkit-backdrop-filter: blur(9px);
+}
+
+.qualityMeta {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.syncMeta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex-shrink: 0;
+  color: #fde68a;
+}
+
+.syncSaved {
+  color: #bbf7d0;
+}
+
+/* Satu bottom sheet menggantikan tiga deret kontrol yang dahulu menutupi
+   viewfinder pada layar pendek. */
+.bottomSheet {
+  width: min(calc(100% - 1rem), 38rem);
+  max-height: min(48dvh, 28rem);
+  margin: 0 auto;
+  padding: 0.85rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 1.25rem;
+  background: rgba(14, 13, 12, 0.94);
+  box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.38);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  animation: sheetIn 180ms ease-out;
+}
+
+@keyframes sheetIn {
+  from {
+    opacity: 0;
+    transform: translateY(0.75rem);
+  }
+}
+
+.sheetHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.05rem 0.1rem 0.75rem;
+}
+
+.sheetHeader > div,
+.presetCopy,
+.choice span,
+.settingRow > span,
+.skinToggle > span:nth-child(2),
+.focusCenterButton > span {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 0.12rem;
+}
+
+.sheetHeader strong {
+  font-family: var(--font-serif);
+  font-size: 1rem;
+}
+
+.sheetHeader span,
+.presetCopy small,
+.choice small,
+.settingRow small,
+.skinToggle small,
+.focusCenterButton small {
+  color: rgba(245, 242, 236, 0.62);
+  font-size: 0.7rem;
+  line-height: 1.35;
+}
+
+.sheetClose {
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  flex: 0 0 auto;
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  border-radius: 50%;
+  color: #f5f2ec;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.presetCards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.45rem;
+}
+
+.presetCard {
+  display: grid;
+  grid-template-columns: 2.5rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: 3.55rem;
+  padding: 0.45rem;
+  text-align: left;
+  color: rgba(245, 242, 236, 0.84);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.8rem;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.presetCard:disabled {
+  opacity: 0.46;
+}
+
+.presetCardActive {
+  border-color: rgba(245, 242, 236, 0.66);
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+
+.presetSwatch {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.62rem;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+  background: linear-gradient(135deg, #b8aea1, #5b5853);
+}
+
+.presetSwatch[data-look='natural-clean'] {
+  background: linear-gradient(135deg, #d8d6cf, #767a73);
+}
+
+.presetSwatch[data-look='everyday-100'] {
+  background: linear-gradient(135deg, #d9c5a6, #65766c);
+}
+
+.presetSwatch[data-look='golden-hour-400'] {
+  background: linear-gradient(135deg, #e1ac65, #784735);
+}
+
+.presetSwatch[data-look='pastel-400'] {
+  background: linear-gradient(135deg, #d8c7cc, #84998b);
+}
+
+.presetSwatch[data-look='neon-night-1600'] {
+  background: linear-gradient(135deg, #db795a, #303466 62%, #15151f);
+}
+
+.presetSwatch[data-look='noir-400'] {
+  background: linear-gradient(135deg, #ddd, #171717);
+}
+
+.choiceList,
+.adjustContent {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.choice,
+.skinToggle,
+.focusCenterButton {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
+  min-height: 3.4rem;
+  padding: 0.65rem 0.75rem;
+  text-align: left;
+  color: rgba(245, 242, 236, 0.84);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.8rem;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.choiceActive,
+.skinToggleActive {
+  border-color: rgba(245, 242, 236, 0.62);
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.settingRow {
+  display: grid;
+  gap: 0.6rem;
+  padding: 0.2rem 0;
+}
+
+.exposureControl {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) 4rem;
+  align-items: center;
+  gap: 0.65rem;
+  min-height: 2.75rem;
+  padding: 0.35rem 0.65rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.72rem;
+  background: rgba(255, 255, 255, 0.04);
+  color: #ffcc00;
+}
+
+.exposureControl input {
+  width: 100%;
+  min-height: 2.75rem;
+  accent-color: #ffcc00;
+  cursor: ew-resize;
+}
+
+.exposureControl output {
+  color: #f5f2ec;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.focusCenterButton {
+  justify-content: flex-start;
+}
+
+.focusCenterButton > svg {
+  flex: 0 0 auto;
+  color: #ffcc00;
+}
+
+.segmented {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.25rem;
+  padding: 0.2rem;
+  border-radius: 0.72rem;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.segmented button {
+  min-height: 2.4rem;
+  padding: 0.35rem 0.4rem;
+  border-radius: 0.55rem;
+  color: rgba(245, 242, 236, 0.68);
+  font-size: 0.72rem;
+}
+
+.segmented .segmentActive {
+  color: #161411;
+  background: #f5f2ec;
+  font-weight: 650;
+}
+
+.toggleTrack {
+  position: relative;
+  width: 2.5rem;
+  height: 1.45rem;
+  flex: 0 0 auto;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.toggleTrack span {
+  position: absolute;
+  top: 0.2rem;
+  left: 0.2rem;
+  width: 1.05rem;
+  height: 1.05rem;
+  border-radius: 50%;
+  background: #f5f2ec;
+  transition: transform 160ms ease;
+}
+
+.skinToggleActive .toggleTrack {
+  background: #8f6b3f;
+}
+
+.skinToggleActive .toggleTrack span {
+  transform: translateX(1.05rem);
+}
+
+.resetButton {
+  justify-self: start;
+  min-height: 2.75rem;
+  padding: 0 0.25rem;
+  color: #f1cf9d;
+  font-size: 0.75rem;
+  text-decoration: underline;
+  text-underline-offset: 0.25rem;
+}
+
 /* Tool Bar Penajaman & Pencahayaan */
 .toolBar {
   display: flex;
@@ -408,6 +726,7 @@
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   cursor: pointer;
+  min-height: 2.75rem;
   transition: all 0.2s ease;
 }
 
@@ -539,6 +858,25 @@
 .thumbSlot {
   justify-self: start;
   overflow: hidden;
+  position: relative;
+}
+
+.thumbBadge {
+  position: absolute;
+  top: 0.12rem;
+  right: 0.12rem;
+  display: grid;
+  place-items: center;
+  min-width: 1.15rem;
+  height: 1.15rem;
+  padding: 0 0.2rem;
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  border-radius: var(--radius-full);
+  color: #fff;
+  background: #9a6a31;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 700;
 }
 
 .thumb {
@@ -593,10 +931,10 @@
   width: 100%;
   height: auto;
   max-height: 100%;
-  box-sizing: border-box;
 }
 
 .framedOn .canvas {
+  position: absolute;
   object-fit: cover;
 }
 
@@ -629,26 +967,86 @@
   position: absolute;
   left: 0;
   right: 0;
-  bottom: 3%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.15em;
+  bottom: 0;
   text-align: center;
   font-family: var(--font-mono);
   pointer-events: none;
 }
 
 .frameTitle {
+  position: absolute;
+  top: 38%;
+  left: 50%;
+  width: 86%;
+  overflow: hidden;
+  transform: translate(-50%, -50%);
   font-size: clamp(0.7rem, 3.4vw, 1.15rem);
   font-weight: 600;
   color: #111;
   text-shadow: 0 0 1px rgba(255, 255, 255, 0.4);
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .frameStamp {
+  position: absolute;
+  top: 72%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   font-size: clamp(0.55rem, 2.4vw, 0.8rem);
-  color: #ff9900;
+  color: rgba(26, 26, 26, 0.45);
   font-weight: 700;
   letter-spacing: 0.1em;
+}
+
+@media (max-width: 380px) {
+  .presetCards {
+    grid-template-columns: 1fr;
+  }
+
+  .qualityMeta {
+    max-width: 12rem;
+  }
+}
+
+@media (max-height: 620px) {
+  .dock {
+    gap: 0.38rem;
+    padding-bottom: calc(0.45rem + env(safe-area-inset-bottom));
+  }
+
+  .bottomSheet {
+    max-height: 45dvh;
+  }
+
+  .shutter {
+    width: 4.2rem;
+    height: 4.2rem;
+  }
+
+  .shutterDot {
+    width: 3.25rem;
+    height: 3.25rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .focusReticle,
+  .thumbSlotPop,
+  .toast,
+  .bottomSheet {
+    animation: none;
+  }
+
+  .flyingPhotoContainer,
+  .flash {
+    display: none;
+  }
+
+  .toggleTrack span,
+  .shutter,
+  .shutterDot,
+  .toolBtn {
+    transition: none;
+  }
 }

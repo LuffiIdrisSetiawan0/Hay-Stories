@@ -1,10 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import type { CSSProperties } from "react";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { FILM_PRESETS, type PresetId } from "@/lib/catalog";
+import { FILM_PRESETS } from "@/lib/catalog";
 import { FilmRenderer, isFilmSupported } from "@/lib/film";
 import { useInView } from "@/components/ui/useInView";
 import SplitText from "@/components/ui/SplitText";
@@ -18,34 +18,38 @@ const SCENES: Record<string, { src: string; alt: string }> = {
     src: "/img/scenes/01-pelaminan.jpg",
     alt: "potret natural cerah dengan warna asli dan nada kulit alami",
   },
-  "film-35mm": {
-    src: "/img/scenes/01-pelaminan.jpg",
-    alt: "pasangan pengantin Indonesia tersenyum bahagia dalam busana pernikahan putih",
+  "everyday-100": {
+    src: "/img/scenes/04-potret.jpg",
+    alt: "potret tamu dengan warna netral hangat dan detail kulit alami",
   },
-  "film-fuji": {
+  "golden-hour-400": {
+    src: "/img/scenes/05-lantai-dansa.jpg",
+    alt: "suasana pesta sore dengan cahaya hangat keemasan",
+  },
+  "pastel-400": {
     src: "/img/scenes/06-konfeti.jpg",
     alt: "prosesi pengantin luar ruang bertabur kelopak bunga diiringi senyum para tamu",
   },
-  "film-kodak": {
-    src: "/img/scenes/05-lantai-dansa.jpg",
-    alt: "suasana pesta malam penuh energi dengan kilau hangat keemasan",
+  "neon-night-1600": {
+    src: "/img/scenes/03-kue.jpg",
+    alt: "detail pesta malam dengan lampu hangat dan pendar yang terkontrol",
   },
-  "film-polaroid": {
-    src: "/img/scenes/04-potret.jpg",
-    alt: "momen hangat penuh kenangan dengan estetika polaroid instan",
+  "noir-400": {
+    src: "/img/scenes/02-meja-dekorasi.jpg",
+    alt: "detail dekorasi dalam hitam putih dokumenter",
   },
 };
 
 const FAN = [
-  { x: -2.0, y: 0.28, r: -12, z: 0 },
-  { x: -1.0, y: -0.05, r: -6, z: 1 },
-  { x: 0.0, y: 0.08, r: 0, z: 2 },
-  { x: 1.0, y: -0.05, r: 6, z: 3 },
-  { x: 2.0, y: 0.28, r: 12, z: 4 },
+  { x: -2.5, y: 0.32, r: -14, z: 0 },
+  { x: -1.5, y: 0.08, r: -8, z: 1 },
+  { x: -0.5, y: -0.04, r: -3, z: 2 },
+  { x: 0.5, y: -0.04, r: 3, z: 3 },
+  { x: 1.5, y: 0.08, r: 8, z: 4 },
+  { x: 2.5, y: 0.32, r: 14, z: 5 },
 ] as const;
 
 export default function Hero() {
-  const [failed, setFailed] = useState(false);
   const { ref: deckRef, inView: dealt } = useInView<HTMLDivElement>({ threshold: 0.15 });
 
   const glCanvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -66,7 +70,6 @@ export default function Hero() {
     (async () => {
       try {
         if (!isFilmSupported()) {
-          setFailed(true);
           return;
         }
 
@@ -101,7 +104,6 @@ export default function Hero() {
         }
       } catch (err) {
         console.warn("WebGL film preview failed in Hero:", err);
-        setFailed(true);
       }
     })();
 
@@ -169,7 +171,7 @@ export default function Hero() {
 
         <p className={styles.lede}>
           <SplitText by="word" direction="up" delay={80}>
-            Satu QR code di meja. Tamu scan dan langsung jepret dengan warna film analog otentik tanpa perlu download aplikasi. Semua foto candid terkumpul otomatis.
+            Satu QR code di meja. Tamu scan dan langsung jepret dengan look warna yang sesuai cahaya tanpa perlu download aplikasi. Semua foto candid terkumpul otomatis.
           </SplitText>
         </p>
 

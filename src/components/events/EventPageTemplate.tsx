@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import Navbar from "@/components/ui/Navbar";
 import Footer from "@/components/landing/Footer";
+import { formatGuestLimit, formatPrice, getTier } from "@/lib/catalog";
 import {
   ArrowUpRight,
   CheckCircle2,
@@ -73,12 +74,12 @@ export interface EventPageProps {
   presets: EventPreset[];
   sampleGallery: { img: string; caption: string }[];
   storyQuote: { quote: string; author: string; role: string };
-  packageHighlight: { name: string; price: string; guests: string; features: string[] };
   faqs: EventFaq[];
 }
 
 export default function EventPageTemplate(props: EventPageProps) {
   const [openFaq, setOpenFaq] = useState<number | null>(0);
+  const starter = getTier("starter")!;
 
   return (
     <main className={styles.page}>
@@ -175,7 +176,7 @@ export default function EventPageTemplate(props: EventPageProps) {
       <section className={styles.gallerySection}>
         <div className={styles.container}>
           <div className={styles.sectionHeader}>
-            <p className={styles.sectionEyebrow}>WARNA EMULSI ANALOG</p>
+            <p className={styles.sectionEyebrow}>LOOK WARNA FILM</p>
             <h2 className={styles.sectionTitle}>Preset Film Paling Cocok</h2>
           </div>
 
@@ -228,28 +229,30 @@ export default function EventPageTemplate(props: EventPageProps) {
           <div className={styles.pricingCard}>
             <div className={styles.pricingHeader}>
               <div>
-                <span className={styles.packagePill}>Paket Rekomendasi</span>
-                <h3 className={styles.packageName}>{props.packageHighlight.name}</h3>
-                <p className={styles.packageGuests}>Kapasitas hingga {props.packageHighlight.guests}</p>
+                <span className={styles.packagePill}>Tersedia sekarang</span>
+                <h3 className={styles.packageName}>Paket {starter.name}</h3>
+                <p className={styles.packageGuests}>
+                  {formatGuestLimit(starter.maxGuests)} · {starter.retentionDays} hari penyimpanan
+                </p>
               </div>
               <div className={styles.priceTag}>
-                <span className={styles.priceValue}>{props.packageHighlight.price}</span>
-                <span className={styles.pricePeriod}>/ sekali bayar</span>
+                <span className={styles.priceValue}>{formatPrice(starter.price)}</span>
+                <span className={styles.pricePeriod}>tanpa kartu kredit</span>
               </div>
             </div>
 
             <div className={styles.featuresList}>
-              {props.packageHighlight.features.map((f, i) => (
-                <div key={i} className={styles.featureRow}>
+              {starter.features.map((feature) => (
+                <div key={feature} className={styles.featureRow}>
                   <CheckCircle2 size={18} className={styles.checkIcon} />
-                  <span>{f}</span>
+                  <span>{feature}</span>
                 </div>
               ))}
             </div>
 
             <div className={styles.pricingAction}>
               <Link href="/login" className={styles.packageBtn}>
-                <span>Pilih Paket Ini & Buat Album</span>
+                <span>Buat Album Starter Gratis</span>
                 <ArrowUpRight size={18} />
               </Link>
               <Link href="/harga" className={styles.seeAllPricing}>

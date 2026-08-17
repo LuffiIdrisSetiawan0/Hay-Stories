@@ -12,13 +12,13 @@ const REASONS = [
   },
   {
     icon: Film,
-    title: "Warna Analog Otentik",
-    desc: "6 preset film 35mm klasik yang memberi nuansa hangat, berkarakter, dan timeless tanpa filter murahan.",
+    title: "Warna yang Terjaga",
+    desc: "6 look terkalibrasi untuk cahaya netral, sore hangat, outdoor, pesta malam, hingga hitam putih.",
   },
   {
     icon: Sparkles,
-    title: "Terkumpul Otomatis & Live",
-    desc: "Semua foto candid langsung tersimpan di galeri HD acaramu dan bisa langsung tayang di proyektor venue.",
+    title: "Terkumpul & Terverifikasi",
+    desc: "Foto baru masuk ke galeri setelah berkas resolusi penuh dan thumbnail berhasil disimpan, sehingga status hasilnya jelas.",
   },
 ] as const;
 

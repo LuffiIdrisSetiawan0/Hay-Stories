@@ -73,6 +73,44 @@ export interface PhotoPage {
 
 const EMPTY_PAGE: PhotoPage = { photos: [], total: 0, hasMore: false, failed: true }
 
+export interface PhotoCount {
+  total: number
+  failed: boolean
+}
+
+/**
+ * Hitung foto siap tampil tanpa mengambil baris atau menerbitkan signed URL.
+ *
+ * Dipakai sebelum pagination tamu supaya nomor halaman yang sangat besar bisa
+ * dikoreksi sebelum berubah menjadi offset HTTP/PostgREST yang tidak aman.
+ */
+export async function countReadyPhotos(
+  eventId: string,
+  options: { includeHidden?: boolean } = {}
+): Promise<PhotoCount> {
+  try {
+    const supabase = createAdminClient()
+    let query = supabase
+      .from('photos')
+      .select('id', { count: 'exact', head: true })
+      .eq('event_id', eventId)
+      .eq('status', 'ready')
+
+    if (!options.includeHidden) query = query.eq('is_hidden', false)
+
+    const { count, error } = await query
+    if (error || count === null) {
+      console.error('countReadyPhotos gagal:', error)
+      return { total: 0, failed: true }
+    }
+
+    return { total: count, failed: false }
+  } catch (err) {
+    console.error('countReadyPhotos gagal:', err)
+    return { total: 0, failed: true }
+  }
+}
+
 /**
  * Ambil satu halaman foto beserta tautan bertanda tangannya.
  *

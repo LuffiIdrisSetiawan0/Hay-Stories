@@ -37,7 +37,8 @@ export default function CreditsPage() {
 
           <p className={styles.body}>
             Koleksi preset film kami — {FILM_PRESETS.map((p) => p.name).join(', ')} — dirancang
-            untuk memberikan estetika warna analog kamera vintage dan disposable camera secara akurat.
+            untuk memberi pilihan karakter warna analog yang konsisten. LUT aktif bersumber dari
+            koleksi berlisensi dan setiap rilis melewati pemeriksaan rentang tonal, netralitas, serta warna kulit.
           </p>
 
           <p className={styles.body}>

@@ -4,6 +4,7 @@ import type { FilmPreset } from '@/lib/catalog'
 const LUT_SIZE = 32
 
 export type FilmSource = HTMLVideoElement | HTMLImageElement | ImageBitmap | HTMLCanvasElement
+type LutSource = HTMLImageElement | ImageBitmap
 
 export interface RenderOptions {
   /** Cerminkan horizontal — untuk kamera depan agar terasa seperti cermin. */
@@ -28,6 +29,8 @@ export interface RenderOptions {
    * 0–1, penajaman optik kamera (Unsharp Mask) untuk meningkatkan detail sensor HP.
    */
   sharpen?: number
+  /** Seed grain tetap agar full image dan turunannya dapat direproduksi. */
+  grainSeed?: number
   /**
    * Setel `false` bila sumbernya sudah dalam orientasi bawah-ke-atas.
    */
@@ -46,17 +49,26 @@ export class FilmRenderer {
   private sourceTexture: WebGLTexture
   private lutTexture: WebGLTexture
   private uniforms: Record<string, WebGLUniformLocation | null>
-  private lutCache = new Map<string, HTMLImageElement>()
+  private lutCache = new Map<string, LutSource>()
   private currentLut: string | null = null
   private disposed = false
+  private contextLost = false
+  private maxRenderSize: number
+  private readonly handleContextLost = (event: Event) => {
+    event.preventDefault()
+    this.contextLost = true
+  }
 
-  constructor(canvas: HTMLCanvasElement) {
+  constructor(
+    canvas: HTMLCanvasElement,
+    options: { preserveDrawingBuffer?: boolean } = {}
+  ) {
     const gl = canvas.getContext('webgl2', {
       alpha: false,
       antialias: false,
       depth: false,
       stencil: false,
-      preserveDrawingBuffer: true,
+      preserveDrawingBuffer: options.preserveDrawingBuffer ?? true,
       powerPreference: 'high-performance',
     })
 
@@ -66,6 +78,13 @@ export class FilmRenderer {
 
     this.canvas = canvas
     this.gl = gl
+    canvas.addEventListener('webglcontextlost', this.handleContextLost)
+    this.maxRenderSize = Math.min(
+      Number(gl.getParameter(gl.MAX_TEXTURE_SIZE)),
+      Number(gl.getParameter(gl.MAX_RENDERBUFFER_SIZE))
+    )
+
+    if ('drawingBufferColorSpace' in gl) gl.drawingBufferColorSpace = 'srgb'
     this.program = createProgram(gl, VERTEX_SHADER, FRAGMENT_SHADER)
 
     const quad = createFullscreenQuad(gl, this.program)
@@ -100,20 +119,29 @@ export class FilmRenderer {
 
   /** Memuat tekstur LUT sebuah preset. Aman dipanggil berulang; hasilnya di-cache. */
   async loadPreset(preset: FilmPreset): Promise<void> {
-    if (this.disposed) return
+    if (this.disposed) throw new Error('Renderer film sudah ditutup.')
     if (this.currentLut === preset.lut) return
 
     let img = this.lutCache.get(preset.lut)
     if (!img) {
-      img = await loadImage(preset.lut)
+      img = await loadLutSource(preset.lut)
+      if (this.disposed) {
+        if (typeof ImageBitmap !== 'undefined' && img instanceof ImageBitmap) img.close()
+        throw new Error('Renderer film ditutup saat LUT sedang dimuat.')
+      }
       this.lutCache.set(preset.lut, img)
     }
 
-    if (this.disposed) return
+    if (this.disposed) throw new Error('Renderer film ditutup saat LUT sedang dimuat.')
+    if (this.contextLost || this.gl.isContextLost()) {
+      throw new Error('Konteks grafis hilang. Gunakan mode Natural atau muat ulang kamera.')
+    }
 
     const gl = this.gl
     gl.bindTexture(gl.TEXTURE_2D, this.lutTexture)
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false)
+    gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false)
+    gl.pixelStorei(gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, gl.NONE)
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img)
     gl.bindTexture(gl.TEXTURE_2D, null)
     this.currentLut = preset.lut
@@ -129,7 +157,16 @@ export class FilmRenderer {
     height: number,
     options: RenderOptions = {}
   ): void {
-    if (this.disposed) return
+    if (this.disposed) throw new Error('Renderer film sudah ditutup.')
+    if (this.contextLost || this.gl.isContextLost()) {
+      throw new Error('Konteks grafis hilang. Gunakan mode Natural atau muat ulang kamera.')
+    }
+
+    if (width > this.maxRenderSize || height > this.maxRenderSize) {
+      throw new Error(
+        `Ukuran ${width}×${height} melampaui batas perangkat ${this.maxRenderSize}px.`
+      )
+    }
 
     if (this.currentLut !== preset.lut) {
       throw new Error(
@@ -151,6 +188,7 @@ export class FilmRenderer {
 
     gl.activeTexture(gl.TEXTURE0)
     gl.bindTexture(gl.TEXTURE_2D, this.sourceTexture)
+    gl.pixelStorei(gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, gl.BROWSER_DEFAULT_WEBGL)
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, source as TexImageSource)
 
     gl.activeTexture(gl.TEXTURE1)
@@ -163,7 +201,7 @@ export class FilmRenderer {
     gl.uniform1f(this.uniforms.uGrain, preset.grain)
     gl.uniform1f(this.uniforms.uVignette, preset.vignette)
     gl.uniform1f(this.uniforms.uHalation, preset.halation)
-    gl.uniform1f(this.uniforms.uSeed, Math.random() * 1000)
+    gl.uniform1f(this.uniforms.uSeed, options.grainSeed ?? Math.random() * 1000)
     gl.uniform1f(this.uniforms.uIntensity, options.intensity ?? 1)
     gl.uniform1f(this.uniforms.uLumaLock, options.lumaLock ?? 0)
     gl.uniform1f(this.uniforms.uContrast, options.contrast ?? 0)
@@ -175,6 +213,11 @@ export class FilmRenderer {
 
     gl.drawArrays(gl.TRIANGLES, 0, 6)
     gl.bindVertexArray(null)
+
+    const glError = gl.getError()
+    if (glError !== gl.NO_ERROR) {
+      throw new Error(`GPU gagal merender foto (WebGL ${glError}).`)
+    }
   }
 
   /** Render lalu keluarkan sebagai JPEG. */
@@ -189,9 +232,15 @@ export class FilmRenderer {
     return canvasToBlob(this.canvas, options.quality ?? 0.9)
   }
 
+  /** Batas aman tekstur/renderbuffer dari GPU perangkat saat ini. */
+  getMaxRenderSize(): number {
+    return this.maxRenderSize
+  }
+
   dispose(): void {
     if (this.disposed) return
     this.disposed = true
+    this.canvas.removeEventListener('webglcontextlost', this.handleContextLost)
 
     const gl = this.gl
     gl.deleteTexture(this.sourceTexture)
@@ -199,6 +248,9 @@ export class FilmRenderer {
     gl.deleteVertexArray(this.vao)
     gl.deleteBuffer(this.quadBuffer)
     gl.deleteProgram(this.program)
+    for (const source of this.lutCache.values()) {
+      if (typeof ImageBitmap !== 'undefined' && source instanceof ImageBitmap) source.close()
+    }
     this.lutCache.clear()
     this.currentLut = null
   }
@@ -314,6 +366,26 @@ function loadImage(src: string): Promise<HTMLImageElement> {
     img.onerror = () => reject(new Error(`Gagal memuat tekstur LUT: ${src}`))
     img.src = src
   })
+}
+
+/**
+ * LUT adalah tabel angka, bukan foto untuk dikoreksi profil warnanya. Pakai
+ * ImageBitmap tanpa color conversion bila browser mendukung; HTMLImageElement
+ * tetap menjadi fallback dan WebGL UNPACK conversion sudah dinonaktifkan.
+ */
+async function loadLutSource(src: string): Promise<LutSource> {
+  if (typeof createImageBitmap !== 'function') return loadImage(src)
+
+  try {
+    const response = await fetch(src, { cache: 'force-cache' })
+    if (!response.ok) throw new Error(`HTTP ${response.status}`)
+    return await createImageBitmap(await response.blob(), {
+      colorSpaceConversion: 'none',
+      premultiplyAlpha: 'none',
+    })
+  } catch {
+    return loadImage(src)
+  }
 }
 
 export function canvasToBlob(canvas: HTMLCanvasElement, quality: number): Promise<Blob> {

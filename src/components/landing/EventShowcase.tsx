@@ -19,7 +19,7 @@ const EVENTS = [
   {
     href: "/pesta",
     label: "Pesta & Nightout",
-    line: "Direct flash 90s dan live slideshow proyektor untuk menangkap energi malam tanpa jaim.",
+    line: "Look warna untuk cahaya pesta dan galeri bersama untuk menangkap energi malam dari banyak sudut.",
   },
   {
     href: "/acara-kantor",

@@ -22,18 +22,18 @@ export default function AcaraKantorPage() {
           icon: "users",
         },
         {
-          title: "Branding Logo Perusahaan",
-          description: "Sematkan logo perusahaan & tema gathering di kartu QR dan watermark setiap foto yang dihasilkan.",
+          title: "QR Siap Masuk Desain",
+          description: "Unduh QR dalam format SVG lalu tempatkan sendiri di standee, rundown, atau materi internal perusahaan.",
           icon: "building",
         },
         {
-          title: "Privasi & Keamanan Data",
-          description: "Galeri terlindungi secara privat. Hanya karyawan yang memiliki QR code internal yang dapat mengakses.",
+          title: "Galeri Berbasis Tautan",
+          description: "Album tidak dicantumkan di daftar publik, tetapi siapa pun yang memiliki tautan dapat membukanya setelah reveal.",
           icon: "shield",
         },
         {
-          title: "Invoice & Pembayaran Resmi",
-          description: "Mendukung pembayaran transfer bank perusahaan, e-invoice resmi, dan kwitansi untuk reimbursement tim.",
+          title: "Unduhan Resolusi Penuh",
+          description: "Setiap foto yang tersimpan dapat dibuka dan diunduh satu per satu untuk dokumentasi internal.",
           icon: "download",
         },
       ]}
@@ -50,13 +50,13 @@ export default function AcaraKantorPage() {
         },
         {
           step: "03",
-          title: "Slideshow & Arsip HD",
-          desc: "Tayang langsung di panggung utama dan unduh seluruh ZIP foto beresolusi penuh untuk dokumentasi HR.",
+          title: "Buka Galeri & Pilih Foto",
+          desc: "Setelah reveal, buka galeri acara lalu unduh foto yang dibutuhkan satu per satu untuk dokumentasi HR.",
         },
       ]}
       presets={[
-        { name: "Everyday 100", desc: "Warna natural, cerah, ramah untuk suasana formal-kasual", tag: "Gala Dinner" },
-        { name: "Sunday Chrome", desc: "Kontras tajam, warna ceria untuk outdoor team building", tag: "Outing & Outbound" },
+        { name: "Everyday 160", desc: "Warna netral hangat untuk suasana formal-kasual", tag: "Gala Dinner" },
+        { name: "Pastel 100", desc: "Warna lapang untuk outdoor team building", tag: "Outing & Outbound" },
         { name: "Golden Hour 400", desc: "Warm flattering tone untuk perayaan malam", tag: "Awarding Night" },
       ]}
       sampleGallery={[
@@ -69,31 +69,18 @@ export default function AcaraKantorPage() {
         author: "Budi Santoso",
         role: "Head of People & Culture · Tech Company Jakarta",
       }}
-      packageHighlight={{
-        name: "Paket Corporate & Gathering",
-        price: "Rp 499.000",
-        guests: "Hingga 600 Karyawan",
-        features: [
-          "Akses kamera web instan tanpa instalasi app",
-          "Kustom logo & tema gathering perusahaan",
-          "Live slideshow projector stream real-time",
-          "Unduh ZIP seluruh arsip foto resolusi penuh (HD)",
-          "Privasi data perusahaan terjamin aman",
-          "Invoice & kwitansi resmi untuk reimbursement",
-        ],
-      }}
       faqs={[
         {
-          q: "Apakah perusahaan bisa meminta invoice resmi dan faktur?",
-          a: "Tentu saja! Kami menyediakan invoice resmi atas nama perusahaan lengkap dengan rincian acara untuk kebutuhan klaim dan administrasi keuangan.",
+          q: "Bagaimana membagikan QR di kanal internal?",
+          a: "Unduh QR SVG dari dashboard, masukkan ke desain materi acara, lalu bagikan melalui kanal internal yang Anda pilih.",
         },
         {
           q: "Apakah data dan foto karyawan kami aman?",
-          a: "Sangat aman. Galeri bersifat privat terkunci dan tidak dipublikasikan ke publik. Hanya pemegang link album yang dapat melihatnya.",
+          a: "Album tidak muncul di daftar publik, tetapi tautannya bukan autentikasi. Siapa pun yang menerima link dapat melihat foto setelah reveal, jadi bagikan hanya melalui kanal yang sesuai.",
         },
         {
           q: "Apakah ada batas jumlah foto yang bisa diambil karyawan?",
-          a: "Tidak ada batasan total foto! Anda dapat menentukan jatah roll per karyawan (misal: 15-20 foto per orang) untuk menjaga kualitas foto yang diambil.",
+          a: "Ada. Paket Starter yang tersedia saat ini mendukung hingga 5 tamu dengan 100 jepretan per tamu. Paket untuk acara lebih besar masih dalam daftar tunggu.",
         },
       ]}
     />

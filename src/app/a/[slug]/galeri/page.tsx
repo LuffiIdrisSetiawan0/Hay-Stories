@@ -1,11 +1,11 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
-import { ArrowLeft, Camera, Clock, Lock } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Camera, Clock, Lock } from 'lucide-react'
 import { resolveReveal } from '@/lib/events'
 import { findActiveGuest, findEventBySlug, isEventOpen } from '@/lib/guest/event'
 import { readGuestSession } from '@/lib/guest/session'
-import { listPhotos } from '@/lib/photos'
+import { countReadyPhotos, listPhotos, type PhotoPage } from '@/lib/photos'
 import PhotoGrid from '@/components/photos/PhotoGrid'
 import { deleteGuestPhoto } from './actions'
 import styles from './Gallery.module.css'
@@ -13,6 +13,20 @@ import styles from './Gallery.module.css'
 export const metadata: Metadata = {
   title: 'Galeri',
   robots: { index: false, follow: false },
+}
+
+const PHOTO_PAGE_SIZE = 48
+
+function parsePage(raw: string | string[] | undefined) {
+  const value = Array.isArray(raw) ? raw[0] : raw
+  const requested = Number(value)
+
+  if (!Number.isSafeInteger(requested) || requested < 1) return 1
+
+  // `.range()` menerima offset, bukan nomor halaman. Keduanya harus tetap
+  // safe integer agar nilai ekstrem tidak dibulatkan sebelum sampai ke server.
+  const offset = (requested - 1) * PHOTO_PAGE_SIZE
+  return Number.isSafeInteger(offset) ? requested : 1
 }
 
 function formatDateTime(iso: string | null) {
@@ -42,11 +56,33 @@ export default async function GalleryPage(props: PageProps<'/a/[slug]/galeri'>) 
     redirect(`/a/${event.slug}`)
   }
 
-  const page = Math.max(1, Number(search.hal ?? 1) || 1)
+  const page = parsePage(search.hal)
   const visible = reveal.revealed && !hostOnly
-  const { photos, total, hasMore, failed } = visible
-    ? await listPhotos(event.id, { page })
-    : { photos: [], total: 0, hasMore: false, failed: false }
+  const galleryPath = `/a/${event.slug}/galeri`
+
+  let photoPage: PhotoPage = { photos: [], total: 0, hasMore: false, failed: false }
+  if (visible) {
+    const count = await countReadyPhotos(event.id)
+    if (count.failed) {
+      photoPage = { photos: [], total: 0, hasMore: false, failed: true }
+    } else {
+      const totalPages = Math.max(1, Math.ceil(count.total / PHOTO_PAGE_SIZE))
+      if (page > totalPages) {
+        redirect(totalPages === 1 ? galleryPath : `${galleryPath}?hal=${totalPages}`)
+      }
+
+      photoPage = await listPhotos(event.id, { page, pageSize: PHOTO_PAGE_SIZE })
+    }
+  }
+
+  const { photos, total, hasMore, failed } = photoPage
+  const totalPages = Math.max(1, Math.ceil(total / PHOTO_PAGE_SIZE))
+
+  // Lindungi pula dari penghapusan foto yang terjadi di antara kueri count dan
+  // kueri halaman: halaman terakhir bisa bergeser saat permintaan berlangsung.
+  if (visible && !failed && page > totalPages) {
+    redirect(totalPages === 1 ? galleryPath : `${galleryPath}?hal=${totalPages}`)
+  }
 
   return (
     <main className={styles.page}>
@@ -142,23 +178,39 @@ export default async function GalleryPage(props: PageProps<'/a/[slug]/galeri'>) 
             />
           </div>
 
-          {hasMore && (
-            <div className={styles.more}>
-              <Link href={`/a/${event.slug}/galeri?hal=${page + 1}`} className="btn btn-secondary">
-                Muat lebih banyak
-              </Link>
-            </div>
-          )}
+          {totalPages > 1 && (
+            <nav className={styles.pagination} aria-label="Halaman galeri">
+              {page > 1 ? (
+                <Link
+                  href={page === 2 ? galleryPath : `${galleryPath}?hal=${page - 1}`}
+                  className={styles.pageLink}
+                >
+                  <ArrowLeft size={15} aria-hidden="true" />
+                  Sebelumnya
+                </Link>
+              ) : (
+                <span className={`${styles.pageLink} ${styles.pageLinkDisabled}`} aria-disabled="true">
+                  <ArrowLeft size={15} aria-hidden="true" />
+                  Sebelumnya
+                </span>
+              )}
 
-          {page > 1 && (
-            <div className={styles.more}>
-              <Link
-                href={page === 2 ? `/a/${event.slug}/galeri` : `/a/${event.slug}/galeri?hal=${page - 1}`}
-                className={styles.quietLink}
-              >
-                Halaman sebelumnya
-              </Link>
-            </div>
+              <span className={styles.pageStatus}>
+                Halaman <strong aria-current="page">{page}</strong> dari {totalPages}
+              </span>
+
+              {hasMore ? (
+                <Link href={`${galleryPath}?hal=${page + 1}`} className={styles.pageLink}>
+                  Berikutnya
+                  <ArrowRight size={15} aria-hidden="true" />
+                </Link>
+              ) : (
+                <span className={`${styles.pageLink} ${styles.pageLinkDisabled}`} aria-disabled="true">
+                  Berikutnya
+                  <ArrowRight size={15} aria-hidden="true" />
+                </span>
+              )}
+            </nav>
           )}
         </>
       )}

@@ -14,18 +14,21 @@
   --color-bg-hover: rgba(0, 0, 0, 0.03);
 
   --color-text-primary: #1a1a1a;
-  --color-text-secondary: rgba(26, 26, 26, 0.7);
-  --color-text-muted: rgba(26, 26, 26, 0.5);
-  --color-text-faint: rgba(26, 26, 26, 0.2);
+  --color-text-secondary: rgba(26, 26, 26, 0.76);
+  --color-text-muted: rgba(26, 26, 26, 0.64);
+  --color-text-faint: rgba(26, 26, 26, 0.6);
 
-  --color-accent: #b38b59; /* Elegant Bronze/Gold */
-  --color-accent-hover: #9c774a;
-  --color-accent-glow: rgba(179, 139, 89, 0.15);
-  --color-accent-soft: rgba(179, 139, 89, 0.1);
+  /* Bronze tuned as readable ink on light surfaces (6.83:1 on bg-primary). */
+  --color-accent: #765127;
+  --color-accent-hover: #5f3f1d;
+  --color-on-accent: #ffffff;
+  --color-accent-glow: rgba(118, 81, 39, 0.22);
+  --color-accent-soft: rgba(118, 81, 39, 0.11);
+  --color-focus-ring: #765127;
   --color-halation: #c99b64;
 
-  --color-border: rgba(0, 0, 0, 0.1);
-  --color-border-hover: rgba(0, 0, 0, 0.2);
+  --color-border: rgba(0, 0, 0, 0.14);
+  --color-border-hover: rgba(0, 0, 0, 0.28);
 
   --color-success: #059669;
   --color-error: #dc2626;
@@ -96,12 +99,20 @@
   --color-bg-hover: rgba(255, 255, 255, 0.06);
 
   --color-text-primary: #f5f2ec;
-  --color-text-secondary: rgba(245, 242, 236, 0.72);
-  --color-text-muted: rgba(245, 242, 236, 0.5);
-  --color-text-faint: rgba(245, 242, 236, 0.22);
+  --color-text-secondary: rgba(245, 242, 236, 0.8);
+  --color-text-muted: rgba(245, 242, 236, 0.66);
+  --color-text-faint: rgba(245, 242, 236, 0.52);
 
-  --color-border: rgba(255, 255, 255, 0.1);
-  --color-border-hover: rgba(255, 255, 255, 0.2);
+  /* Warm gold remains readable against the dark surface (10.27:1). */
+  --color-accent: #ddb57a;
+  --color-accent-hover: #efca93;
+  --color-on-accent: #17120c;
+  --color-accent-glow: rgba(221, 181, 122, 0.25);
+  --color-accent-soft: rgba(221, 181, 122, 0.13);
+  --color-focus-ring: #efca93;
+
+  --color-border: rgba(255, 255, 255, 0.16);
+  --color-border-hover: rgba(255, 255, 255, 0.3);
 
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
   --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.5);
@@ -158,7 +169,7 @@ h1, h2, h3, h4, h5, h6 {
 
 ::selection {
   background: var(--color-accent);
-  color: #ffffff;
+  color: var(--color-on-accent);
 }
 
 a {
@@ -172,6 +183,94 @@ button {
   background: none;
   font: inherit;
   color: inherit;
+}
+
+button:disabled,
+[aria-disabled="true"] {
+  cursor: not-allowed;
+}
+
+/* Shared controls used by dashboard, guest flow, and dialogs. */
+.btn {
+  min-height: 2.75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1.05rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius-full);
+  font-size: 0.875rem;
+  font-weight: 650;
+  line-height: 1;
+  text-decoration: none;
+  touch-action: manipulation;
+  user-select: none;
+  white-space: nowrap;
+  transition:
+    transform var(--transition-fast),
+    color var(--transition-fast),
+    background-color var(--transition-fast),
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast),
+    opacity var(--transition-fast);
+}
+
+.btn:hover:not(:disabled):not([aria-disabled="true"]) {
+  transform: translateY(-1px);
+}
+
+.btn:active:not(:disabled):not([aria-disabled="true"]) {
+  transform: translateY(0);
+}
+
+/* A visible keyboard focus guardrail, including form controls whose modules
+   currently remove their default outline. */
+:where(a, button, input, select, textarea, summary, [tabindex]:not([tabindex="-1"])):focus-visible {
+  outline: 2px solid var(--color-focus-ring) !important;
+  outline-offset: 3px;
+}
+
+.btn:disabled,
+.btn[aria-disabled="true"] {
+  opacity: 0.48;
+}
+
+.btn-primary,
+.btn-accent {
+  color: var(--color-on-accent);
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  box-shadow: 0 8px 22px rgba(126, 91, 48, 0.18);
+}
+
+.btn-primary:hover:not(:disabled):not([aria-disabled="true"]),
+.btn-accent:hover:not(:disabled):not([aria-disabled="true"]) {
+  background: var(--color-accent-hover);
+  border-color: var(--color-accent-hover);
+  box-shadow: 0 10px 28px rgba(126, 91, 48, 0.24);
+}
+
+.btn-secondary {
+  color: var(--color-text-primary);
+  background: var(--color-bg-elevated);
+  border-color: var(--color-border);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-secondary:hover:not(:disabled):not([aria-disabled="true"]) {
+  border-color: var(--color-border-hover);
+  background: var(--color-bg-hover);
+}
+
+@keyframes global-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: global-spin 0.8s linear infinite;
 }
 
 img {

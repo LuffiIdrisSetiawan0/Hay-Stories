@@ -9,7 +9,7 @@ export const metadata: Metadata = {
     template: "%s • HAY Stories",
   },
   description:
-    "Abadikan momen otentik tanpa filter. Berikan tamu Anda pengalaman kamera analog digital premium. Satu QR code, satu preset eksklusif, kenangan yang terungkap bersama.",
+    "Kamera acara berbasis QR dengan tangkapan sensor beresolusi tinggi, look film yang terukur, dan galeri acara berbasis tautan.",
   applicationName: "HAY Stories",
   authors: [{ name: "HAY Stories", url: "https://haystories.id" }],
   keywords: [
@@ -34,13 +34,13 @@ export const metadata: Metadata = {
     siteName: "HAY Stories",
     title: "HAY Stories • Kamera Sekali Pakai untuk Acaramu",
     description:
-      "Buat pengalaman kamera sekali pakai untuk acaramu. Tamu memotret lewat QR dengan preset film. Semua foto terungkap bersama.",
+      "Tamu memotret lewat QR dengan still sensor beresolusi tinggi dan look film yang sesuai cahaya. Foto tersimpan di satu galeri acara berbasis tautan.",
   },
   twitter: {
     card: "summary_large_image",
     title: "HAY Stories • Kamera Sekali Pakai untuk Acaramu",
     description:
-      "Buat pengalaman kamera sekali pakai untuk acaramu. Tamu memotret lewat QR dengan preset film. Semua foto terungkap bersama.",
+      "Tamu memotret lewat QR dengan still sensor beresolusi tinggi dan look film yang sesuai cahaya. Foto tersimpan di satu galeri acara berbasis tautan.",
   },
   icons: {
     icon: "/icon.svg",

@@ -1,6 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://quikrqpvywryvryvywyx.supabase.co'
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || ''
 
 if (!SUPABASE_SERVICE_ROLE_KEY) {
@@ -30,17 +29,25 @@ async function main() {
   console.log(`Found ${events.length} events:`)
   for (const event of events) {
     console.log(`- ${event.title} (${event.id}): preset = ${event.preset}`)
-    // If preset is not one of the new ones, update to disposable-quicksnap
-    const valid = ['natural-clean', 'film-35mm', 'film-fuji', 'film-kodak', 'film-polaroid']
+    // Preset generasi lama tetap bisa dibaca pada metadata foto, tetapi acara
+    // baru hanya boleh memakai katalog aktif yang LUT dan lisensinya diaudit.
+    const valid = [
+      'natural-clean',
+      'everyday-100',
+      'golden-hour-400',
+      'pastel-400',
+      'neon-night-1600',
+      'noir-400',
+    ]
     if (!valid.includes(event.preset)) {
       const { error: updateErr } = await supabase
         .from('events')
-        .update({ preset: 'film-35mm' })
+        .update({ preset: 'natural-clean' })
         .eq('id', event.id)
       if (updateErr) {
         console.error(`  Failed to update event ${event.id}:`, updateErr)
       } else {
-        console.log(`  Updated event ${event.id} to film-35mm!`)
+        console.log(`  Updated event ${event.id} to natural-clean!`)
       }
     }
   }

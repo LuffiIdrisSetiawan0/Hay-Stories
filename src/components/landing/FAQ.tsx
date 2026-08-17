@@ -16,16 +16,16 @@ const faqs = [
     a: "Tidak perlu. Cukup scan QR code lewat kamera HP, langsung memotret tanpa unduh aplikasi atau bikin akun.",
   },
   {
-    q: "Bagaimana cara menampilkan Live Slideshow di proyektor?",
-    a: "Buka tautan slideshow di laptop venue. Setiap foto baru dari tamu akan langsung tayang di layar proyektor secara real-time.",
+    q: "Bagaimana cara membagikan galeri acara?",
+    a: "Tuan rumah dapat mengunduh QR SVG untuk dicetak atau menyalin tautan album. Galeri tidak tercantum publik, tetapi siapa pun yang menerima tautannya dapat membuka setelah reveal.",
   },
   {
     q: "Preset roll film apa saja yang tersedia?",
-    a: "Tersedia 6 preset film analog 35mm otentik yang cocok untuk segala kondisi cahaya—dari outdoor cerah hingga pesta malam.",
+    a: "Tersedia 6 look yang diaudit untuk kebutuhan berbeda—mulai dari Natural yang aman, outdoor cerah, sore hangat, hingga pesta malam. Kondisi terbaiknya tampil langsung di pemilih preset.",
   },
   {
     q: "Berapa lama foto tersimpan dan cara mengunduhnya?",
-    a: "Foto tersimpan 1 tahun dan bisa diunduh kapan saja, satuan maupun sekaligus dalam file ZIP resolusi penuh.",
+    a: "Paket Starter menyimpan foto selama 90 hari. Selama masa itu, foto dapat dibuka dan diunduh satu per satu dalam resolusi hasilnya; unduhan ZIP belum tersedia.",
   },
   {
     q: "Apakah ada paket gratis?",

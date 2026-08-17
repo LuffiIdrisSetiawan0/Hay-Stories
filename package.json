@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "audit:luts": "node scripts/audit-luts.mjs",
+    "cleanup:photo-tombstones": "node scripts/cleanup-photo-tombstones.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.4",

@@ -5,15 +5,11 @@ import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import styles from "./Navbar.module.css";
 
-interface NavbarProps {
-  overHero?: boolean;
-}
-
 const SERVICE_ITEMS = [
   {
     index: "01",
     title: "Roll Film Analog",
-    desc: "6 preset warna analog emulsi nyata langsung di kamera browser tanpa aplikasi.",
+    desc: "6 look warna terkalibrasi langsung di kamera browser tanpa aplikasi.",
     href: "/#preset",
   },
   {
@@ -24,14 +20,14 @@ const SERVICE_ITEMS = [
   },
   {
     index: "03",
-    title: "Live Slideshow",
-    desc: "Foto candid tamu otomatis tayang langsung di proyektor & layar panggung acara.",
-    href: "/#cara-kerja",
+    title: "Galeri Satu Tautan",
+    desc: "Foto yang berhasil disimpan terkumpul di satu galeri acara berbasis tautan.",
+    href: "/#kenapa",
   },
   {
     index: "04",
-    title: "Cetak & Arsip HD",
-    desc: "Bingkai kustom nama pengantin & unduh seluruh roll foto dengan resolusi penuh.",
+    title: "Bingkai & Unduhan",
+    desc: "Pilih bingkai saat memotret lalu unduh tiap foto pada resolusi hasilnya.",
     href: "/harga",
   },
 ] as const;
@@ -49,7 +45,7 @@ const EXPLORE_ITEMS = [
   { label: "Masuk / Buat Album", href: "/login" },
 ] as const;
 
-export default function Navbar({ overHero = false }: NavbarProps) {
+export default function Navbar() {
   const [open, setOpen] = useState(false);
   const capsuleRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -153,6 +149,7 @@ export default function Navbar({ overHero = false }: NavbarProps) {
             id="mega-menu-content"
             className={`${styles.drawer} ${open ? styles.drawerOpen : ""}`}
             aria-hidden={!open}
+            inert={!open}
           >
             <div className={styles.drawerInner}>
               <div className={styles.menuContent}>

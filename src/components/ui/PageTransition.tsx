@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback, useTransition } from "react";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import styles from "./PageTransition.module.css";
 
@@ -16,9 +16,11 @@ export default function PageTransition() {
   const [, startTransition] = useTransition();
 
   const [status, setStatus] = useState<TransitionStatus>("idle");
-  const [displayLocation, setDisplayLocation] = useState(pathname);
+  const search = searchParams.toString();
+  const currentLocation = pathname + (search ? `?${search}` : "");
+  const previousLocationRef = useRef(currentLocation);
   const pendingHrefRef = useRef<string | null>(null);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Clear any safety timers on unmount
   useEffect(() => {
@@ -29,22 +31,28 @@ export default function PageTransition() {
 
   // When route changes, trigger the exit (uncover) animation
   useEffect(() => {
-    const currentFull = pathname + (searchParams?.toString() ? `?${searchParams.toString()}` : "");
-    if (currentFull !== displayLocation) {
-      setDisplayLocation(currentFull);
+    if (currentLocation === previousLocationRef.current) return;
+    previousLocationRef.current = currentLocation;
 
-      if (status === "entering" || status === "holding") {
-        setStatus("exiting");
-        window.scrollTo(0, 0);
+    // Back/forward navigation does not start the curtain, so there is nothing
+    // to uncover. A pending href is only set by navigateWithTransition().
+    if (!pendingHrefRef.current) return;
 
-        if (timeoutRef.current) clearTimeout(timeoutRef.current);
-        timeoutRef.current = setTimeout(() => {
-          setStatus("idle");
-          pendingHrefRef.current = null;
-        }, 650);
-      }
-    }
-  }, [pathname, searchParams, displayLocation, status]);
+    window.scrollTo(0, 0);
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+
+    // Defer the state update to the next frame so the effect only synchronizes
+    // with the completed Next.js navigation.
+    const frame = window.requestAnimationFrame(() => {
+      setStatus("exiting");
+      timeoutRef.current = setTimeout(() => {
+        setStatus("idle");
+        pendingHrefRef.current = null;
+      }, 650);
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [currentLocation]);
 
   // Navigate with calibrated 1-second curtain transition
   const navigateWithTransition = useCallback(
@@ -112,10 +120,14 @@ export default function PageTransition() {
       const href = target.getAttribute("href");
       if (!href) return;
 
-      // Ignore external links, downloads, target="_blank", mailto, tel, javascript
+      // A link that explicitly controls its browsing context or download
+      // behavior must retain native browser semantics, even when same-origin.
+      if (target.hasAttribute("target") || target.hasAttribute("download")) {
+        return;
+      }
+
+      // Ignore external links and non-navigation protocols.
       if (
-        target.target === "_blank" ||
-        target.hasAttribute("download") ||
         href.startsWith("http://") ||
         href.startsWith("https://") ||
         href.startsWith("mailto:") ||

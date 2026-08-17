@@ -119,7 +119,10 @@ export function normalizeAccessCode(raw: string): string {
  * `join_event` di database sambil memegang kunci baris acara.
  */
 export function isEventOpen(event: GuestEvent, now = Date.now()): boolean {
-  if (event.status !== 'active' && event.status !== 'revealed') return false
+  // `revealed` adalah status lifecycle lama/terminal. Membuka galeri modern
+  // memakai `is_revealed` dan tidak menghentikan kamera; hanya `active` yang
+  // diterima join_event() serta reserve_photo_upload().
+  if (event.status !== 'active') return false
   if (event.expires_at && new Date(event.expires_at).getTime() <= now) return false
   return true
 }

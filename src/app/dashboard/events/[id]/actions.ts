@@ -3,11 +3,19 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { PHOTO_BUCKET } from '@/lib/photos'
+import { PHOTO_BUCKET, photoPaths } from '@/lib/photos'
 
 export interface RevealResult {
   error?: string
   ok?: boolean
+}
+
+interface DeletePhotoResult {
+  outcome: 'deleted' | 'already_deleted' | 'not_found' | 'forbidden' | 'conflict'
+  photo_event_id: string | null
+  full_path: string | null
+  preview_path: string | null
+  storage_cleanup_pending: boolean
 }
 
 /**
@@ -46,9 +54,7 @@ export async function revealNow(
   return { ok: true }
 }
 
-/**
- * Hapus satu foto secara permanen oleh host dan kembalikan kuota jepretan tamu (bisa retake).
- */
+/** Hapus foto dari album dan kembalikan satu kuota secara exactly-once. */
 export async function deleteHostPhoto(photoId: string): Promise<{ ok: boolean; error?: string }> {
   if (!photoId) return { ok: false, error: 'ID foto tidak sah.' }
 
@@ -60,40 +66,48 @@ export async function deleteHostPhoto(photoId: string): Promise<{ ok: boolean; e
 
   const admin = createAdminClient()
 
-  // Ambil data foto untuk memastikan acara ini milik host yang sedang login
-  const { data: photo, error: fetchErr } = await admin
-    .from('photos')
-    .select('id, event_id, guest_id, storage_path, thumb_path, events!inner(host_id)')
-    .eq('id', photoId)
-    .single()
+  // RPC memverifikasi kepemilikan host, mengunci event -> guest -> photo,
+  // menombstone foto, dan melepas kuota dalam satu transaksi. Retry dengan ID
+  // yang sama tidak mungkin mengurangi shots_used untuk kedua kalinya.
+  const { data, error } = await admin
+    .rpc('delete_photo_for_actor', {
+      p_photo_id: photoId,
+      p_actor_kind: 'host',
+      p_actor_id: user.id,
+      p_event_id: null,
+    })
+    .single<DeletePhotoResult>()
 
-  if (fetchErr || !photo) {
-    return { ok: false, error: 'Foto tidak ditemukan.' }
+  if (error || !data) {
+    console.error('deleteHostPhoto RPC gagal:', error)
+    return { ok: false, error: 'Gagal menghapus foto. Coba lagi.' }
   }
 
-  const hostId = (photo.events as unknown as { host_id: string })?.host_id
-  if (hostId !== user.id) {
+  if (data.outcome === 'not_found') return { ok: false, error: 'Foto tidak ditemukan.' }
+  if (data.outcome === 'forbidden') {
     return { ok: false, error: 'Kamu bukan pemilik album ini.' }
   }
-
-  // Hapus berkas dari storage
-  const paths = [photo.storage_path, photo.thumb_path].filter(Boolean) as string[]
-  if (paths.length > 0) {
-    await admin.storage.from(PHOTO_BUCKET).remove(paths)
+  if (data.outcome === 'conflict' || !data.photo_event_id) {
+    return { ok: false, error: 'Data foto berubah. Muat ulang lalu coba lagi.' }
   }
 
-  // Hapus baris dari database
-  const { error: deleteErr } = await admin.from('photos').delete().eq('id', photoId)
-  if (deleteErr) {
-    console.error('deleteHostPhoto row gagal:', deleteErr)
-    return { ok: false, error: 'Gagal menghapus foto dari database.' }
+  // Transaksi DB sudah commit sebelum baris ini. Remove pertama mempercepat
+  // privasi pengguna; tombstone tetap dijadwalkan untuk dihapus ulang setelah
+  // signed upload token mati, sehingga upload terlambat tidak menjadi orphan.
+  if (data.storage_cleanup_pending) {
+    const canonical = photoPaths(data.photo_event_id, photoId)
+    if (data.full_path === canonical.full && data.preview_path === canonical.thumb) {
+      const { error: storageError } = await admin.storage
+        .from(PHOTO_BUCKET)
+        .remove([canonical.full, canonical.thumb])
+      if (storageError) {
+        console.error('deleteHostPhoto Storage tertunda:', storageError)
+      }
+    } else {
+      console.error('deleteHostPhoto melewati path Storage tidak kanonis:', { photoId })
+    }
   }
 
-  // Kembalikan kuota jepretan tamu (supaya tamu bisa retake)
-  if (photo.guest_id) {
-    await admin.rpc('release_shot', { p_guest_id: photo.guest_id })
-  }
-
-  revalidatePath(`/dashboard/events/${photo.event_id}`)
+  revalidatePath(`/dashboard/events/${data.photo_event_id}`)
   return { ok: true }
 }

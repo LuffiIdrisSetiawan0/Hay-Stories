@@ -1,15 +1,9 @@
 /**
- * Shader Emulasi Film Analog & Disposable Camera (Color Science Engine).
+ * Pipeline warna kamera dan look film.
  *
- * Urutan pemrosesan mengikuti sifat kimiawi dan optik film 35mm:
- *   0a. Penajaman Kamera (Optical Unsharp Mask) — menajamkan detail & tekstur sensor HP.
- *   0b. Pencahayaan (Exposure EV) — kompensasi pencahayaan fotografi.
- *   0c. Soft Skin — reduksi micro-contrast pada area nada kulit YCbCr.
- *   1. Halation — pendaran cahaya menembus lapisan emulsi (red/amber bloom).
- *   2. Vignette — pelemahan cahaya di sudut optik lensa saku.
- *   3. 3D LUT Emulsion — transfer kurva warna emulsi film.
- *   4. Film Density & Tone Curve — lifted matte shadows (anti-keruh) & highlight roll-off lembut.
- *   5. Silver Grain — kristal perak 35mm multi-frekuensi di area midtones.
+ * Exposure, detail, dan luminance dihitung di linear light. LUT menerima sRGB
+ * sesuai Hald CLUT sumber. Efek artistik sengaja ringan karena JPEG ponsel
+ * sudah diproses oleh ISP masing-masing perangkat.
  */
 
 export const VERTEX_SHADER = /* glsl */ `#version 300 es
@@ -53,6 +47,19 @@ float luma(vec3 c) {
   return dot(c, vec3(LUMA_R, LUMA_G, LUMA_B));
 }
 
+vec3 srgbToLinear(vec3 c) {
+  vec3 low = c / 12.92;
+  vec3 high = pow((c + 0.055) / 1.055, vec3(2.4));
+  return mix(low, high, step(vec3(0.04045), c));
+}
+
+vec3 linearToSrgb(vec3 c) {
+  c = max(c, vec3(0.0));
+  vec3 low = c * 12.92;
+  vec3 high = 1.055 * pow(c, vec3(1.0 / 2.4)) - 0.055;
+  return mix(low, high, step(vec3(0.0031308), c));
+}
+
 /**
  * Sampel 3D LUT horizontal strip.
  */
@@ -92,13 +99,17 @@ vec3 sharpen(vec2 uv, vec3 base, float amount) {
   if (amount <= 0.0) return base;
 
   vec2 step = 1.0 / uResolution;
-  vec3 n = texture(uSource, clamp(uv + vec2(0.0, -step.y), 0.0, 1.0)).rgb;
-  vec3 s = texture(uSource, clamp(uv + vec2(0.0, step.y), 0.0, 1.0)).rgb;
-  vec3 e = texture(uSource, clamp(uv + vec2(step.x, 0.0), 0.0, 1.0)).rgb;
-  vec3 w = texture(uSource, clamp(uv + vec2(-step.x, 0.0), 0.0, 1.0)).rgb;
+  vec3 center = srgbToLinear(texture(uSource, uv).rgb);
+  vec3 prepared = srgbToLinear(base);
+  vec3 n = srgbToLinear(texture(uSource, clamp(uv + vec2(0.0, -step.y), 0.0, 1.0)).rgb);
+  vec3 s = srgbToLinear(texture(uSource, clamp(uv + vec2(0.0, step.y), 0.0, 1.0)).rgb);
+  vec3 e = srgbToLinear(texture(uSource, clamp(uv + vec2(step.x, 0.0), 0.0, 1.0)).rgb);
+  vec3 w = srgbToLinear(texture(uSource, clamp(uv + vec2(-step.x, 0.0), 0.0, 1.0)).rgb);
 
-  vec3 laplacian = (base * 4.0) - (n + s + e + w);
-  return clamp(base + laplacian * amount * 1.45, 0.0, 1.0);
+  vec3 laplacian = (center * 4.0) - (n + s + e + w);
+  // Gain dibatasi agar detail naik tanpa halo putih dan noise digital kasar.
+  vec3 sharpened = prepared + laplacian * amount * 0.65;
+  return clamp(linearToSrgb(sharpened), 0.0, 1.0);
 }
 
 /**
@@ -107,7 +118,19 @@ vec3 sharpen(vec2 uv, vec3 base, float amount) {
  */
 vec3 applyExposure(vec3 col, float ev) {
   if (abs(ev) <= 0.001) return col;
-  return col * pow(2.0, ev);
+
+  vec3 exposed = srgbToLinear(col) * exp2(ev);
+
+  // Shoulder lembut hanya saat menaikkan exposure. Highlight mendapat ruang
+  // untuk melandai alih-alih langsung terpotong putih.
+  if (ev > 0.0) {
+    const float knee = 0.78;
+    vec3 over = max(exposed - knee, vec3(0.0));
+    vec3 shoulder = knee + (1.0 - knee) * (1.0 - exp(-over / (1.0 - knee)));
+    exposed = mix(exposed, shoulder, step(vec3(knee), exposed));
+  }
+
+  return clamp(linearToSrgb(exposed), 0.0, 1.0);
 }
 
 /**
@@ -117,13 +140,17 @@ vec3 halation(vec2 uv, float amount) {
   if (amount <= 0.0) return vec3(0.0);
 
   vec2 texel = 1.0 / uResolution;
-  float radius = 7.5;
+  // Skala relatif menjaga karakter yang sama di preview dan hasil penuh.
+  float radius = min(uResolution.x, uResolution.y) * 0.0045;
   vec3 sum = vec3(0.0);
 
   for (int i = 0; i < 8; i++) {
     float a = float(i) * 0.7853981634; // 2pi/8
     vec2 offset = vec2(cos(a), sin(a)) * texel * radius;
-    vec3 s = texture(uSource, clamp(uv + offset, 0.0, 1.0)).rgb;
+    vec3 s = applyExposure(
+      texture(uSource, clamp(uv + offset, 0.0, 1.0)).rgb,
+      uExposure
+    );
     sum += max(vec3(0.0), s - 0.65); // sorotan terang yang memancar
   }
 
@@ -180,16 +207,17 @@ vec3 smoothSkin(vec2 uv, vec3 base, float amount) {
 }
 
 /**
- * Kurva Respon Film Analog:
- * - Lifted matte shadows (mencegah bayangan hitam mati/dekil)
- * - Highlight roll-off shoulder (mencegah clipping putih keras)
- * - S-Curve kontras organik
+ * Kurva kontras lembut berbasis luminance. Rasio RGB linear dipertahankan agar
+ * hue kulit tidak bergeser seperti pada kurva per kanal.
  */
 vec3 applyFilmDensityCurve(vec3 col, float contrastAmount) {
   if (contrastAmount > 0.0) {
-    vec3 sc = clamp(col, 0.0, 1.0);
-    vec3 sCurve = sc * sc * (3.0 - 2.0 * sc);
-    return mix(col, sCurve, contrastAmount * 0.5);
+    vec3 linear = srgbToLinear(clamp(col, 0.0, 1.0));
+    float sourceLuma = luma(linear);
+    float sCurve = sourceLuma * sourceLuma * (3.0 - 2.0 * sourceLuma);
+    float targetLuma = mix(sourceLuma, sCurve, contrastAmount * 0.5);
+    linear *= targetLuma / max(sourceLuma, 0.0001);
+    return clamp(linearToSrgb(linear), 0.0, 1.0);
   }
   return col;
 }
@@ -201,14 +229,12 @@ void main() {
 
   vec3 c = texture(uSource, uv).rgb;
 
-  // 0a. Penajaman Kamera (Detail & Tekstur Jernih)
-  c = sharpen(uv, c, uSharpen);
-
-  // 0b. Pencahayaan & Exposure (Kompensasi Kecerahan)
-  c = applyExposure(c, uExposure);
-
-  // 0c. Soft Skin (Kulit Sehat Alami)
+  // Tetangga smoothing masih berada pada domain sumber yang sama.
   c = smoothSkin(uv, c, uSmooth);
+
+  // Detail asli dikembalikan sesudah smoothing; exposure memakai linear light.
+  c = sharpen(uv, c, uSharpen);
+  c = applyExposure(c, uExposure);
 
   // 1. Halation (Pendaran Hangat Emulsi 35mm)
   c += halation(uv, uHalation);
@@ -226,20 +252,25 @@ void main() {
   vec3 graded = sampleLut(base, uLutSize);
 
   if (uLumaLock > 0.0) {
-    float lo = luma(base);
-    float lg = luma(graded);
+    vec3 baseLinear = srgbToLinear(base);
+    vec3 gradedLinear = srgbToLinear(graded);
+    float lo = luma(baseLinear);
+    float lg = luma(gradedLinear);
     float ratio = clamp(lo / max(lg, 0.0001), 0.25, 4.0);
-    graded *= mix(1.0, ratio, uLumaLock);
+    gradedLinear *= mix(1.0, ratio, uLumaLock);
+    graded = clamp(linearToSrgb(gradedLinear), 0.0, 1.0);
   }
 
   c = mix(base, graded, uIntensity);
 
-  // 4. Kurva Karakteristik Film (Lifted Shadows + Creamy Highlights + Film S-Curve)
+  // 4. Kurva kontras berbasis luminance
   c = applyFilmDensityCurve(c, uContrast);
 
   // 5. Butiran Kristal Perak 35mm Multi-Frekuensi (Hidup di Mid-tones)
   if (uGrain > 0.0) {
-    vec2 gp = uv * uResolution * 0.75 + uSeed;
+    float minSide = min(uResolution.x, uResolution.y);
+    vec2 canonical = (uResolution / max(minSide, 1.0)) * 1200.0;
+    vec2 gp = uv * canonical + uSeed;
     float n = hash(gp) - 0.5;
 
     float l = luma(c);

@@ -23,7 +23,7 @@ const steps = [
     icon: Sparkles,
     title: "Terkumpul Otomatis",
     description:
-      "Seluruh foto candid otomatis masuk ke galeri privat Anda, siap tayang di proyektor dan diunduh dalam resolusi penuh.",
+      "Foto yang berhasil disimpan masuk ke satu galeri acara berbasis tautan dan dapat diunduh satu per satu dalam resolusi hasilnya.",
   },
 ];
 

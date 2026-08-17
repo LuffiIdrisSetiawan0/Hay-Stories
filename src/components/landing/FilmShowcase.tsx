@@ -84,7 +84,7 @@ export default function FilmShowcase() {
     <Section id="preset" tone="dark">
       <div ref={sectionRef} className={styles.inner}>
         <div className={styles.head}>
-          <p className={styles.eyebrow}>Preset Roll Film 35mm</p>
+          <p className={styles.eyebrow}>Pilihan Look Film</p>
           <p className={styles.counter} aria-hidden="true">
             {String(active + 1).padStart(2, "0")}
             <span className={styles.counterTotal}>
@@ -139,11 +139,11 @@ export default function FilmShowcase() {
             <div className={styles.featureMeta}>
               <div className={styles.metaBadgeRow}>
                 <h3 className={styles.featureName}>{current.name}</h3>
-                <span className={styles.presetBadge}>35mm Film Roll</span>
+                <span className={styles.presetBadge}>Look Tervalidasi</span>
               </div>
               <p className={styles.featureCharacter}>{current.character}</p>
               <p className={styles.footnote}>
-                Dirender di perangkatmu dengan WebGL shader emulsi film 35mm otentik.
+                Dirender langsung di perangkat dengan LUT berlisensi dan pipeline warna yang diaudit.
               </p>
             </div>
           </div>

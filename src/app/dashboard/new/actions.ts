@@ -60,6 +60,9 @@ export async function createEvent(
   let revealAt: string | null = null
   if (revealMode === 'scheduled') {
     if (!revealAtRaw) return { error: 'Tentukan kapan foto akan terungkap.' }
+    if (!/(?:Z|[+-]\d{2}:\d{2})$/i.test(revealAtRaw)) {
+      return { error: 'Zona waktu reveal tidak ditemukan. Pilih ulang waktunya.' }
+    }
     const parsed = new Date(revealAtRaw)
     if (Number.isNaN(parsed.getTime())) return { error: 'Waktu reveal tidak valid.' }
     if (parsed.getTime() <= Date.now()) {

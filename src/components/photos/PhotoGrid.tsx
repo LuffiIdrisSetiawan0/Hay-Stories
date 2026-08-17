@@ -1,10 +1,10 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Download, X, ChevronLeft, ChevronRight, Loader2, Trash2, Share2 } from 'lucide-react'
 import { getPreset } from '@/lib/catalog'
 import { photoFilename, downloadUrl } from '@/lib/photo-links'
-import { drawFramed, getFrame } from '@/lib/frames'
+import { drawFramed, framedSize, frameTimestamp, getFrame } from '@/lib/frames'
 import type { SignedPhoto } from '@/lib/photos'
 import styles from './PhotoGrid.module.css'
 
@@ -28,6 +28,96 @@ function formatTaken(iso: string | null) {
   )
 }
 
+function validPhotoSize(photo: GridPhotoRow) {
+  return {
+    width: photo.width && photo.width > 0 ? photo.width : 1600,
+    height: photo.height && photo.height > 0 ? photo.height : 1200,
+  }
+}
+
+/**
+ * Pratinjau DOM dari geometri yang sama dengan `drawFramed()`.
+ *
+ * Foto mentah tetap disimpan tanpa bingkai. Komponen ini membuat crop, padding,
+ * sprocket, dan caption terlihat di grid/lightbox tanpa memproses ulang 48
+ * bitmap di browser. Saat diunduh, `drawFramed()` membakar geometri yang sama ke
+ * JPEG resolusi penuh.
+ */
+function FramedPhoto({
+  photo,
+  eventTitle,
+  src,
+  alt,
+  variant,
+}: {
+  photo: GridPhotoRow
+  eventTitle: string
+  src: string
+  alt: string
+  variant: 'grid' | 'lightbox'
+}) {
+  const frame = getFrame(photo.frame ?? 'none') ?? getFrame('none')!
+  const source = validPhotoSize(photo)
+  const box = framedSize(frame, source.width, source.height)
+  const ratio = box.width / box.height
+  const gridWidth = Math.min(1, ratio) * 100
+  const gridHeight = Math.min(1, 1 / ratio) * 100
+  const photoStyle = {
+    left: `${(box.offsetX / box.width) * 100}%`,
+    top: `${(box.offsetY / box.height) * 100}%`,
+    width: `${(box.photoWidth / box.width) * 100}%`,
+    height: `${(box.photoHeight / box.height) * 100}%`,
+  }
+  const bandHeight = (box.offsetY / box.height) * 100
+  const captionHeight = ((box.height - box.offsetY - box.photoHeight) / box.height) * 100
+  const parsedTakenAt = photo.taken_at ? new Date(photo.taken_at) : null
+  const takenAt = parsedTakenAt && !Number.isNaN(parsedTakenAt.getTime()) ? parsedTakenAt : null
+
+  return (
+    <span
+      className={`${styles.framedPhoto} ${
+        variant === 'grid' ? styles.gridPhoto : styles.lightboxPhoto
+      }`}
+      style={{
+        aspectRatio: `${box.width} / ${box.height}`,
+        backgroundColor: frame.background,
+        ...(variant === 'grid'
+          ? { width: `${gridWidth}%`, height: `${gridHeight}%` }
+          : { width: `min(90vw, ${ratio * 75}vh)` }),
+      }}
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={src} alt={alt} loading={variant === 'grid' ? 'lazy' : 'eager'} decoding="async" className={styles.framedImage} style={photoStyle} />
+
+      {frame.sprockets && (
+        <>
+          <span
+            aria-hidden="true"
+            className={`${styles.frameSprockets} ${styles.frameSprocketsTop}`}
+            style={{ height: `${bandHeight}%` }}
+          />
+          <span
+            aria-hidden="true"
+            className={`${styles.frameSprockets} ${styles.frameSprocketsBottom}`}
+            style={{ height: `${bandHeight}%` }}
+          />
+        </>
+      )}
+
+      {frame.caption && (
+        <span
+          aria-hidden="true"
+          className={styles.frameCaption}
+          style={{ height: `${captionHeight}%` }}
+        >
+          <span className={styles.frameTitle}>{eventTitle}</span>
+          <span className={styles.frameStamp}>{frameTimestamp(takenAt)}</span>
+        </span>
+      )}
+    </span>
+  )
+}
+
 export default function PhotoGrid({
   photos: initialPhotos,
   eventTitle,
@@ -35,16 +125,18 @@ export default function PhotoGrid({
   isHost = false,
   onDeletePhoto,
 }: Props) {
-  const [photos, setPhotos] = useState<SignedPhoto[]>(initialPhotos)
+  const [deletedPhotoIds, setDeletedPhotoIds] = useState<Set<string>>(() => new Set())
   const [openIndex, setOpenIndex] = useState<number | null>(null)
   const [saving, setSaving] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [toast, setToast] = useState<string | null>(null)
+  const dialogRef = useRef<HTMLDivElement>(null)
+  const closeButtonRef = useRef<HTMLButtonElement>(null)
 
-  // Keep state in sync with incoming props
-  useEffect(() => {
-    setPhotos(initialPhotos)
-  }, [initialPhotos])
+  // Props tetap menjadi sumber kebenaran saat pindah halaman. State lokal hanya
+  // menyimpan optimistic deletion, jadi tidak perlu setState sinkron di effect.
+  const photos = initialPhotos.filter((photo) => !deletedPhotoIds.has(photo.id))
+  const photoCount = photos.length
 
   useEffect(() => {
     if (!toast) return
@@ -53,6 +145,7 @@ export default function PhotoGrid({
   }, [toast])
 
   const open = openIndex === null ? null : photos[openIndex]
+  const lightboxOpen = openIndex !== null
 
   const close = useCallback(() => setOpenIndex(null), [])
 
@@ -61,25 +154,49 @@ export default function PhotoGrid({
       setOpenIndex((i) => {
         if (i === null) return i
         const next = i + delta
-        return next < 0 || next >= photos.length ? i : next
+        return next < 0 || next >= photoCount ? i : next
       })
     },
-    [photos.length]
+    [photoCount]
   )
 
-  // Keyboard navigation
+  // Keyboard navigation + focus trap untuk dialog modal.
   useEffect(() => {
-    if (openIndex === null) return
+    if (!lightboxOpen) return
+
+    const previouslyFocused = document.activeElement as HTMLElement | null
+    const focusFrame = requestAnimationFrame(() => closeButtonRef.current?.focus())
 
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') close()
       else if (e.key === 'ArrowLeft') step(-1)
       else if (e.key === 'ArrowRight') step(1)
+      else if (e.key === 'Tab') {
+        const focusable = Array.from(
+          dialogRef.current?.querySelectorAll<HTMLElement>(
+            'button:not(:disabled), a[href], [tabindex]:not([tabindex="-1"])'
+          ) ?? []
+        )
+        if (focusable.length === 0) return
+        const first = focusable[0]
+        const last = focusable[focusable.length - 1]
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault()
+          last.focus()
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault()
+          first.focus()
+        }
+      }
     }
 
     window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [openIndex, close, step])
+    return () => {
+      cancelAnimationFrame(focusFrame)
+      window.removeEventListener('keydown', onKey)
+      previouslyFocused?.focus()
+    }
+  }, [lightboxOpen, close, step])
 
   // Prevent background scrolling while lightbox is open
   useEffect(() => {
@@ -111,8 +228,12 @@ export default function PhotoGrid({
           throw new Error(res.error ?? 'Gagal menghapus foto.')
         }
 
-        // Hapus dari state lokal
-        setPhotos((prev) => prev.filter((p) => p.id !== photo.id))
+        // Sembunyikan secara optimistis tanpa menyalin seluruh props ke state.
+        setDeletedPhotoIds((prev) => {
+          const next = new Set(prev)
+          next.add(photo.id)
+          return next
+        })
         setToast('Foto dihapus. Kuota jepretan dikembalikan untuk retake!')
 
         // Jika lightbox sedang terbuka pada foto yang dihapus
@@ -279,7 +400,16 @@ export default function PhotoGrid({
 
   return (
     <>
-      {toast && <div className={styles.toastMsg}>{toast}</div>}
+      {toast && (
+        <div
+          className={styles.toastMsg}
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+        >
+          {toast}
+        </div>
+      )}
 
       <ul className={styles.grid}>
         {photos.map((photo, i) => {
@@ -295,13 +425,12 @@ export default function PhotoGrid({
                 onClick={() => setOpenIndex(i)}
                 aria-label={`Buka foto dari ${photo.guest_name || 'Tamu'}`}
               >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
+                <FramedPhoto
+                  photo={photo}
+                  eventTitle={eventTitle}
                   src={photo.thumbUrl}
                   alt={`Foto dari ${photo.guest_name || 'Tamu'}`}
-                  loading="lazy"
-                  decoding="async"
-                  className={styles.thumb}
+                  variant="grid"
                 />
                 <div className={styles.credit}>
                   <span className={styles.creditName}>{photo.guest_name || 'Tamu'}</span>
@@ -333,6 +462,7 @@ export default function PhotoGrid({
       {/* Lightbox / Penampil Foto Layar Penuh */}
       {open !== null && openIndex !== null && (
         <div
+          ref={dialogRef}
           role="dialog"
           aria-modal="true"
           aria-label="Penampil foto layar penuh"
@@ -354,6 +484,7 @@ export default function PhotoGrid({
 
             <div className={styles.topActions}>
               <button
+                ref={closeButtonRef}
                 type="button"
                 onClick={() => share(open)}
                 disabled={saving}
@@ -423,11 +554,12 @@ export default function PhotoGrid({
             )}
 
             <div className={styles.imageWrapper} onClick={(e) => e.stopPropagation()}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+              <FramedPhoto
+                photo={open}
+                eventTitle={eventTitle}
                 src={open.fullUrl}
                 alt={`Foto oleh ${open.guest_name || 'Tamu'}`}
-                className={styles.mainImage}
+                variant="lightbox"
               />
             </div>
 
@@ -449,8 +581,13 @@ export default function PhotoGrid({
 
           {/* Bottom Bar with Counter and Download */}
           <footer className={styles.lightboxBottomBar} onClick={(e) => e.stopPropagation()}>
-            <span className={styles.photoCounter}>
-              {openIndex + 1} / {photos.length}
+            <span
+              className={styles.photoCounter}
+              role="status"
+              aria-live="polite"
+              aria-atomic="true"
+            >
+              Foto {openIndex + 1} dari {photos.length}
             </span>
 
             <button

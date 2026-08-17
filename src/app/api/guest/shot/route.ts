@@ -7,40 +7,76 @@ import { readGuestSession } from '@/lib/guest/session'
 import { PHOTO_BUCKET, photoPaths } from '@/lib/photos'
 
 /**
- * Satu jepretan tamu, dari klaim kuota sampai konfirmasi.
+ * Satu jepretan tamu, dari reservasi kuota sampai konfirmasi.
  *
- *   POST   klaim satu jepretan, buat baris foto, terbitkan signed upload URL
- *   PATCH  tandai foto selesai terunggah
- *   DELETE batalkan dan kembalikan jepretannya
+ *   POST   reservasi satu jepretan + metadata, terbitkan signed upload URL
+ *   PATCH  verifikasi dua objek Storage lalu finalisasi secara idempoten
+ *   DELETE batalkan secara idempoten dan kembalikan kuota tepat sekali
  *
- * Berkasnya TIDAK melewati server ini. Klien mengunggah langsung ke Supabase
- * Storage memakai signed URL sekali pakai — dua foto ~1,5 MB per jepretan,
- * dikalikan ratusan tamu, akan membakar waktu eksekusi dan bandwidth fungsi
- * tanpa memberi apa pun yang tidak bisa diberikan token bertanda tangan.
- *
- * Rute ini dikecualikan dari proxy (lihat `src/proxy.ts`): tamu anonim tidak
- * punya sesi Supabase untuk disegarkan, dan otentikasinya adalah JWT tamu di
- * cookie httpOnly yang diperiksa di setiap handler di bawah.
+ * JPEG tidak melewati server aplikasi. Klien mengunggah langsung ke Supabase
+ * Storage, sedangkan route ini memverifikasi metadata objek sebelum membuatnya
+ * terlihat di galeri.
  */
 
-/** Maksimum yang masuk akal untuk satu foto; menolak berkas yang jelas keliru. */
 const MAX_BYTES = 26_214_400 // sama dengan file_size_limit bucket `photos`
+const MAX_THUMB_BYTES = 5_242_880
+// capture.ts membatasi sisi terpanjang ke 4096. Sampai dimensi JPEG dibaca
+// server-side, metadata di luar kontrak tersebut harus ditolak.
+const MAX_DIMENSION = 4_096
+// Versi 2 = LUT aktif tervalidasi + exposure/luminance linear-light + thumbnail
+// diturunkan dari render penuh. Baris lama tetap default versi 1 di migrasi.
+const PROCESSING_RECIPE_VERSION = 2
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+
+type AdminClient = ReturnType<typeof createAdminClient>
 
 interface Session {
   guestId: string
-  guestName: string
   eventId: string
-  sessionId: string
 }
 
-/**
- * Otentikasi satu permintaan tamu.
- *
- * `eventId` datang dari klien, tapi itu tidak memberi kuasa apa pun: cookie
- * yang dibaca bernama sesuai acara tersebut, dan verifikasinya menolak token
- * yang klaim `eid`-nya tidak cocok. Menyebut acara orang lain hanya
- * menghasilkan "tidak ada cookie".
- */
+interface ReservationResult {
+  ok: boolean
+  shots_used: number
+  shots_limit: number
+  rejection_reason:
+    | 'guest_unavailable'
+    | 'event_inactive'
+    | 'quota_exhausted'
+    | 'photo_id_conflict'
+    | 'rate_limited'
+    | null
+  expired_count: number
+  existing_reservation: boolean
+}
+
+interface FinalizeResult {
+  outcome: 'finalized' | 'already_ready' | 'canceled' | 'not_found'
+  recorded_bytes: number | null
+}
+
+interface CancelResult {
+  outcome: 'canceled' | 'already_canceled' | 'already_ready' | 'not_found'
+  full_path: string | null
+  preview_path: string | null
+}
+
+interface StoredFileInfo {
+  size?: number
+  contentType?: string
+  metadata?: {
+    size?: number
+    mimetype?: string
+  }
+}
+
+interface TombstoneRow {
+  id: string
+  storage_path: string | null
+  thumb_path: string | null
+}
+
+/** Otentikasi berbasis cookie httpOnly tamu, bukan nilai identitas dari body. */
 async function authenticate(
   eventId: unknown
 ): Promise<{ session: Session } | { error: Response }> {
@@ -60,18 +96,140 @@ async function authenticate(
     return { error: Response.json({ error: 'Aksesmu ke album ini dicabut.' }, { status: 403 }) }
   }
 
-  return {
-    session: {
-      guestId: guest.id,
-      guestName: guest.display_name,
-      eventId,
-      sessionId: cookie.sessionId,
-    },
+  return { session: { guestId: guest.id, eventId } }
+}
+
+function storedSize(info: StoredFileInfo): number | null {
+  const value = info.size ?? info.metadata?.size
+  return typeof value === 'number' && Number.isSafeInteger(value) ? value : null
+}
+
+function storedMime(info: StoredFileInfo): string | null {
+  const value = info.contentType ?? info.metadata?.mimetype
+  return typeof value === 'string' ? value.split(';', 1)[0].trim().toLowerCase() : null
+}
+
+function storageErrorStatus(error: unknown): number | null {
+  if (!error || typeof error !== 'object') return null
+
+  for (const key of ['status', 'statusCode'] as const) {
+    if (key in error) {
+      const value = Number((error as Record<string, unknown>)[key])
+      if (Number.isInteger(value)) return value
+    }
   }
+
+  return null
+}
+
+/** Lepas reservasi di DB tanpa pernah mengurangi kuota dua kali. */
+async function cancelReservation(
+  supabase: AdminClient,
+  session: Session,
+  photoId: string,
+  reason: string
+): Promise<CancelResult | null> {
+  const { data, error } = await supabase
+    .rpc('cancel_pending_photo', {
+      p_photo_id: photoId,
+      p_guest_id: session.guestId,
+      p_event_id: session.eventId,
+      p_reason: reason,
+    })
+    .single<CancelResult>()
+
+  if (error || !data) {
+    console.error('cancel_pending_photo gagal:', error)
+    return null
+  }
+
+  if (data.outcome === 'canceled' || data.outcome === 'already_canceled') {
+    const canonical = photoPaths(session.eventId, photoId)
+    if (
+      (data.full_path && data.full_path !== canonical.full) ||
+      (data.preview_path && data.preview_path !== canonical.thumb)
+    ) {
+      // Jangan pernah menghapus path asing atau tombstone penunjuknya walaupun
+      // metadata DB rusak. Biarkan untuk rekonsiliasi manual.
+      console.error('path tombstone foto tidak kanonis:', { photoId })
+    }
+  }
+
+  return data
+}
+
+/**
+ * Bersihkan objek tombstone hanya setelah seluruh signed upload token pasti mati.
+ * Tombstone yang lebih muda sengaja dibiarkan: PATCH akan melihat `failed` dan
+ * tidak mungkin memfinalisasi upload terlambat menjadi foto siap tayang. Row
+ * tetap disimpan agar UUID/path lama tidak pernah dapat direservasi ulang.
+ */
+async function cleanupAgedTombstoneObjects(supabase: AdminClient, session: Session) {
+  const now = new Date().toISOString()
+  const { data, error } = await supabase
+    .from('photos')
+    .select('id, storage_path, thumb_path')
+    .eq('guest_id', session.guestId)
+    .eq('event_id', session.eventId)
+    .eq('status', 'failed')
+    .is('storage_cleaned_at', null)
+    .lt('cleanup_after', now)
+    .limit(20)
+    .returns<TombstoneRow[]>()
+
+  if (error) {
+    console.error('membaca tombstone lama gagal:', error)
+    return
+  }
+
+  const safeRows = (data ?? []).filter((row) => {
+    if (!UUID_PATTERN.test(row.id)) return false
+    const canonical = photoPaths(session.eventId, row.id)
+    const safe =
+      (!row.storage_path || row.storage_path === canonical.full) &&
+      (!row.thumb_path || row.thumb_path === canonical.thumb)
+    if (!safe) console.error('path tombstone lama tidak kanonis:', { photoId: row.id })
+    return safe
+  })
+  const ids = safeRows.map((row) => row.id)
+  if (ids.length === 0) return
+
+  const objectPaths = safeRows.flatMap((row) => {
+    const id = row.id
+    const paths = photoPaths(session.eventId, id)
+    return [paths.full, paths.thumb]
+  })
+
+  const { error: storageError } = await supabase.storage.from(PHOTO_BUCKET).remove(objectPaths)
+  if (storageError) {
+    console.error('cleanup objek tombstone lama gagal:', storageError)
+    return
+  }
+
+  const { error: updateError } = await supabase
+    .from('photos')
+    .update({
+      storage_cleaned_at: new Date().toISOString(),
+      storage_path: null,
+      thumb_path: null,
+      preset: null,
+      frame: null,
+      width: null,
+      height: null,
+      processing_recipe: {},
+    })
+    .in('id', ids)
+    .eq('guest_id', session.guestId)
+    .eq('event_id', session.eventId)
+    .eq('status', 'failed')
+    .is('storage_cleaned_at', null)
+    .lt('cleanup_after', now)
+
+  if (updateError) console.error('menandai cleanup tombstone gagal:', updateError)
 }
 
 // ---------------------------------------------------------------------------
-// POST — klaim jepretan dan terbitkan signed upload URL
+// POST - reservasi jepretan dan terbitkan signed upload URL
 // ---------------------------------------------------------------------------
 
 export async function POST(request: NextRequest) {
@@ -83,122 +241,149 @@ export async function POST(request: NextRequest) {
   const { session } = auth
 
   const preset = String(body.preset ?? '')
-  if (!FILM_PRESETS.some((p) => p.id === preset)) {
+  const selectedPreset = FILM_PRESETS.find((candidate) => candidate.id === preset)
+  if (!selectedPreset) {
     return Response.json({ error: 'Preset film tidak dikenal.' }, { status: 400 })
   }
 
-  // Bingkai divalidasi di sini, bukan lewat CHECK di database: daftarnya hidup
-  // di src/lib/frames.ts dan akan bertambah.
   const frame = String(body.frame ?? 'none')
   if (!getFrame(frame)) {
     return Response.json({ error: 'Bingkai tidak dikenal.' }, { status: 400 })
   }
 
-  const width = Number(body.width)
-  const height = Number(body.height)
-  if (!Number.isFinite(width) || !Number.isFinite(height) || width < 1 || height < 1) {
+  const width = Math.round(Number(body.width))
+  const height = Math.round(Number(body.height))
+  if (
+    !Number.isSafeInteger(width) ||
+    !Number.isSafeInteger(height) ||
+    width < 1 ||
+    height < 1 ||
+    width > MAX_DIMENSION ||
+    height > MAX_DIMENSION
+  ) {
     return Response.json({ error: 'Ukuran foto tidak sah.' }, { status: 400 })
   }
 
+  const clientProcessing = body.processingRecipe
+  const clientProcessingJson =
+    clientProcessing && typeof clientProcessing === 'object' && !Array.isArray(clientProcessing)
+      ? JSON.stringify(clientProcessing)
+      : ''
+  const processingEngine =
+    clientProcessing && typeof clientProcessing === 'object' && !Array.isArray(clientProcessing)
+      ? (clientProcessing as Record<string, unknown>).engine
+      : null
+  if (
+    !clientProcessingJson ||
+    new TextEncoder().encode(clientProcessingJson).byteLength > 4096 ||
+    (processingEngine !== 'canvas2d-natural-v1' && processingEngine !== 'webgl2-film-v2') ||
+    (processingEngine === 'canvas2d-natural-v1' && selectedPreset.id !== 'natural-clean')
+  ) {
+    return Response.json({ error: 'Recipe pemrosesan tidak sah.' }, { status: 400 })
+  }
+
+  // Parameter server-authoritative selalu disalin ke baris foto. Klien boleh
+  // menambahkan input per-jepretan (mis. exposure, mirror, grainSeed) melalui
+  // `processingRecipe`, tetapi tidak dapat menimpa identitas/angka preset.
+  const processingRecipe = {
+    schemaVersion: PROCESSING_RECIPE_VERSION,
+    pipeline: processingEngine,
+    preset: {
+      id: selectedPreset.id,
+      lut: selectedPreset.lut,
+      strength: selectedPreset.strength,
+      lumaLock: selectedPreset.lumaLock,
+      contrast: selectedPreset.contrast,
+      grain: selectedPreset.grain,
+      vignette: selectedPreset.vignette,
+      halation: selectedPreset.halation,
+    },
+    frame,
+    output: { width, height, mimeType: 'image/jpeg', colorSpace: 'srgb' },
+    capture: clientProcessing,
+  }
+
+  const requestedPhotoId = body.clientPhotoId
+  if (typeof requestedPhotoId !== 'string' || !UUID_PATTERN.test(requestedPhotoId)) {
+    return Response.json({ error: 'ID jepretan tidak sah.' }, { status: 400 })
+  }
+
   const supabase = createAdminClient()
+  const photoId = requestedPhotoId.toLowerCase()
+  const paths = photoPaths(session.eventId, photoId)
 
-  /*
-   * Klaim DULU, baru siapkan apa pun yang lain.
-   *
-   * `claim_shot` mengunci baris tamu dengan FOR UPDATE dan menaikkan
-   * `shots_used` dalam satu transaksi, jadi dua puluh permintaan bersamaan
-   * dari satu perangkat tetap tidak bisa menembus kuota. Melakukannya setelah
-   * pekerjaan lain hanya memperlebar jendela balapannya.
-   *
-   * Fungsi ini juga menolak acara yang statusnya bukan 'active', jadi album
-   * yang ditutup host di tengah pesta berhenti menerima foto tanpa perlu
-   * kueri terpisah di jalur terpanas aplikasi ini.
-   */
-  const { data: claim, error: claimError } = await supabase
-    .rpc('claim_shot', { p_guest_id: session.guestId })
-    .single<{ ok: boolean; shots_used: number; shots_limit: number }>()
+  const { data: reservation, error: reservationError } = await supabase
+    .rpc('reserve_photo_upload', {
+      p_photo_id: photoId,
+      p_guest_id: session.guestId,
+      p_event_id: session.eventId,
+      p_preset: preset,
+      p_preset_version: PROCESSING_RECIPE_VERSION,
+      p_processing_recipe: processingRecipe,
+      p_frame: frame,
+      p_width: width,
+      p_height: height,
+      p_storage_path: paths.full,
+      p_thumb_path: paths.thumb,
+    })
+    .single<ReservationResult>()
 
-  if (claimError) {
-    console.error('claim_shot gagal:', claimError)
+  if (reservationError || !reservation) {
+    console.error('reserve_photo_upload gagal:', reservationError)
     return Response.json({ error: 'Gagal menyiapkan jepretan.' }, { status: 500 })
   }
 
-  if (!claim.ok) {
+  if (!reservation.ok) {
+    const idConflict = reservation.rejection_reason === 'photo_id_conflict'
+    const rateLimited = reservation.rejection_reason === 'rate_limited'
     return Response.json(
       {
+        code: reservation.rejection_reason,
         error:
-          claim.shots_used >= claim.shots_limit
+          idConflict
+            ? 'ID jepretan sudah dipakai. Buat ID baru lalu coba lagi.'
+            : rateLimited
+            ? 'Terlalu banyak jepretan gagal. Tunggu sebentar lalu coba lagi.'
+            : reservation.rejection_reason === 'quota_exhausted'
             ? 'Roll filmmu sudah habis.'
             : 'Album ini sedang tidak menerima foto.',
-        shotsUsed: claim.shots_used,
-        shotsLimit: claim.shots_limit,
+        shotsUsed: reservation.shots_used,
+        shotsLimit: reservation.shots_limit,
       },
-      { status: 409 }
+      { status: rateLimited ? 429 : 409 }
     )
   }
 
-  // Mulai di sini jepretannya sudah terpakai. Setiap kegagalan wajib
-  // mengembalikannya, kalau tidak tamu kehilangan satu frame tanpa dapat foto.
-  const release = async () => {
-    const { error } = await supabase.rpc('release_shot', { p_guest_id: session.guestId })
-    if (error) console.error('release_shot gagal:', error)
-  }
-
-  const { data: photo, error: insertError } = await supabase
-    .from('photos')
-    .insert({
-      event_id: session.eventId,
-      guest_id: session.guestId,
-      guest_name: session.guestName,
-      guest_session_id: session.sessionId,
-      preset,
-      frame,
-      width: Math.round(width),
-      height: Math.round(height),
-      source: 'inapp',
-      status: 'pending',
-    })
-    .select('id')
-    .single()
-
-  if (insertError || !photo) {
-    console.error('insert photo gagal:', insertError)
-    await release()
-    return Response.json({ error: 'Gagal menyiapkan jepretan.' }, { status: 500 })
-  }
-
-  const paths = photoPaths(session.eventId, photo.id)
+  const storage = supabase.storage.from(PHOTO_BUCKET)
 
   const [full, thumb] = await Promise.all([
-    supabase.storage.from(PHOTO_BUCKET).createSignedUploadUrl(paths.full),
-    supabase.storage.from(PHOTO_BUCKET).createSignedUploadUrl(paths.thumb),
+    storage.createSignedUploadUrl(paths.full, { upsert: false }),
+    storage.createSignedUploadUrl(paths.thumb, { upsert: false }),
   ])
 
   if (full.error || thumb.error || !full.data || !thumb.data) {
     console.error('createSignedUploadUrl gagal:', full.error ?? thumb.error)
-    await supabase.from('photos').delete().eq('id', photo.id)
-    await release()
+    // Pertahankan row pending: client me-retry POST dengan UUID yang sama.
+    // Bila seluruh retry habis, DELETE client atau TTL akan melepas kuota.
     return Response.json({ error: 'Gagal menyiapkan jepretan.' }, { status: 500 })
   }
 
-  // Path disimpan sekarang supaya baris yatim tetap bisa ditelusuri ke
-  // berkasnya kalau konfirmasinya tidak pernah datang.
-  await supabase
-    .from('photos')
-    .update({ storage_path: paths.full, thumb_path: paths.thumb })
-    .eq('id', photo.id)
+  // Tidak memblokir reservasi baru bila cleanup lama gagal; tombstone tetap ada
+  // dan akan dicoba lagi pada jepretan berikutnya.
+  await cleanupAgedTombstoneObjects(supabase, session)
 
   return Response.json({
-    photoId: photo.id,
-    shotsUsed: claim.shots_used,
-    shotsLimit: claim.shots_limit,
+    photoId,
+    shotsUsed: reservation.shots_used,
+    shotsLimit: reservation.shots_limit,
+    reusedReservation: reservation.existing_reservation,
     full: { path: paths.full, token: full.data.token },
     thumb: { path: paths.thumb, token: thumb.data.token },
   })
 }
 
 // ---------------------------------------------------------------------------
-// PATCH — unggahan selesai, foto boleh terlihat
+// PATCH - verifikasi unggahan, lalu finalisasi secara idempoten
 // ---------------------------------------------------------------------------
 
 export async function PATCH(request: NextRequest) {
@@ -210,45 +395,131 @@ export async function PATCH(request: NextRequest) {
   const { session } = auth
 
   const photoId = String(body.photoId ?? '')
-  const bytes = Number(body.bytes)
-
-  if (!photoId || !Number.isFinite(bytes) || bytes < 1 || bytes > MAX_BYTES) {
+  const reportedBytes = Math.round(Number(body.bytes))
+  if (
+    !UUID_PATTERN.test(photoId) ||
+    !Number.isSafeInteger(reportedBytes) ||
+    reportedBytes < 1 ||
+    reportedBytes > MAX_BYTES
+  ) {
     return Response.json({ error: 'Permintaan tidak sah.' }, { status: 400 })
   }
 
   const supabase = createAdminClient()
 
-  /*
-   * Filter kepemilikan ada di WHERE, bukan di pemeriksaan terpisah sebelumnya.
-   * Membaca dulu lalu menulis membuka jendela di antaranya; membatasi
-   * UPDATE-nya sendiri berarti id foto tamu lain tidak akan cocok dengan apa
-   * pun. Syarat `status = pending` sekaligus membuat pemanggilan ganda tidak
-   * menimbulkan efek kedua.
-   */
-  const { data, error } = await supabase
+  // Retry PATCH untuk foto yang sudah ready harus tetap sukses, bahkan bila
+  // pemeriksaan Storage sedang terganggu sesaat.
+  const { data: photo, error: photoError } = await supabase
     .from('photos')
-    .update({ status: 'ready', bytes: Math.round(bytes) })
+    .select('status, bytes')
     .eq('id', photoId)
     .eq('guest_id', session.guestId)
     .eq('event_id', session.eventId)
-    .eq('status', 'pending')
-    .select('id')
     .maybeSingle()
 
-  if (error) {
-    console.error('konfirmasi foto gagal:', error)
+  if (photoError) {
+    console.error('membaca status foto gagal:', photoError)
     return Response.json({ error: 'Gagal menyimpan foto.' }, { status: 500 })
   }
 
-  if (!data) {
+  if (!photo) return Response.json({ error: 'Foto tidak ditemukan.' }, { status: 404 })
+
+  if (photo.status === 'ready') {
+    return Response.json({ ok: true, alreadyReady: true, bytes: photo.bytes })
+  }
+
+  if (photo.status === 'failed') {
+    await cancelReservation(supabase, session, photoId, 'late_confirmation')
+    return Response.json({ error: 'Jepretan ini sudah dibatalkan.' }, { status: 409 })
+  }
+
+  const paths = photoPaths(session.eventId, photoId)
+  const storage = supabase.storage.from(PHOTO_BUCKET)
+  const [full, thumb] = await Promise.all([storage.info(paths.full), storage.info(paths.thumb)])
+
+  if (full.error || thumb.error || !full.data || !thumb.data) {
+    const errors = [full.error, thumb.error].filter(Boolean)
+    const uploadIncomplete = errors.some((error) => storageErrorStatus(error) === 404)
+
+    if (!uploadIncomplete) console.error('verifikasi objek foto gagal:', full.error ?? thumb.error)
+
+    return Response.json(
+      {
+        error: uploadIncomplete
+          ? 'Unggahan belum lengkap. Coba konfirmasi lagi.'
+          : 'Penyimpanan foto sedang tidak dapat diverifikasi.',
+      },
+      { status: uploadIncomplete ? 409 : 503 }
+    )
+  }
+
+  const fullSize = storedSize(full.data)
+  const thumbSize = storedSize(thumb.data)
+  const fullMime = storedMime(full.data)
+  const thumbMime = storedMime(thumb.data)
+  const invalidObjects =
+    fullSize === null ||
+    thumbSize === null ||
+    fullSize < 1 ||
+    fullSize > MAX_BYTES ||
+    thumbSize < 1 ||
+    thumbSize > MAX_THUMB_BYTES ||
+    fullMime !== 'image/jpeg' ||
+    thumbMime !== 'image/jpeg'
+
+  if (invalidObjects) {
+    console.error('objek unggahan foto tidak sah:', {
+      photoId,
+      fullSize,
+      thumbSize,
+      fullMime,
+      thumbMime,
+    })
+    await cancelReservation(supabase, session, photoId, 'invalid_storage_object')
+    return Response.json({ error: 'Berkas foto tidak sah. Silakan jepret ulang.' }, { status: 422 })
+  }
+
+  if (reportedBytes !== fullSize) {
+    // Angka browser hanya diagnostik. Ukuran Storage tetap sumber kebenaran.
+    console.warn('ukuran foto dari browser berbeda dengan Storage:', {
+      photoId,
+      reportedBytes,
+      storedBytes: fullSize,
+    })
+  }
+
+  const { data: finalized, error: finalizeError } = await supabase
+    .rpc('finalize_photo_upload', {
+      p_photo_id: photoId,
+      p_guest_id: session.guestId,
+      p_event_id: session.eventId,
+      p_bytes: fullSize,
+    })
+    .single<FinalizeResult>()
+
+  if (finalizeError || !finalized) {
+    console.error('finalize_photo_upload gagal:', finalizeError)
+    return Response.json({ error: 'Gagal menyimpan foto.' }, { status: 500 })
+  }
+
+  if (finalized.outcome === 'not_found') {
     return Response.json({ error: 'Foto tidak ditemukan.' }, { status: 404 })
   }
 
-  return Response.json({ ok: true })
+  if (finalized.outcome === 'canceled') {
+    await cancelReservation(supabase, session, photoId, 'late_confirmation')
+    return Response.json({ error: 'Jepretan ini sudah dibatalkan.' }, { status: 409 })
+  }
+
+  return Response.json({
+    ok: true,
+    alreadyReady: finalized.outcome === 'already_ready',
+    bytes: finalized.recorded_bytes,
+  })
 }
 
 // ---------------------------------------------------------------------------
-// DELETE — unggahan gagal, kembalikan jepretannya
+// DELETE - pembatalan idempoten dan cleanup yang dapat diulang
 // ---------------------------------------------------------------------------
 
 export async function DELETE(request: NextRequest) {
@@ -260,41 +531,20 @@ export async function DELETE(request: NextRequest) {
   const { session } = auth
 
   const photoId = String(body.photoId ?? '')
-  if (!photoId) return Response.json({ error: 'Permintaan tidak sah.' }, { status: 400 })
+  if (!UUID_PATTERN.test(photoId)) {
+    return Response.json({ error: 'Permintaan tidak sah.' }, { status: 400 })
+  }
 
   const supabase = createAdminClient()
+  const canceled = await cancelReservation(supabase, session, photoId, 'upload_failed')
 
-  // Hanya baris yang masih `pending` yang boleh dibatalkan. Tanpa syarat itu,
-  // permintaan DELETE berulang akan mengembalikan jepretan berkali-kali dan
-  // tamu bisa memotret melebihi kuotanya.
-  const { data, error } = await supabase
-    .from('photos')
-    .delete()
-    .eq('id', photoId)
-    .eq('guest_id', session.guestId)
-    .eq('event_id', session.eventId)
-    .eq('status', 'pending')
-    .select('id')
-    .maybeSingle()
-
-  if (error) {
-    console.error('pembatalan foto gagal:', error)
+  if (!canceled) {
     return Response.json({ error: 'Gagal membatalkan jepretan.' }, { status: 500 })
   }
 
-  if (!data) {
-    // Sudah dibatalkan atau sudah selesai — tidak ada yang perlu dikembalikan.
-    return Response.json({ ok: true })
-  }
-
-  const paths = photoPaths(session.eventId, photoId)
-  // Berkas mungkin belum sempat terunggah; menghapus yang tidak ada bukan error.
-  await supabase.storage.from(PHOTO_BUCKET).remove([paths.full, paths.thumb])
-
-  const { error: releaseError } = await supabase.rpc('release_shot', {
-    p_guest_id: session.guestId,
+  return Response.json({
+    ok: true,
+    canceled: canceled.outcome !== 'already_ready',
+    alreadyReady: canceled.outcome === 'already_ready',
   })
-  if (releaseError) console.error('release_shot gagal:', releaseError)
-
-  return Response.json({ ok: true })
 }

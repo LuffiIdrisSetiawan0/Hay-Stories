@@ -1,6 +1,6 @@
 'use client'
 
-import { useActionState, useState } from 'react'
+import { useActionState, useEffect, useRef, useState } from 'react'
 import { ArrowLeft, ArrowRight, Check, Loader2 } from 'lucide-react'
 import {
   EVENT_TYPES,
@@ -30,6 +30,16 @@ export default function Wizard() {
   const [eventDate, setEventDate] = useState('')
   const [revealMode, setRevealMode] = useState<RevealMode>('manual')
   const [revealAt, setRevealAt] = useState('')
+  const stepHeadingRef = useRef<HTMLHeadingElement>(null)
+  const wizardMountedRef = useRef(false)
+
+  useEffect(() => {
+    if (!wizardMountedRef.current) {
+      wizardMountedRef.current = true
+      return
+    }
+    stepHeadingRef.current?.focus()
+  }, [step])
 
   // Kesegaran waktu reveal dihitung saat input berubah, bukan saat render.
   // `Date.now()` di badan render itu impure: hasilnya berubah tiap kali
@@ -72,6 +82,10 @@ export default function Wizard() {
 
   const revealMeta = REVEAL_MODES.find((m) => m.id === revealMode)
   const typeLabel = EVENT_TYPES.find((t) => t.id === eventType)?.label ?? '—'
+  // datetime-local tidak memuat offset. Konversi di browser agar server tidak
+  // menafsirkan jam Jakarta sebagai UTC (atau timezone host deployment).
+  const revealAtInstant =
+    revealMode === 'scheduled' && revealAtInFuture ? new Date(revealAt).toISOString() : ''
 
   return (
     <div className={styles.wrap}>
@@ -82,6 +96,7 @@ export default function Wizard() {
               className={`${styles.stepDot} ${
                 i === step ? styles.stepDotActive : i < step ? styles.stepDotDone : ''
               }`}
+              aria-current={i === step ? 'step' : undefined}
             >
               {i < step ? <Check size={13} strokeWidth={3} /> : i + 1}
             </span>
@@ -100,12 +115,14 @@ export default function Wizard() {
         <input type="hidden" name="eventType" value={eventType} />
         <input type="hidden" name="eventDate" value={eventDate} />
         <input type="hidden" name="revealMode" value={revealMode} />
-        <input type="hidden" name="revealAt" value={revealMode === 'scheduled' ? revealAt : ''} />
+        <input type="hidden" name="revealAt" value={revealAtInstant} />
 
         <div className={styles.panel}>
           {step === 0 && (
             <>
-              <h2 className={styles.panelTitle}>Acara apa ini?</h2>
+              <h2 ref={stepHeadingRef} className={styles.panelTitle} tabIndex={-1}>
+                Acara apa ini?
+              </h2>
               <p className={styles.panelHint}>
                 Nama ini yang dilihat tamu saat memindai QR code-mu.
               </p>
@@ -162,7 +179,9 @@ export default function Wizard() {
 
           {step === 1 && (
             <>
-              <h2 className={styles.panelTitle}>Kapan foto boleh dilihat?</h2>
+              <h2 ref={stepHeadingRef} className={styles.panelTitle} tabIndex={-1}>
+                Kapan foto boleh dilihat?
+              </h2>
               <p className={styles.panelHint}>
                 Menahan foto sampai acara usai adalah bagian yang paling disukai tamu — semua
                 melihatnya bersamaan.
@@ -214,7 +233,9 @@ export default function Wizard() {
 
           {step === 2 && (
             <>
-              <h2 className={styles.panelTitle}>Tinjau sebelum dibuat</h2>
+              <h2 ref={stepHeadingRef} className={styles.panelTitle} tabIndex={-1}>
+                Tinjau sebelum dibuat
+              </h2>
               <p className={styles.panelHint}>
                 Nama dan waktu reveal masih bisa diubah nanti.
               </p>

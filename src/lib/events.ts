@@ -130,6 +130,23 @@ export interface RevealState {
   revealAt: Date | null
 }
 
+export interface EventLifecycleInput {
+  status: string | null
+  expires_at: string | null
+  reveal_mode: string
+  reveal_at: string | null
+  is_revealed: boolean | null
+}
+
+export type EventLifecycle =
+  | { label: 'Draf'; tone: 'draft'; acceptsPhotos: false }
+  | { label: 'Diarsipkan'; tone: 'archived'; acceptsPhotos: false }
+  | { label: 'Selesai'; tone: 'revealed'; acceptsPhotos: false }
+  | { label: 'Tidak aktif'; tone: 'archived'; acceptsPhotos: false }
+  | { label: 'Kedaluwarsa'; tone: 'expired'; acceptsPhotos: false }
+  | { label: 'Aktif · Galeri buka'; tone: 'active-revealed'; acceptsPhotos: true }
+  | { label: 'Menerima foto'; tone: 'active'; acceptsPhotos: true }
+
 /**
  * Hitung apakah galeri sudah terbuka, DIHITUNG SAAT DIBACA.
  *
@@ -141,7 +158,7 @@ export function resolveReveal(event: {
   reveal_mode: RevealMode | string
   reveal_at: string | null
   is_revealed: boolean | null
-}): RevealState {
+}, now = Date.now()): RevealState {
   if (event.is_revealed) return { revealed: true, revealAt: null }
 
   if (event.reveal_mode === 'immediate') {
@@ -150,11 +167,50 @@ export function resolveReveal(event: {
 
   if (event.reveal_mode === 'scheduled' && event.reveal_at) {
     const at = new Date(event.reveal_at)
-    return { revealed: at.getTime() <= Date.now(), revealAt: at }
+    return { revealed: at.getTime() <= now, revealAt: at }
   }
 
   // 'manual' — hanya terbuka lewat is_revealed, yang sudah dicek di atas.
   return { revealed: false, revealAt: null }
+}
+
+/**
+ * Satu sumber kebenaran untuk status yang ditampilkan di seluruh dashboard.
+ *
+ * `acceptsPhotos` mengikuti aturan database: hanya acara berstatus `active`
+ * yang belum kedaluwarsa yang boleh menerima tamu dan reservasi foto. Reveal
+ * modern hanya membuka galeri; ia tidak menutup kamera.
+ */
+export function getEventLifecycle(
+  event: EventLifecycleInput,
+  now = Date.now()
+): EventLifecycle {
+  if (event.status === 'draft') {
+    return { label: 'Draf', tone: 'draft', acceptsPhotos: false }
+  }
+
+  if (event.status === 'archived') {
+    return { label: 'Diarsipkan', tone: 'archived', acceptsPhotos: false }
+  }
+
+  if (event.status === 'revealed') {
+    return { label: 'Selesai', tone: 'revealed', acceptsPhotos: false }
+  }
+
+  if (event.status !== 'active') {
+    return { label: 'Tidak aktif', tone: 'archived', acceptsPhotos: false }
+  }
+
+  const expiresAt = event.expires_at ? new Date(event.expires_at).getTime() : null
+  if (expiresAt !== null && Number.isFinite(expiresAt) && expiresAt <= now) {
+    return { label: 'Kedaluwarsa', tone: 'expired', acceptsPhotos: false }
+  }
+
+  if (resolveReveal(event, now).revealed) {
+    return { label: 'Aktif · Galeri buka', tone: 'active-revealed', acceptsPhotos: true }
+  }
+
+  return { label: 'Menerima foto', tone: 'active', acceptsPhotos: true }
 }
 
 // ---------------------------------------------------------------------------

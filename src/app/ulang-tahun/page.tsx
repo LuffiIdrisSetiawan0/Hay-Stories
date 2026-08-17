@@ -17,8 +17,8 @@ export default function UlangTahunPage() {
       heroImage="/img/scenes/03-kue.jpg"
       benefits={[
         {
-          title: "Filter Retro Sweet 17",
-          description: "Tone warna 90s yang hangat dengan timestamp tanggal ulang tahun di sudut foto ala kamera film lawas.",
+          title: "Bingkai Cetak Retro",
+          description: "Pilih bingkai cetak yang menampilkan nama acara dan waktu jepretan, atau tepi film bersprocket.",
           icon: "film",
         },
         {
@@ -33,7 +33,7 @@ export default function UlangTahunPage() {
         },
         {
           title: "Unduh Album Kenangan",
-          description: "Kumpulkan ratusan foto candid dari seluruh teman dalam 1 link album privat beresolusi penuh.",
+          description: "Foto candid yang berhasil disimpan terkumpul dalam satu galeri berbasis tautan dan dapat diunduh satu per satu.",
           icon: "qr",
         },
       ]}
@@ -55,9 +55,9 @@ export default function UlangTahunPage() {
         },
       ]}
       presets={[
-        { name: "Pastel 400", desc: "Warna lembut, dreamy, estetik untuk pesta siang", tag: "Cafe Party" },
-        { name: "Neon Night 1600", desc: "Vibrant flash untuk pesta malam & lilin", tag: "Night Party" },
-        { name: "Sunday Chrome", desc: "Saturasi kaya, kontras tajam, warna pop", tag: "Outdoor Picnic" },
+        { name: "Pastel 100", desc: "Warna lembut dan lapang untuk pesta siang", tag: "Cafe Party" },
+        { name: "Resepsi 800", desc: "Warna malam hidup dengan pendar yang terkontrol", tag: "Night Party" },
+        { name: "Everyday 160", desc: "Netral hangat untuk pilihan aman indoor maupun outdoor", tag: "Outdoor Picnic" },
       ]}
       sampleGallery={[
         { img: "/img/scenes/03-kue.jpg", caption: "Tiup lilin & kue ulang tahun bersama sahabat" },
@@ -65,22 +65,9 @@ export default function UlangTahunPage() {
         { img: "/img/scenes/02-meja-dekorasi.jpg", caption: "Suasana santai & toasting di cafe" },
       ]}
       storyQuote={{
-        quote: "Pesta ulang tahun anak saya jadi seru banget! Teman-temannya heboh foto pakai filter analog dan hasilnya langsung muncul di layar TV cafe.",
+        quote: "Pesta ulang tahun anak saya jadi seru banget! Teman-temannya heboh saling foto, lalu semua candidnya terkumpul di satu galeri.",
         author: "Mama Cindy & Cindy",
         role: "Birthday Party di Bandung · 80 Tamu",
-      }}
-      packageHighlight={{
-        name: "Paket Pesta Teman",
-        price: "Rp 149.000",
-        guests: "Hingga 100 Tamu",
-        features: [
-          "Akses kamera web instan tanpa download app",
-          "6 Preset roll film analog otentik",
-          "Timestamp tanggal ulang tahun kustom",
-          "Galeri foto live & slideshow otomatis",
-          "Unduh ZIP seluruh foto kualitas penuh",
-          "QR kit siap cetak atau share WhatsApp",
-        ],
       }}
       faqs={[
         {
@@ -88,12 +75,12 @@ export default function UlangTahunPage() {
           a: "Tidak sama sekali. Cukup scan QR code lewat kamera smartphone, langsung terbuka di browser safari/chrome.",
         },
         {
-          q: "Bisa ditampilin langsung di layar TV/Proyektor cafe?",
-          a: "Bisa banget! Buka link Live Slideshow di laptop cafe, foto teman-teman akan otomatis tayang saat dijepret.",
+          q: "Bagaimana membagikan album ke teman?",
+          a: "Unduh QR dari dashboard untuk dicetak, atau salin tautan album lalu bagikan lewat grup chat. Siapa pun yang memegang tautan dapat membukanya setelah reveal.",
         },
         {
           q: "Berapa lama albumnya tersimpan?",
-          a: "Album tersimpan selama 1 tahun penuh dan bisa diunduh dalam file ZIP resolusi tinggi kapan saja.",
+          a: "Paket Starter menyimpan foto selama 90 hari. Selama masa itu, setiap foto dapat diunduh satu per satu dalam resolusi hasilnya.",
         },
       ]}
     />

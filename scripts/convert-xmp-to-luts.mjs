@@ -4,6 +4,7 @@ import sharp from 'sharp'
 
 const XMP_BASE = path.resolve('Disposable_Presets_LR')
 const OUT_DIR = path.resolve('public/luts')
+const ALLOW_LEGACY_APPROXIMATION = process.argv.includes('--allow-legacy-approximation')
 
 if (!fs.existsSync(OUT_DIR)) {
   fs.mkdirSync(OUT_DIR, { recursive: true })
@@ -401,10 +402,20 @@ async function generateLutPng(xmpPath, outFileName) {
     .png({ compressionLevel: 9 })
     .toFile(outPath)
 
-  console.log(`Generated accurate LUT: ${outFileName} from ${path.relative(process.cwd(), xmpPath)}`)
+  console.log(
+    `Generated legacy approximation: ${outFileName} from ${path.relative(process.cwd(), xmpPath)}`
+  )
 }
 
 async function main() {
+  if (!ALLOW_LEGACY_APPROXIMATION) {
+    throw new Error(
+      'Konverter legacy ini bukan Adobe Camera Raw dan mengabaikan sebagian parameter XMP. ' +
+        'Gunakan build-luts.mjs untuk preset aktif, atau tambahkan ' +
+        '--allow-legacy-approximation bila memang sedang mengaudit kompatibilitas lama.'
+    )
+  }
+
   const files = [
     { src: '35mm/35mm.xmp', dest: 'film-35mm.png' },
     { src: 'fuji/Fuji.xmp', dest: 'film-fuji.png' },
@@ -420,7 +431,7 @@ async function main() {
       console.warn(`File not found: ${xmpPath}`)
     }
   }
-  console.log('All accurate 3D LUT PNGs built successfully!')
+  console.log('All legacy approximate LUT PNGs built successfully.')
 }
 
 main()

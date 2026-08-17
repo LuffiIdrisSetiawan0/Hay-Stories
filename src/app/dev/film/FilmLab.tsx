@@ -37,9 +37,9 @@ const NEUTRAL: Knobs = {
   grain: 1,
   vignette: 1,
   halation: 1,
-  smooth: 0.65,
+  smooth: 0,
   exposure: 0.0,
-  sharpen: 0.45,
+  sharpen: 0.18,
 }
 
 /**
@@ -70,40 +70,53 @@ export default function FilmLab() {
   const rendererRef = useRef<FilmRenderer | null>(null)
   const bitmapRef = useRef<ImageBitmap | null>(null)
   const targetsRef = useRef(new Map<string, HTMLCanvasElement>())
+  const renderGenerationRef = useRef(0)
+  const renderQueueRef = useRef<Promise<void>>(Promise.resolve())
 
   const registerTarget = useCallback((id: string, el: HTMLCanvasElement | null) => {
     if (el) targetsRef.current.set(id, el)
     else targetsRef.current.delete(id)
   }, [])
 
-  const renderAll = useCallback(async (k: Knobs) => {
-    const renderer = rendererRef.current
-    const bitmap = bitmapRef.current
-    const glCanvas = glCanvasRef.current
-    if (!renderer || !bitmap || !glCanvas) return
+  const renderAll = useCallback((k: Knobs): Promise<void> => {
+    const generation = ++renderGenerationRef.current
+    const task = renderQueueRef.current.catch(() => undefined).then(async () => {
+      if (generation !== renderGenerationRef.current) return
+      const renderer = rendererRef.current
+      const bitmap = bitmapRef.current
+      const glCanvas = glCanvasRef.current
+      if (!renderer || !bitmap || !glCanvas) return
 
-    const { width, height } = fitWithin(bitmap.width, bitmap.height, LAB_LONG_EDGE)
+      const { width, height } = fitWithin(bitmap.width, bitmap.height, LAB_LONG_EDGE)
 
-    for (const preset of FILM_PRESETS) {
-      const target = targetsRef.current.get(preset.id)
-      if (!target) continue
+      for (const preset of FILM_PRESETS) {
+        if (generation !== renderGenerationRef.current) return
+        const target = targetsRef.current.get(preset.id)
+        if (!target) continue
 
-      const tuned = tune(preset, k)
+        const tuned = tune(preset, k)
+        await renderer.loadPreset(tuned)
+        if (generation !== renderGenerationRef.current) return
+        renderer.render(bitmap, tuned, width, height, {
+          intensity: tuned.strength,
+          lumaLock: tuned.lumaLock,
+          contrast: tuned.contrast,
+          smooth: k.smooth,
+          exposure: k.exposure,
+          sharpen: k.sharpen,
+          grainSeed: 412.73,
+        })
 
-      await renderer.loadPreset(tuned)
-      renderer.render(bitmap, tuned, width, height, {
-        intensity: tuned.strength,
-        lumaLock: tuned.lumaLock,
-        contrast: tuned.contrast,
-        smooth: k.smooth,
-        exposure: k.exposure,
-        sharpen: k.sharpen,
-      })
-
-      target.width = width
-      target.height = height
-      target.getContext('2d')?.drawImage(glCanvas, 0, 0)
-    }
+        target.width = width
+        target.height = height
+        target.getContext('2d')?.drawImage(glCanvas, 0, 0)
+      }
+    })
+    renderQueueRef.current = task.then(
+      () => undefined,
+      () => undefined
+    )
+    return task
   }, [])
 
   const loadSource = useCallback(
@@ -168,6 +181,7 @@ export default function FilmLab() {
 
     return () => {
       cancelled = true
+      renderGenerationRef.current += 1
       bitmapRef.current?.close()
       bitmapRef.current = null
       rendererRef.current?.dispose()
@@ -266,7 +280,7 @@ export default function FilmLab() {
           </h1>
         </div>
         <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.92rem', maxWidth: '70ch', margin: 0 }}>
-          Pipeline WebGL presisi tinggi dengan penajaman sensor kamera dan kontrol pencahayaan EV. Unggah foto Anda, sesuaikan setelan, dan langsung simpan hasil foto analog favorit Anda.
+          Pipeline WebGL terkalibrasi dengan penajaman digital ringan dan kontrol pencahayaan EV. Unggah foto Anda, sesuaikan setelan, lalu simpan hasil look film favorit Anda.
         </p>
       </header>
 
@@ -364,7 +378,7 @@ export default function FilmLab() {
           </figcaption>
         </figure>
 
-        {/* 12 Preset Cards dengan Tombol Download */}
+        {/* Enam look aktif dengan konfigurasi produksi yang sama. */}
         {FILM_PRESETS.map((preset) => {
           const t = tune(preset, knobs)
           const isDownloading = downloadingId === preset.id

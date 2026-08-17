@@ -4,7 +4,7 @@ import EventPageTemplate from "@/components/events/EventPageTemplate";
 export const metadata: Metadata = {
   title: "Kamera Sekali Pakai untuk Pernikahan · HAY Stories",
   description:
-    "Berikan pengalaman kamera analog digital bagi para tamu pernikahanmu. Satu QR code di meja resepsi, semua foto candid terabadikan dengan emulsi film otentik.",
+    "Berikan pengalaman kamera analog digital bagi para tamu pernikahanmu. Satu QR code di meja resepsi, semua foto candid tersimpan dengan look warna terkalibrasi.",
 };
 
 export default function PernikahanPage() {
@@ -22,18 +22,18 @@ export default function PernikahanPage() {
           icon: "qr",
         },
         {
-          title: "Bingkai Kustom Nama Pengantin",
-          description: "Setiap foto tamu otomatis berbingkai tanggal & monogram pernikahan Anda ala kamera analog 90s.",
+          title: "Bingkai Pilihan di Kamera",
+          description: "Tamu dapat memilih foto polos, bingkai cetak bernama acara, atau tepi film sebelum menjepret.",
           icon: "sparkles",
         },
         {
-          title: "Live Slideshow Ballroom",
-          description: "Foto yang dijepret tamu otomatis tayang di proyektor ballroom resepsi secara real-time.",
+          title: "Reveal Sesuai Pilihan",
+          description: "Tentukan apakah galeri langsung terlihat, dibuka terjadwal, atau dibuka sendiri oleh tuan rumah.",
           icon: "monitor",
         },
         {
-          title: "Download Seluruh Roll HD",
-          description: "Unduh semua roll foto dalam kualitas cetak resolusi tinggi untuk dicetak ke album fisik kenangan.",
+          title: "Unduh Foto Resolusi Penuh",
+          description: "Setiap foto yang tersimpan dapat dibuka dan diunduh satu per satu dari galeri acara.",
           icon: "image",
         },
       ]}
@@ -50,8 +50,8 @@ export default function PernikahanPage() {
         },
         {
           step: "03",
-          title: "Tayang & Unduh ZIP",
-          desc: "Foto tayang di proyektor dan tersimpan otomatis ke galeri digital pribadi tuan rumah.",
+          title: "Buka Galeri & Unduh",
+          desc: "Foto yang berhasil disimpan terkumpul di galeri acara dan dapat diunduh satu per satu.",
         },
       ]}
       presets={[
@@ -61,7 +61,7 @@ export default function PernikahanPage() {
           tag: "Outdoor Vibes",
         },
         {
-          name: "Pastel 400",
+          name: "Pastel 100",
           desc: "Warna kulit natural bercahaya, ideal untuk ballroom & kebaya pengantin",
           tag: "Bridal Favorite",
         },
@@ -82,23 +82,10 @@ export default function PernikahanPage() {
         author: "Dimas & Sarah",
         role: "Resepsi Pernikahan di Jakarta · 300 Tamu",
       }}
-      packageHighlight={{
-        name: "Paket Pernikahan Pilihan",
-        price: "Rp 299.000",
-        guests: "Hingga 300 Tamu",
-        features: [
-          "Akses kamera web instan tanpa download app",
-          "6 Preset roll film analog otentik",
-          "Watermark nama pengantin & tanggal",
-          "Live slideshow ballroom proyektor",
-          "Unduh ZIP seluruh foto resolusi penuh",
-          "Masa aktif album 1 tahun penuh",
-        ],
-      }}
       faqs={[
         {
           q: "Bagaimana cara meletakkan QR code di resepsi?",
-          a: "Kami menyediakan template kartu QR meja siap cetak yang cantik dan serasi dengan dekorasi meja makan tamu.",
+          a: "Dashboard menyediakan QR dalam format SVG. Unduh lalu masukkan ke desain kartu meja atau undangan pilihan Anda sebelum dicetak.",
         },
         {
           q: "Apakah fotografer utama kami tetap dibutuhkan?",
