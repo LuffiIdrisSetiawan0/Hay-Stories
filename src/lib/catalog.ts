@@ -119,6 +119,11 @@ export type PresetId =
   | 'everyday-100'
   | 'neon-night-1600'
   | 'sunday-chrome'
+  | 'disposable-quicksnap'
+  | 'disposable-party-flash'
+  | 'disposable-beach-washed'
+  | 'disposable-expired-film'
+  | 'disposable-90s-compact'
   | 'noir-400'
   | 'fuji-velvia-50'
   | 'kodachrome-64'
@@ -218,6 +223,66 @@ export const FILM_PRESETS: readonly FilmPreset[] = [
     lumaLock: 0.0,
     contrast: 0.52,
     grain: 0.24,
+    vignette: 0.24,
+    halation: 0.20,
+  },
+  {
+    id: 'disposable-quicksnap',
+    name: 'QuickSnap Daylight',
+    character: 'Warna biru-hijau sejuk, kontras tajam & bayangan pudar khas disposable camera',
+    lut: '/luts/disposable-quicksnap.png',
+    strength: 1.0,
+    lumaLock: 0.0,
+    contrast: 0.45,
+    grain: 0.28,
+    vignette: 0.22,
+    halation: 0.15,
+  },
+  {
+    id: 'disposable-party-flash',
+    name: 'Party Night Flash',
+    character: 'Direct flash pekat, highlights terang benderang & bayangan moody ungu/biru',
+    lut: '/luts/disposable-party-flash.png',
+    strength: 1.0,
+    lumaLock: 0.0,
+    contrast: 0.55,
+    grain: 0.35,
+    vignette: 0.32,
+    halation: 0.30,
+  },
+  {
+    id: 'disposable-beach-washed',
+    name: 'Beach Washed',
+    character: 'Nuansa musim panas lembut, overexposed creamy & hangat keemasan pudar',
+    lut: '/luts/disposable-beach-washed.png',
+    strength: 1.0,
+    lumaLock: 0.0,
+    contrast: 0.30,
+    grain: 0.20,
+    vignette: 0.15,
+    halation: 0.18,
+  },
+  {
+    id: 'disposable-expired-film',
+    name: 'Expired Film',
+    character: 'Pergeseran warna magenta/merah pudar, bayangan gelap pekat & butiran kasar retro',
+    lut: '/luts/disposable-expired-film.png',
+    strength: 1.0,
+    lumaLock: 0.0,
+    contrast: 0.48,
+    grain: 0.40,
+    vignette: 0.28,
+    halation: 0.25,
+  },
+  {
+    id: 'disposable-90s-compact',
+    name: '90s Compact',
+    character: 'Warna amber hangat, kulit glowing & nostalgia kamera saku era 90-an',
+    lut: '/luts/disposable-90s-compact.png',
+    strength: 1.0,
+    lumaLock: 0.0,
+    contrast: 0.46,
+    grain: 0.26,
     vignette: 0.24,
     halation: 0.20,
   },
