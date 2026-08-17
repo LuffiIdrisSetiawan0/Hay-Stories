@@ -2,7 +2,7 @@ import fs from 'fs'
 import path from 'path'
 import sharp from 'sharp'
 
-const XMP_DIR = path.resolve('Disposable_Presets_LR')
+const XMP_BASE = path.resolve('Disposable_Presets_LR')
 const OUT_DIR = path.resolve('public/luts')
 
 if (!fs.existsSync(OUT_DIR)) {
@@ -105,6 +105,16 @@ function parseXmp(filePath) {
     return points
   }
 
+  const hslColors = ['Red', 'Orange', 'Yellow', 'Green', 'Aqua', 'Blue', 'Purple', 'Magenta']
+  const hslHue = {}
+  const hslSat = {}
+  const hslLum = {}
+  for (const c of hslColors) {
+    hslHue[c] = parseFloat(getAttr(`HueAdjustment${c}`, '0'))
+    hslSat[c] = parseFloat(getAttr(`SaturationAdjustment${c}`, '0'))
+    hslLum[c] = parseFloat(getAttr(`LuminanceAdjustment${c}`, '0'))
+  }
+
   return {
     name: getAttr('Name', path.basename(filePath, '.xmp')),
     temp: parseFloat(getAttr('IncrementalTemperature', '0')),
@@ -121,6 +131,15 @@ function parseXmp(filePath) {
     splitShadowSat: parseFloat(getAttr('SplitToningShadowSaturation', '0')),
     splitHighlightHue: parseFloat(getAttr('SplitToningHighlightHue', '0')),
     splitHighlightSat: parseFloat(getAttr('SplitToningHighlightSaturation', '0')),
+    redHue: parseFloat(getAttr('RedHue', '0')),
+    redSat: parseFloat(getAttr('RedSaturation', '0')),
+    greenHue: parseFloat(getAttr('GreenHue', '0')),
+    greenSat: parseFloat(getAttr('GreenSaturation', '0')),
+    blueHue: parseFloat(getAttr('BlueHue', '0')),
+    blueSat: parseFloat(getAttr('BlueSaturation', '0')),
+    hslHue,
+    hslSat,
+    hslLum,
     curveMaster: getSeqPoints('ToneCurvePV2012'),
     curveRed: getSeqPoints('ToneCurvePV2012Red'),
     curveGreen: getSeqPoints('ToneCurvePV2012Green'),
@@ -133,6 +152,13 @@ function gradePixel(r0, g0, b0, p) {
   let r = r0
   let g = g0
   let b = b0
+
+  // Calibration shifts
+  if (p.redHue || p.greenHue || p.blueHue) {
+    r += (p.redHue / 100) * 0.05 * r
+    g += (p.greenHue / 100) * 0.05 * g
+    b += (p.blueHue / 100) * 0.05 * b
+  }
 
   // White balance / Temp / Tint
   r += p.temp * 0.003
@@ -149,7 +175,7 @@ function gradePixel(r0, g0, b0, p) {
     b *= mult
   }
 
-  // Highlights & Shadows
+  // Highlights, Shadows, Whites, Blacks
   const lum = 0.2126 * r + 0.7152 * g + 0.0722 * b
   if (p.highlights !== 0 && lum > 0.5) {
     const hFactor = (lum - 0.5) * 2 * (p.highlights / 100) * 0.25
@@ -162,6 +188,18 @@ function gradePixel(r0, g0, b0, p) {
     r += sFactor
     g += sFactor
     b += sFactor
+  }
+  if (p.whites !== 0 && lum > 0.7) {
+    const wFactor = (lum - 0.7) * 3.33 * (p.whites / 100) * 0.2
+    r += wFactor
+    g += wFactor
+    b += wFactor
+  }
+  if (p.blacks !== 0 && lum < 0.3) {
+    const bFactor = (1 - lum * 3.33) * (p.blacks / 100) * 0.2
+    r += bFactor
+    g += bFactor
+    b += bFactor
   }
 
   // Tone Curves
@@ -253,27 +291,26 @@ async function generateLutPng(xmpPath, outFileName) {
     .png({ compressionLevel: 9 })
     .toFile(outPath)
 
-  console.log(`Generated: ${outFileName} from ${path.basename(xmpPath)}`)
+  console.log(`Generated: ${outFileName} from ${path.relative(process.cwd(), xmpPath)}`)
 }
 
 async function main() {
   const files = [
-    { src: 'DC_01_QuickSnap_Daylight.xmp', dest: 'disposable-quicksnap.png' },
-    { src: 'DC_02_Party_Night_Flash.xmp', dest: 'disposable-party-flash.png' },
-    { src: 'DC_03_Beach_Washed.xmp', dest: 'disposable-beach-washed.png' },
-    { src: 'DC_04_Expired_Film.xmp', dest: 'disposable-expired-film.png' },
-    { src: 'DC_05_90s_Compact.xmp', dest: 'disposable-90s-compact.png' },
+    { src: '35mm/35mm.xmp', dest: 'film-35mm.png' },
+    { src: 'fuji/Fuji.xmp', dest: 'film-fuji.png' },
+    { src: 'kodak/Kodak.xmp', dest: 'film-kodak.png' },
+    { src: 'polaroid/Polaroid.xmp', dest: 'film-polaroid.png' },
   ]
 
   for (const item of files) {
-    const xmpPath = path.join(XMP_DIR, item.src)
+    const xmpPath = path.join(XMP_BASE, item.src)
     if (fs.existsSync(xmpPath)) {
       await generateLutPng(xmpPath, item.dest)
     } else {
       console.warn(`File not found: ${xmpPath}`)
     }
   }
-  console.log('All Disposable Lightroom presets converted to 3D LUT PNGs successfully!')
+  console.log('All ThePresetsRoom film presets converted to 3D LUT PNGs successfully!')
 }
 
 main()

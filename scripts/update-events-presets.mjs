@@ -24,26 +24,27 @@ async function main() {
   const { data: events, error } = await supabase.from('events').select('id, title, preset')
   if (error) {
     console.error('Error fetching events:', error)
-    return
+    process.exit(1)
   }
 
   console.log(`Found ${events.length} events:`)
   for (const event of events) {
     console.log(`- ${event.title} (${event.id}): preset = ${event.preset}`)
     // If preset is not one of the new ones, update to disposable-quicksnap
-    const valid = ['natural-clean', 'disposable-quicksnap', 'disposable-party-flash', 'disposable-beach-washed', 'disposable-expired-film', 'disposable-90s-compact']
+    const valid = ['natural-clean', 'film-35mm', 'film-fuji', 'film-kodak', 'film-polaroid']
     if (!valid.includes(event.preset)) {
       const { error: updateErr } = await supabase
         .from('events')
-        .update({ preset: 'disposable-quicksnap' })
+        .update({ preset: 'film-35mm' })
         .eq('id', event.id)
       if (updateErr) {
         console.error(`  Failed to update event ${event.id}:`, updateErr)
       } else {
-        console.log(`  Updated event ${event.id} to disposable-quicksnap!`)
+        console.log(`  Updated event ${event.id} to film-35mm!`)
       }
     }
   }
+  process.exit(0)
 }
 
 main()

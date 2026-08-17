@@ -96,7 +96,7 @@ export default function FilmShowcase() {
 
         <h2 className={styles.title}>
           <SplitText by="word" delay={60}>
-            Enam Karakter Warna untuk Setiap Suasana Acara
+            Karakter Warna Analog untuk Setiap Suasana Acara
           </SplitText>
         </h2>
 

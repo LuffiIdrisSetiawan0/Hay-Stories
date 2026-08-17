@@ -11,42 +11,37 @@ import SplitText from "@/components/ui/SplitText";
 import ScrollCue from "@/components/ui/ScrollCue";
 import styles from "./Hero.module.css";
 
-const HERO_PRESETS = FILM_PRESETS.slice(0, 6);
+const HERO_PRESETS = FILM_PRESETS;
 
 const SCENES: Record<string, { src: string; alt: string }> = {
   "natural-clean": {
     src: "/img/scenes/01-pelaminan.jpg",
     alt: "potret natural cerah dengan warna asli dan nada kulit alami",
   },
-  "disposable-quicksnap": {
+  "film-35mm": {
     src: "/img/scenes/01-pelaminan.jpg",
     alt: "pasangan pengantin Indonesia tersenyum bahagia dalam busana pernikahan putih",
   },
-  "disposable-party-flash": {
-    src: "/img/scenes/05-lantai-dansa.jpg",
-    alt: "suasana pesta malam anak muda penuh energi di bawah pendar lampu neon",
-  },
-  "disposable-beach-washed": {
+  "film-fuji": {
     src: "/img/scenes/06-konfeti.jpg",
     alt: "prosesi pengantin luar ruang bertabur kelopak bunga diiringi senyum para tamu",
   },
-  "disposable-expired-film": {
-    src: "/img/scenes/04-potret.jpg",
-    alt: "momen hangat berkesan dengan estetika film lawas nostalgia",
+  "film-kodak": {
+    src: "/img/scenes/05-lantai-dansa.jpg",
+    alt: "suasana pesta malam penuh energi dengan kilau hangat keemasan",
   },
-  "disposable-90s-compact": {
-    src: "/img/scenes/02-meja-dekorasi.jpg",
-    alt: "keceriaan para tamu tertawa lepas di acara pesta ala 90an",
+  "film-polaroid": {
+    src: "/img/scenes/04-potret.jpg",
+    alt: "momen hangat penuh kenangan dengan estetika polaroid instan",
   },
 };
 
 const FAN = [
-  { x: -2.35, y: 0.34, r: -14, z: 0 },
-  { x: -1.42, y: -0.1, r: -8.5, z: 1 },
-  { x: -0.48, y: 0.12, r: -3, z: 2 },
-  { x: 0.48, y: 0.05, r: 3.5, z: 3 },
-  { x: 1.42, y: -0.12, r: 9, z: 4 },
-  { x: 2.35, y: 0.3, r: 14.5, z: 5 },
+  { x: -2.0, y: 0.28, r: -12, z: 0 },
+  { x: -1.0, y: -0.05, r: -6, z: 1 },
+  { x: 0.0, y: 0.08, r: 0, z: 2 },
+  { x: 1.0, y: -0.05, r: 6, z: 3 },
+  { x: 2.0, y: 0.28, r: 12, z: 4 },
 ] as const;
 
 export default function Hero() {

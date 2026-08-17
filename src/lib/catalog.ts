@@ -114,11 +114,10 @@ export function formatGuestLimit(maxGuests: number | null): string {
 
 export type PresetId =
   | 'natural-clean'
-  | 'disposable-quicksnap'
-  | 'disposable-party-flash'
-  | 'disposable-beach-washed'
-  | 'disposable-expired-film'
-  | 'disposable-90s-compact'
+  | 'film-35mm'
+  | 'film-fuji'
+  | 'film-kodak'
+  | 'film-polaroid'
 
 export interface FilmPreset {
   id: PresetId
@@ -155,68 +154,56 @@ export const FILM_PRESETS: readonly FilmPreset[] = [
     halation: 0.0,
   },
   {
-    id: 'disposable-quicksnap',
-    name: 'QuickSnap Daylight',
-    character: 'Warna biru-hijau sejuk, kontras tajam & bayangan pudar khas disposable camera',
-    lut: '/luts/disposable-quicksnap.png',
+    id: 'film-35mm',
+    name: '35mm Analog',
+    character: 'Karakter roll film 35mm klasik, bayangan pudar matte & nada hangat autentik',
+    lut: '/luts/film-35mm.png',
     strength: 1.0,
     lumaLock: 0.0,
     contrast: 0.45,
-    grain: 0.28,
-    vignette: 0.22,
-    halation: 0.15,
-  },
-  {
-    id: 'disposable-party-flash',
-    name: 'Party Night Flash',
-    character: 'Direct flash pekat, highlights terang benderang & bayangan moody ungu/biru',
-    lut: '/luts/disposable-party-flash.png',
-    strength: 1.0,
-    lumaLock: 0.0,
-    contrast: 0.55,
-    grain: 0.35,
-    vignette: 0.32,
-    halation: 0.30,
-  },
-  {
-    id: 'disposable-beach-washed',
-    name: 'Beach Washed',
-    character: 'Nuansa musim panas lembut, overexposed creamy & hangat keemasan pudar',
-    lut: '/luts/disposable-beach-washed.png',
-    strength: 1.0,
-    lumaLock: 0.0,
-    contrast: 0.30,
-    grain: 0.20,
-    vignette: 0.15,
+    grain: 0.30,
+    vignette: 0.20,
     halation: 0.18,
   },
   {
-    id: 'disposable-expired-film',
-    name: 'Expired Film',
-    character: 'Pergeseran warna magenta/merah pudar, bayangan gelap pekat & butiran kasar retro',
-    lut: '/luts/disposable-expired-film.png',
+    id: 'film-fuji',
+    name: 'Fuji Film',
+    character: 'Warna hijau & biru sejuk khas Fujifilm, nada kulit lembut & bayangan jernih',
+    lut: '/luts/film-fuji.png',
     strength: 1.0,
     lumaLock: 0.0,
-    contrast: 0.48,
-    grain: 0.40,
-    vignette: 0.28,
-    halation: 0.25,
+    contrast: 0.40,
+    grain: 0.18,
+    vignette: 0.16,
+    halation: 0.14,
   },
   {
-    id: 'disposable-90s-compact',
-    name: '90s Compact',
-    character: 'Warna amber hangat, kulit glowing & nostalgia kamera saku era 90-an',
-    lut: '/luts/disposable-90s-compact.png',
+    id: 'film-kodak',
+    name: 'Kodak Film',
+    character: 'Nuansa hangat keemasan ikonik Kodak, warna merah kaya & kontras analog hidup',
+    lut: '/luts/film-kodak.png',
     strength: 1.0,
     lumaLock: 0.0,
-    contrast: 0.46,
-    grain: 0.26,
+    contrast: 0.50,
+    grain: 0.28,
+    vignette: 0.22,
+    halation: 0.22,
+  },
+  {
+    id: 'film-polaroid',
+    name: 'Polaroid Instant',
+    character: 'Estetika foto instan polaroid vintage, bayangan pudar & kilau nostalgia lembut',
+    lut: '/luts/film-polaroid.png',
+    strength: 1.0,
+    lumaLock: 0.0,
+    contrast: 0.38,
+    grain: 0.22,
     vignette: 0.24,
-    halation: 0.20,
+    halation: 0.16,
   },
 ] as const
 
-export const DEFAULT_PRESET: PresetId = 'disposable-quicksnap'
+export const DEFAULT_PRESET: PresetId = 'film-35mm'
 
 export function getPreset(id: string): FilmPreset | undefined {
   return FILM_PRESETS.find((p) => p.id === id)
