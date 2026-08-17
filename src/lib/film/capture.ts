@@ -9,8 +9,8 @@ const MAX_LONG_EDGE = 4096
 /** Sisi terpanjang thumbnail galeri. Galeri TIDAK BOLEH memuat foto penuh. */
 const THUMB_LONG_EDGE = 480
 
-const FULL_QUALITY = 0.92
-const THUMB_QUALITY = 0.75
+const FULL_QUALITY = 0.96
+const THUMB_QUALITY = 0.80
 
 export interface ProcessedCapture {
   full: Blob

@@ -85,8 +85,8 @@ float hash(vec2 p) {
 }
 
 /**
- * Penajaman Kamera (Optical Sharpening / Unsharp Mask).
- * Mengangkat detail tepi, rambut, pakaian, dan mata agar hasil foto jernih & tajam.
+ * Penajaman Kamera Optik HD (Adaptive High-Pass / Unsharp Mask).
+ * Mengangkat ketajaman mata, rambut, tekstur pakaian, dan detail wajah agar jernih.
  */
 vec3 sharpen(vec2 uv, vec3 base, float amount) {
   if (amount <= 0.0) return base;
@@ -98,7 +98,7 @@ vec3 sharpen(vec2 uv, vec3 base, float amount) {
   vec3 w = texture(uSource, clamp(uv + vec2(-step.x, 0.0), 0.0, 1.0)).rgb;
 
   vec3 laplacian = (base * 4.0) - (n + s + e + w);
-  return clamp(base + laplacian * amount * 0.85, 0.0, 1.0);
+  return clamp(base + laplacian * amount * 1.45, 0.0, 1.0);
 }
 
 /**
@@ -147,7 +147,7 @@ float skinMask(vec3 c) {
 }
 
 /**
- * Penghalusan kulit analog yang alami (menghilangkan noda mikro tanpa efek plastik).
+ * Penghalusan kulit analog alami dengan preservasi ketajaman tepi & mata.
  */
 vec3 smoothSkin(vec2 uv, vec3 base, float amount) {
   if (amount <= 0.0) return base;
@@ -156,7 +156,7 @@ vec3 smoothSkin(vec2 uv, vec3 base, float amount) {
   if (mask <= 0.001) return base;
 
   vec2 texel = 1.0 / uResolution;
-  float radius = min(uResolution.x, uResolution.y) * 0.006;
+  float radius = min(uResolution.x, uResolution.y) * 0.0025;
 
   vec3 sum = vec3(0.0);
   float weight = 0.0;
@@ -165,18 +165,16 @@ vec3 smoothSkin(vec2 uv, vec3 base, float amount) {
     float a = float(i) * 0.7853981634;
     vec2 dir = vec2(cos(a), sin(a));
 
-    for (int r = 1; r <= 2; r++) {
-      vec3 s = texture(uSource, clamp(uv + dir * texel * radius * float(r), 0.0, 1.0)).rgb;
-      float diff = length(s - base);
-      float w = exp(-diff * diff * 90.0) / float(r);
-      sum += s * w;
-      weight += w;
-    }
+    vec3 s = texture(uSource, clamp(uv + dir * texel * radius, 0.0, 1.0)).rgb;
+    float diff = length(s - base);
+    float w = exp(-diff * diff * 150.0);
+    sum += s * w;
+    weight += w;
   }
 
   vec3 blurred = sum / max(weight, 0.0001);
   vec3 detail = base - blurred;
-  float keep = mix(1.0, 0.35, amount * mask);
+  float keep = mix(1.0, 0.65, amount * mask);
 
   return blurred + detail * keep;
 }

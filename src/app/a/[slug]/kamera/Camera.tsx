@@ -16,12 +16,12 @@ import { FilmRenderer, captureSize, fitWithin, processCapture, videoToBitmap } f
 import { createClient } from '@/lib/supabase/client'
 import styles from './Camera.module.css'
 
-const PREVIEW_LONG_EDGE = 900
-const STREAM_WIDTH = 2560
-const STREAM_HEIGHT = 1440
+const PREVIEW_LONG_EDGE = 1440
+const STREAM_WIDTH = 3840
+const STREAM_HEIGHT = 2160
 
 const INITIAL_PRESET = getPreset(DEFAULT_PRESET)!
-const SKIN_SMOOTH = 0.65
+const SKIN_SMOOTH = 0.25
 
 type Phase =
   | { kind: 'starting' }
@@ -49,9 +49,9 @@ interface FlyingPhoto {
 }
 
 const SHARPNESS_OPTIONS = [
-  { label: 'Alami (Lembut)', val: 0.15 },
-  { label: 'Tajam (Standar HD)', val: 0.45 },
-  { label: 'Ultra Detail', val: 0.80 },
+  { label: 'Alami (Lembut)', val: 0.25 },
+  { label: 'Jernih & Tajam (HD)', val: 0.55 },
+  { label: 'Ultra Clarity 4K', val: 0.85 },
 ] as const
 
 export default function Camera({
@@ -78,7 +78,7 @@ export default function Camera({
   const [frame, setFrame] = useState<FrameId>(DEFAULT_FRAME)
   const [softSkin, setSoftSkin] = useState(true)
   const [exposure, setExposure] = useState<number>(0.0)
-  const [sharpness, setSharpness] = useState<number>(0.45)
+  const [sharpness, setSharpness] = useState<number>(0.55)
   const [activeDrawer, setActiveDrawer] = useState<'none' | 'sharpness'>('none')
   
   // Focus & Gesture Exposure states
@@ -198,9 +198,9 @@ export default function Camera({
         const stream = await navigator.mediaDevices.getUserMedia({
           video: {
             facingMode: { ideal: facing },
-            width: { ideal: STREAM_WIDTH },
-            height: { ideal: STREAM_HEIGHT },
-            ...({ focusMode: { ideal: 'continuous' } } as Record<string, unknown>),
+            width: { ideal: STREAM_WIDTH, min: 1280 },
+            height: { ideal: STREAM_HEIGHT, min: 720 },
+            frameRate: { ideal: 30, max: 60 },
           } as MediaTrackConstraints,
           audio: false,
         })
