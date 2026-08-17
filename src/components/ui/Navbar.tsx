@@ -40,7 +40,6 @@ const EXPLORE_ITEMS = [
   { label: "Cara Kerja", href: "/#cara-kerja" },
   { label: "Preset Film", href: "/#preset" },
   { label: "Daftar Harga", href: "/harga" },
-  { label: "Simulasi Roll", href: "/dev/film" },
   { label: "Pertanyaan (FAQ)", href: "/#faq" },
   { label: "Masuk / Buat Album", href: "/login" },
 ] as const;

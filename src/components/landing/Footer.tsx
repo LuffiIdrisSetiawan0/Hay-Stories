@@ -56,7 +56,6 @@ export default function Footer() {
               <li><Link href="/#cara-kerja">Cara Kerja</Link></li>
               <li><Link href="/#preset">Preset Film</Link></li>
               <li><Link href="/harga">Paket Harga</Link></li>
-              <li><Link href="/dev/film">Simulasi Roll Film</Link></li>
             </ul>
           </div>
 
@@ -75,7 +74,11 @@ export default function Footer() {
             <ul>
               <li><Link href="/#faq">FAQ</Link></li>
               <li><Link href="/login">Dashboard Tuan Rumah</Link></li>
-              <li><Link href="/privacy">Kebijakan Privasi</Link></li>
+              <li>
+                <a href="mailto:hello@haystories.id?subject=Pertanyaan%20privasi%20dan%20data">
+                  Privasi &amp; data
+                </a>
+              </li>
               <li><Link href="/kredit">Kredit & Lisensi</Link></li>
             </ul>
           </div>
