@@ -36,7 +36,7 @@ export const TIERS: readonly Tier[] = [
     tagline: 'Coba dulu, gratis',
     price: 0,
     maxGuests: 5,
-    shotsPerGuest: 12,
+    shotsPerGuest: 100,
     retentionDays: 90,
     features: [
       '1 album acara',
@@ -52,7 +52,7 @@ export const TIERS: readonly Tier[] = [
     price: 199_000,
     wasPrice: 299_000,
     maxGuests: 50,
-    shotsPerGuest: 24,
+    shotsPerGuest: 100,
     retentionDays: null,
     features: [
       'Semua fitur Starter',
@@ -68,7 +68,7 @@ export const TIERS: readonly Tier[] = [
     price: 499_000,
     wasPrice: 699_000,
     maxGuests: 150,
-    shotsPerGuest: 36,
+    shotsPerGuest: 100,
     retentionDays: null,
     features: [
       'Semua fitur Party',
@@ -85,7 +85,7 @@ export const TIERS: readonly Tier[] = [
     price: 1_099_000,
     wasPrice: 1_490_000,
     maxGuests: null,
-    shotsPerGuest: 36,
+    shotsPerGuest: 100,
     retentionDays: null,
     features: [
       'Semua fitur Pesta',
