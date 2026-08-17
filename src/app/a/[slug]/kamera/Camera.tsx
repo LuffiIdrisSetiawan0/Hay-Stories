@@ -125,6 +125,18 @@ export default function Camera({
   const rollEmpty = remaining === 0
   const mirror = facing === 'user'
 
+  const exposureRef = useRef(exposure)
+  exposureRef.current = exposure
+
+  const sharpnessRef = useRef(sharpness)
+  sharpnessRef.current = sharpness
+
+  const softSkinRef = useRef(softSkin)
+  softSkinRef.current = softSkin
+
+  const mirrorRef = useRef(mirror)
+  mirrorRef.current = mirror
+
   // --- Loop render ---------------------------------------------------------
 
   const drawFrame = useCallback(() => {
@@ -134,15 +146,15 @@ export default function Camera({
 
     const { width, height } = fitWithin(video.videoWidth, video.videoHeight, PREVIEW_LONG_EDGE)
     renderer.render(video, presetRef.current, width, height, {
-      mirror,
+      mirror: mirrorRef.current,
       intensity: presetRef.current.strength,
       lumaLock: presetRef.current.lumaLock,
       contrast: presetRef.current.contrast,
-      smooth: softSkin ? SKIN_SMOOTH : 0,
-      exposure,
-      sharpen: sharpness,
+      smooth: softSkinRef.current ? SKIN_SMOOTH : 0,
+      exposure: exposureRef.current,
+      sharpen: sharpnessRef.current,
     })
-  }, [mirror, softSkin, exposure, sharpness])
+  }, [])
 
   const stopLoop = useCallback(() => {
     const loop = loopRef.current
@@ -287,7 +299,7 @@ export default function Camera({
       captureRendererRef.current = null
       captureCanvasRef.current = null
     }
-  }, [facing, startLoop, stopLoop])
+  }, [facing])
 
   // --- Tap-to-Focus & Drag Exposure Gesture --------------------------------
 
