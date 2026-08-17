@@ -36,9 +36,8 @@ export default function CreditsPage() {
           <h2 className={styles.sectionTitle}>Tabel warna film</h2>
 
           <p className={styles.body}>
-            Keenam roll film kami — {FILM_PRESETS.map((p) => p.name).join(', ')} — diturunkan dari{' '}
-            <strong>RawTherapee Film Simulation Collection</strong>, sekumpulan profil warna yang
-            dibuat dari stok film sungguhan.
+            Koleksi preset film kami — {FILM_PRESETS.map((p) => p.name).join(', ')} — dirancang
+            untuk memberikan estetika warna analog kamera vintage dan disposable camera secara akurat.
           </p>
 
           <p className={styles.body}>

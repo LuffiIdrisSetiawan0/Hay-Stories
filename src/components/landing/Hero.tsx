@@ -18,29 +18,25 @@ const SCENES: Record<string, { src: string; alt: string }> = {
     src: "/img/scenes/01-pelaminan.jpg",
     alt: "potret natural cerah dengan warna asli dan nada kulit alami",
   },
-  "golden-hour-400": {
+  "disposable-quicksnap": {
     src: "/img/scenes/01-pelaminan.jpg",
     alt: "pasangan pengantin Indonesia tersenyum bahagia dalam busana pernikahan putih",
   },
-  "pastel-400": {
-    src: "/img/scenes/06-konfeti.jpg",
-    alt: "prosesi pengantin luar ruang bertabur kelopak bunga diiringi senyum para tamu",
-  },
-  "neon-night-1600": {
+  "disposable-party-flash": {
     src: "/img/scenes/05-lantai-dansa.jpg",
     alt: "suasana pesta malam anak muda penuh energi di bawah pendar lampu neon",
   },
-  "everyday-100": {
-    src: "/img/scenes/03-kue.jpg",
-    alt: "tamu undangan muda berkebaya dan udeng berfoto candid sambil tersenyum",
+  "disposable-beach-washed": {
+    src: "/img/scenes/06-konfeti.jpg",
+    alt: "prosesi pengantin luar ruang bertabur kelopak bunga diiringi senyum para tamu",
   },
-  "sunday-chrome": {
-    src: "/img/scenes/02-meja-dekorasi.jpg",
-    alt: "keceriaan ibu-ibu berkebaya warna-warni tertawa lepas di acara pesta",
-  },
-  "noir-400": {
+  "disposable-expired-film": {
     src: "/img/scenes/04-potret.jpg",
-    alt: "momen sungkeman adat pernikahan penuh haru dan kehangatan",
+    alt: "momen hangat berkesan dengan estetika film lawas nostalgia",
+  },
+  "disposable-90s-compact": {
+    src: "/img/scenes/02-meja-dekorasi.jpg",
+    alt: "keceriaan para tamu tertawa lepas di acara pesta ala 90an",
   },
 };
 

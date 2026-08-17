@@ -47,10 +47,9 @@ const NEUTRAL: Knobs = {
  */
 function tune(preset: FilmPreset, k: Knobs) {
   const clamp = (v: number) => Math.min(1, Math.max(0, v))
-  const isMono = preset.id === 'noir-400' || preset.id === 'kodak-tri-x-400'
   return {
     ...preset,
-    strength: isMono ? preset.strength : clamp(preset.strength * k.strength),
+    strength: clamp(preset.strength * k.strength),
     lumaLock: clamp(preset.lumaLock * k.lumaLock),
     contrast: clamp(preset.contrast * k.contrast),
     grain: clamp(preset.grain * k.grain),

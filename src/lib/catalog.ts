@@ -114,23 +114,11 @@ export function formatGuestLimit(maxGuests: number | null): string {
 
 export type PresetId =
   | 'natural-clean'
-  | 'golden-hour-400'
-  | 'pastel-400'
-  | 'everyday-100'
-  | 'neon-night-1600'
-  | 'sunday-chrome'
   | 'disposable-quicksnap'
   | 'disposable-party-flash'
   | 'disposable-beach-washed'
   | 'disposable-expired-film'
   | 'disposable-90s-compact'
-  | 'noir-400'
-  | 'fuji-velvia-50'
-  | 'kodachrome-64'
-  | 'kodak-ektachrome-100'
-  | 'fuji-astia-100'
-  | 'kodak-ektar-100'
-  | 'kodak-tri-x-400'
 
 export interface FilmPreset {
   id: PresetId
@@ -165,66 +153,6 @@ export const FILM_PRESETS: readonly FilmPreset[] = [
     grain: 0.0,
     vignette: 0.0,
     halation: 0.0,
-  },
-  {
-    id: 'golden-hour-400',
-    name: 'Kodak Gold 200',
-    character: 'Hangat keemasan, kulit peachy-glow, bayangan matte analog & golden highlights',
-    lut: '/luts/golden-hour-400.png',
-    strength: 1.0,
-    lumaLock: 0.0,
-    contrast: 0.48,
-    grain: 0.22,
-    vignette: 0.20,
-    halation: 0.24,
-  },
-  {
-    id: 'pastel-400',
-    name: 'Fuji Superia 400',
-    character: 'Warna hijau & biru segar, rose-tint kulit bersinar, kontras tajam khas foto Jepang',
-    lut: '/luts/fuji-superia-400.png',
-    strength: 1.0,
-    lumaLock: 0.0,
-    contrast: 0.45,
-    grain: 0.20,
-    vignette: 0.18,
-    halation: 0.16,
-  },
-  {
-    id: 'everyday-100',
-    name: 'Portra 400 Romance',
-    character: 'Warna kulit paling lembut & flattering, pastel creamy, gaun pengantin tetap bertekstur',
-    lut: '/luts/everyday-100.png',
-    strength: 1.0,
-    lumaLock: 0.0,
-    contrast: 0.38,
-    grain: 0.14,
-    vignette: 0.12,
-    halation: 0.12,
-  },
-  {
-    id: 'neon-night-1600',
-    name: 'CineStill 800T',
-    character: 'Bayangan teal sinematik, red halation tebal memancar di sekitar lampu & lilin pesta',
-    lut: '/luts/neon-night-1600.png',
-    strength: 1.0,
-    lumaLock: 0.0,
-    contrast: 0.54,
-    grain: 0.36,
-    vignette: 0.28,
-    halation: 0.60,
-  },
-  {
-    id: 'sunday-chrome',
-    name: 'Agfa Vista 200',
-    character: 'Direct flash pop, warna merah pekat, kontras tegas, nostalgia kamera saku 90-an',
-    lut: '/luts/agfa-vista-200.png',
-    strength: 1.0,
-    lumaLock: 0.0,
-    contrast: 0.52,
-    grain: 0.24,
-    vignette: 0.24,
-    halation: 0.20,
   },
   {
     id: 'disposable-quicksnap',
@@ -286,93 +214,9 @@ export const FILM_PRESETS: readonly FilmPreset[] = [
     vignette: 0.24,
     halation: 0.20,
   },
-  {
-    id: 'noir-400',
-    name: 'Ilford HP5 Plus',
-    character: 'Hitam-putih berkelas, silver grain nyata, bayangan dalam & gradasi abu-abu kaya',
-    lut: '/luts/ilford-hp5-400.png',
-    strength: 1.0,
-    lumaLock: 0.0,
-    contrast: 0.60,
-    grain: 0.45,
-    vignette: 0.30,
-    halation: 0.0,
-  },
-  {
-    id: 'fuji-velvia-50',
-    name: 'Fujifilm Velvia 50',
-    character: 'Saturasi warna ultra-vibrant, hijau emerald hidup, warna lanskap pop',
-    lut: '/luts/fuji-velvia-50.png',
-    strength: 1.0,
-    lumaLock: 0.0,
-    contrast: 0.58,
-    grain: 0.16,
-    vignette: 0.22,
-    halation: 0.14,
-  },
-  {
-    id: 'kodachrome-64',
-    name: 'Kodak Kodachrome 64',
-    character: 'Slide film legendaris era 70-80an, warna merah & kuning hangat nostalgia',
-    lut: '/luts/kodachrome-64.png',
-    strength: 1.0,
-    lumaLock: 0.0,
-    contrast: 0.50,
-    grain: 0.20,
-    vignette: 0.22,
-    halation: 0.18,
-  },
-  {
-    id: 'kodak-ektachrome-100',
-    name: 'Kodak Ektachrome 100',
-    character: 'Kontras tajam dengan cool blues dan saturasi jernih khas slide film modern',
-    lut: '/luts/kodak-ektachrome-100.png',
-    strength: 1.0,
-    lumaLock: 0.0,
-    contrast: 0.54,
-    grain: 0.18,
-    vignette: 0.20,
-    halation: 0.15,
-  },
-  {
-    id: 'fuji-astia-100',
-    name: 'Fujifilm Astia 100F',
-    character: 'Soft contrast natural, warna kulit halus dan seimbang untuk potret outdoor',
-    lut: '/luts/pastel-400.png',
-    strength: 1.0,
-    lumaLock: 0.0,
-    contrast: 0.40,
-    grain: 0.14,
-    vignette: 0.14,
-    halation: 0.12,
-  },
-  {
-    id: 'kodak-ektar-100',
-    name: 'Kodak Ektar 100',
-    character: 'Grain paling halus di dunia, warna sangat tajam, kaya dan berdimensi',
-    lut: '/luts/sunday-chrome.png',
-    strength: 1.0,
-    lumaLock: 0.0,
-    contrast: 0.52,
-    grain: 0.10,
-    vignette: 0.18,
-    halation: 0.12,
-  },
-  {
-    id: 'kodak-tri-x-400',
-    name: 'Kodak TRI-X 400',
-    character: 'Monokrom jurnalistik klasik, kontras tegas berjiwa dengan silver grain khas',
-    lut: '/luts/noir-400.png',
-    strength: 1.0,
-    lumaLock: 0.0,
-    contrast: 0.65,
-    grain: 0.48,
-    vignette: 0.28,
-    halation: 0.0,
-  },
 ] as const
 
-export const DEFAULT_PRESET: PresetId = 'golden-hour-400'
+export const DEFAULT_PRESET: PresetId = 'disposable-quicksnap'
 
 export function getPreset(id: string): FilmPreset | undefined {
   return FILM_PRESETS.find((p) => p.id === id)
