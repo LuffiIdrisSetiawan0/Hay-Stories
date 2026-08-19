@@ -3,6 +3,13 @@ import type { FilmPreset } from '@/lib/catalog'
 
 const LUT_SIZE = 32
 
+/**
+ * `gl.getError()` memaksa sinkronisasi dengan GPU process, jadi ia tidak boleh
+ * berjalan pada loop preview. Beberapa frame pertama tetap diperiksa supaya
+ * kesalahan setup (shader, LUT, format tekstur) tidak lolos tanpa suara.
+ */
+const STARTUP_ERROR_CHECKS = 3
+
 export type FilmSource = HTMLVideoElement | HTMLImageElement | ImageBitmap | HTMLCanvasElement
 type LutSource = HTMLImageElement | ImageBitmap
 
@@ -54,6 +61,11 @@ export class FilmRenderer {
   private disposed = false
   private contextLost = false
   private maxRenderSize: number
+  /** Dimensi yang sudah dialokasikan pada `sourceTexture`, agar frame berikutnya cukup `texSubImage2D`. */
+  private sourceWidth = 0
+  private sourceHeight = 0
+  private unpackColorspace: number | null = null
+  private errorBudget: number
   private readonly handleContextLost = (event: Event) => {
     event.preventDefault()
     this.contextLost = true
@@ -61,7 +73,14 @@ export class FilmRenderer {
 
   constructor(
     canvas: HTMLCanvasElement,
-    options: { preserveDrawingBuffer?: boolean } = {}
+    options: {
+      preserveDrawingBuffer?: boolean
+      /**
+       * `startup` hanya memeriksa beberapa frame pertama — dipakai loop preview
+       * agar tidak ada sinkronisasi GPU per frame. `always` untuk jalur simpan.
+       */
+      errorChecking?: 'always' | 'startup'
+    } = {}
   ) {
     const gl = canvas.getContext('webgl2', {
       alpha: false,
@@ -78,6 +97,10 @@ export class FilmRenderer {
 
     this.canvas = canvas
     this.gl = gl
+    this.errorBudget =
+      (options.errorChecking ?? 'always') === 'always'
+        ? Number.POSITIVE_INFINITY
+        : STARTUP_ERROR_CHECKS
     canvas.addEventListener('webglcontextlost', this.handleContextLost)
     this.maxRenderSize = Math.min(
       Number(gl.getParameter(gl.MAX_TEXTURE_SIZE)),
@@ -142,6 +165,7 @@ export class FilmRenderer {
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false)
     gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false)
     gl.pixelStorei(gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, gl.NONE)
+    this.unpackColorspace = gl.NONE
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img)
     gl.bindTexture(gl.TEXTURE_2D, null)
     this.currentLut = preset.lut
@@ -188,8 +212,34 @@ export class FilmRenderer {
 
     gl.activeTexture(gl.TEXTURE0)
     gl.bindTexture(gl.TEXTURE_2D, this.sourceTexture)
-    gl.pixelStorei(gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, gl.BROWSER_DEFAULT_WEBGL)
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, source as TexImageSource)
+    if (this.unpackColorspace !== gl.BROWSER_DEFAULT_WEBGL) {
+      gl.pixelStorei(gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, gl.BROWSER_DEFAULT_WEBGL)
+      this.unpackColorspace = gl.BROWSER_DEFAULT_WEBGL
+    }
+
+    // Frame video berikutnya menempati tekstur yang sama, jadi cukup menimpa
+    // isinya. `texImage2D` akan mengalokasi ulang ~50 MB tiap frame pada stream
+    // 4K dan itulah sumber utama preview tersendat.
+    const upload = sourceSize(source)
+    if (
+      this.sourceWidth > 0 &&
+      upload.width === this.sourceWidth &&
+      upload.height === this.sourceHeight
+    ) {
+      gl.texSubImage2D(
+        gl.TEXTURE_2D,
+        0,
+        0,
+        0,
+        gl.RGBA,
+        gl.UNSIGNED_BYTE,
+        source as TexImageSource
+      )
+    } else {
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, source as TexImageSource)
+      this.sourceWidth = upload.width
+      this.sourceHeight = upload.height
+    }
 
     gl.activeTexture(gl.TEXTURE1)
     gl.bindTexture(gl.TEXTURE_2D, this.lutTexture)
@@ -214,9 +264,12 @@ export class FilmRenderer {
     gl.drawArrays(gl.TRIANGLES, 0, 6)
     gl.bindVertexArray(null)
 
-    const glError = gl.getError()
-    if (glError !== gl.NO_ERROR) {
-      throw new Error(`GPU gagal merender foto (WebGL ${glError}).`)
+    if (this.errorBudget > 0) {
+      this.errorBudget -= 1
+      const glError = gl.getError()
+      if (glError !== gl.NO_ERROR) {
+        throw new Error(`GPU gagal merender foto (WebGL ${glError}).`)
+      }
     }
   }
 
@@ -342,6 +395,13 @@ function createFullscreenQuad(
 
   gl.bindVertexArray(null)
   return { vao, buffer }
+}
+
+/** Dimensi intrinsik sumber — bukan ukuran tampilannya di layout. */
+function sourceSize(source: FilmSource): { width: number; height: number } {
+  if ('videoWidth' in source) return { width: source.videoWidth, height: source.videoHeight }
+  if ('naturalWidth' in source) return { width: source.naturalWidth, height: source.naturalHeight }
+  return { width: source.width, height: source.height }
 }
 
 function createTexture(gl: WebGL2RenderingContext): WebGLTexture {

@@ -45,7 +45,16 @@ import {
 import { createClient } from '@/lib/supabase/client'
 import styles from './Camera.module.css'
 
-const PREVIEW_LONG_EDGE = 1080
+/**
+ * Tangga resolusi viewfinder. Foto tersimpan dirender ulang oleh renderer
+ * terpisah pada resolusi sensor penuh, jadi menurunkan tingkat di sini tidak
+ * pernah menyentuh kualitas hasil jepretan — hanya kehalusan preview.
+ */
+const PREVIEW_LADDER = [1080, 864, 720, 600]
+/** Turun satu tingkat setelah ~0,7 detik konsisten tersendat. */
+const SLOW_FRAMES_BEFORE_DOWNGRADE = 20
+/** Naik hanya setelah ~5 detik lancar, supaya tidak berosilasi. */
+const FAST_FRAMES_BEFORE_UPGRADE = 150
 const STREAM_WIDTH = 4096
 const STREAM_HEIGHT = 3072
 const MAX_ACTIVE_JOBS = 2
@@ -120,7 +129,7 @@ async function requestCamera(facing: 'environment' | 'user'): Promise<MediaStrea
         width: { ideal: STREAM_WIDTH },
         height: { ideal: STREAM_HEIGHT },
         aspectRatio: { ideal: 4 / 3 },
-        frameRate: { ideal: 24, max: 30 },
+        frameRate: { ideal: 30, max: 30 },
       },
       audio: false,
     })
@@ -209,6 +218,9 @@ export default function Camera({
   const blockingOverlayRef = useRef<HTMLDivElement>(null)
   const streamRef = useRef<MediaStream | null>(null)
   const loopRef = useRef<{ kind: 'raf' | 'rvfc'; id: number } | null>(null)
+  const previewTierRef = useRef(0)
+  const frameClockRef = useRef({ last: 0, ema: 0, slow: 0, fast: 0 })
+  const frameBudgetRef = useRef(1000 / 30)
   const mountedRef = useRef(true)
   const fallback2dRef = useRef(false)
   const presetRef = useRef<FilmPreset>(INITIAL_PRESET)
@@ -331,11 +343,66 @@ export default function Camera({
     setNotice({ kind: 'error', text })
   }, [])
 
+  const resetFrameClock = useCallback(() => {
+    frameClockRef.current = { last: 0, ema: 0, slow: 0, fast: 0 }
+  }, [])
+
+  /**
+   * Interval antar frame yang melar berarti GPU tidak sanggup pada resolusi
+   * viewfinder saat ini. Turunkan satu tingkat daripada membiarkan preview
+   * patah-patah, lalu naikkan lagi begitu perangkat terbukti lancar.
+   */
+  const trackPreviewPace = useCallback(() => {
+    const clock = frameClockRef.current
+    const now = performance.now()
+    const previous = clock.last
+    clock.last = now
+    if (previous === 0) return
+
+    const delta = now - previous
+    // Lompatan sebesar ini berarti halaman sempat tidak terlihat, bukan GPU lambat.
+    if (delta > 500) {
+      clock.ema = 0
+      clock.slow = 0
+      clock.fast = 0
+      return
+    }
+
+    clock.ema = clock.ema === 0 ? delta : clock.ema * 0.85 + delta * 0.15
+    const budget = frameBudgetRef.current
+
+    if (clock.ema > budget * 1.25) {
+      clock.fast = 0
+      clock.slow += 1
+      if (
+        clock.slow >= SLOW_FRAMES_BEFORE_DOWNGRADE &&
+        previewTierRef.current < PREVIEW_LADDER.length - 1
+      ) {
+        previewTierRef.current += 1
+        resetFrameClock()
+      }
+      return
+    }
+
+    if (clock.ema < budget * 1.1) {
+      clock.slow = 0
+      clock.fast += 1
+      if (clock.fast >= FAST_FRAMES_BEFORE_UPGRADE && previewTierRef.current > 0) {
+        previewTierRef.current -= 1
+        resetFrameClock()
+      }
+      return
+    }
+
+    clock.slow = 0
+    clock.fast = 0
+  }, [resetFrameClock])
+
   const drawFallbackFrame = useCallback(() => {
     const video = videoRef.current
     const canvas = canvasRef.current
     if (!video || !canvas || video.readyState < 2) return
-    const size = fitWithin(video.videoWidth, video.videoHeight, PREVIEW_LONG_EDGE)
+    const size = fitWithin(video.videoWidth, video.videoHeight, PREVIEW_LADDER[previewTierRef.current])
     if (canvas.width !== size.width || canvas.height !== size.height) {
       canvas.width = size.width
       canvas.height = size.height
@@ -365,7 +432,7 @@ export default function Camera({
 
     const renderer = rendererRef.current
     if (!renderer || presetLoadingRef.current) return
-    const size = fitWithin(video.videoWidth, video.videoHeight, PREVIEW_LONG_EDGE)
+    const size = fitWithin(video.videoWidth, video.videoHeight, PREVIEW_LADDER[previewTierRef.current])
     try {
       renderer.render(video, presetRef.current, size.width, size.height, {
         ...recipeRef.current,
@@ -393,9 +460,11 @@ export default function Camera({
     stopLoop()
     const video = videoRef.current
     if (!video) return
+    resetFrameClock()
 
     if (typeof video.requestVideoFrameCallback === 'function') {
       const tick = () => {
+        trackPreviewPace()
         drawFrame()
         loopRef.current = { kind: 'rvfc', id: video.requestVideoFrameCallback(tick) }
       }
@@ -404,11 +473,12 @@ export default function Camera({
     }
 
     const tick = () => {
+      trackPreviewPace()
       drawFrame()
       loopRef.current = { kind: 'raf', id: requestAnimationFrame(tick) }
     }
     loopRef.current = { kind: 'raf', id: requestAnimationFrame(tick) }
-  }, [drawFrame, stopLoop])
+  }, [drawFrame, resetFrameClock, stopLoop, trackPreviewPace])
 
   useEffect(() => {
     let cancelled = false
@@ -425,6 +495,11 @@ export default function Camera({
 
       setPhase({ kind: 'starting' })
       stopLoop()
+      // Kamera depan dan belakang punya beban render berbeda, jadi tangga
+      // resolusi dipelajari ulang dari tingkat teratas setiap pergantian.
+      previewTierRef.current = 0
+      frameBudgetRef.current = 1000 / 30
+      resetFrameClock()
       exposureRequestRef.current += 1
       exposureRangeRef.current = null
       sensorExposureRef.current = false
@@ -453,6 +528,10 @@ export default function Camera({
         const track = stream.getVideoTracks()[0]
         if (track) track.contentHint = 'detail'
         const settings = track?.getSettings()
+        // Loop preview berjalan sekali per frame kamera, jadi tolok ukur
+        // kelancaran harus mengikuti frame rate stream yang benar-benar didapat.
+        const streamFps = settings?.frameRate
+        if (streamFps) frameBudgetRef.current = 1000 / Math.min(60, Math.max(15, streamFps))
         const width = settings?.width ?? video.videoWidth
         const height = settings?.height ?? video.videoHeight
         if (width && height) {
@@ -486,7 +565,10 @@ export default function Camera({
         const canvas = canvasRef.current
         if (canvas && !rendererRef.current && !fallback2dRef.current) {
           try {
-            rendererRef.current = new FilmRenderer(canvas, { preserveDrawingBuffer: false })
+            rendererRef.current = new FilmRenderer(canvas, {
+              preserveDrawingBuffer: false,
+              errorChecking: 'startup',
+            })
             await rendererRef.current.loadPreset(presetRef.current)
           } catch (error) {
             activateCompatibilityMode(
@@ -533,7 +615,7 @@ export default function Camera({
       streamRef.current?.getTracks().forEach((track) => track.stop())
       streamRef.current = null
     }
-  }, [activateCompatibilityMode, cameraAttempt, facing, startLoop, stopLoop])
+  }, [activateCompatibilityMode, cameraAttempt, facing, resetFrameClock, startLoop, stopLoop])
 
   useEffect(() => {
     mountedRef.current = true

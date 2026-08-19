@@ -92,34 +92,25 @@ float hash(vec2 p) {
 }
 
 /**
- * Penajaman Kamera Optik HD (Adaptive High-Pass / Unsharp Mask).
+ * Kernel Laplacian penajaman optik, dihitung dari piksel sumber di linear light.
  * Mengangkat ketajaman mata, rambut, tekstur pakaian, dan detail wajah agar jernih.
  */
-vec3 sharpen(vec2 uv, vec3 base, float amount) {
-  if (amount <= 0.0) return base;
-
+vec3 sharpenLaplacian(vec2 uv, vec3 centerLinear) {
   vec2 step = 1.0 / uResolution;
-  vec3 center = srgbToLinear(texture(uSource, uv).rgb);
-  vec3 prepared = srgbToLinear(base);
   vec3 n = srgbToLinear(texture(uSource, clamp(uv + vec2(0.0, -step.y), 0.0, 1.0)).rgb);
   vec3 s = srgbToLinear(texture(uSource, clamp(uv + vec2(0.0, step.y), 0.0, 1.0)).rgb);
   vec3 e = srgbToLinear(texture(uSource, clamp(uv + vec2(step.x, 0.0), 0.0, 1.0)).rgb);
   vec3 w = srgbToLinear(texture(uSource, clamp(uv + vec2(-step.x, 0.0), 0.0, 1.0)).rgb);
 
-  vec3 laplacian = (center * 4.0) - (n + s + e + w);
-  // Gain dibatasi agar detail naik tanpa halo putih dan noise digital kasar.
-  vec3 sharpened = prepared + laplacian * amount * 0.65;
-  return clamp(linearToSrgb(sharpened), 0.0, 1.0);
+  return (centerLinear * 4.0) - (n + s + e + w);
 }
 
 /**
- * Kompensasi Pencahayaan (Exposure EV).
+ * Kompensasi Pencahayaan (Exposure EV) di linear light.
  * Menaikkan/menurunkan kecerahan secara fotografis (EV Stops).
  */
-vec3 applyExposure(vec3 col, float ev) {
-  if (abs(ev) <= 0.001) return col;
-
-  vec3 exposed = srgbToLinear(col) * exp2(ev);
+vec3 exposeLinear(vec3 linear, float ev) {
+  vec3 exposed = linear * exp2(ev);
 
   // Shoulder lembut hanya saat menaikkan exposure. Highlight mendapat ruang
   // untuk melandai alih-alih langsung terpotong putih.
@@ -130,7 +121,13 @@ vec3 applyExposure(vec3 col, float ev) {
     exposed = mix(exposed, shoulder, step(vec3(knee), exposed));
   }
 
-  return clamp(linearToSrgb(exposed), 0.0, 1.0);
+  return exposed;
+}
+
+/** Varian sRGB→sRGB untuk sampel tetangga yang belum melewati pipeline utama. */
+vec3 applyExposure(vec3 col, float ev) {
+  if (abs(ev) <= 0.001) return col;
+  return clamp(linearToSrgb(exposeLinear(srgbToLinear(col), ev)), 0.0, 1.0);
 }
 
 /**
@@ -142,15 +139,16 @@ vec3 halation(vec2 uv, float amount) {
   vec2 texel = 1.0 / uResolution;
   // Skala relatif menjaga karakter yang sama di preview dan hasil penuh.
   float radius = min(uResolution.x, uResolution.y) * 0.0045;
+  // Cabang diangkat ke luar loop: pada exposure netral seluruh konversi sRGB
+  // per sampel gugur dan halation tinggal delapan texture fetch.
+  bool reexpose = abs(uExposure) > 0.001;
   vec3 sum = vec3(0.0);
 
   for (int i = 0; i < 8; i++) {
     float a = float(i) * 0.7853981634; // 2pi/8
     vec2 offset = vec2(cos(a), sin(a)) * texel * radius;
-    vec3 s = applyExposure(
-      texture(uSource, clamp(uv + offset, 0.0, 1.0)).rgb,
-      uExposure
-    );
+    vec3 s = texture(uSource, clamp(uv + offset, 0.0, 1.0)).rgb;
+    if (reexpose) s = applyExposure(s, uExposure);
     sum += max(vec3(0.0), s - 0.65); // sorotan terang yang memancar
   }
 
@@ -227,14 +225,33 @@ void main() {
   if (uFlipY) uv.y = 1.0 - uv.y;
   if (uMirror) uv.x = 1.0 - uv.x;
 
-  vec3 c = texture(uSource, uv).rgb;
+  vec3 src = texture(uSource, uv).rgb;
 
   // Tetangga smoothing masih berada pada domain sumber yang sama.
-  c = smoothSkin(uv, c, uSmooth);
+  vec3 c = smoothSkin(uv, src, uSmooth);
 
   // Detail asli dikembalikan sesudah smoothing; exposure memakai linear light.
-  c = sharpen(uv, c, uSharpen);
-  c = applyExposure(c, uExposure);
+  // Keduanya berbagi satu perjalanan ke linear: karena sRGB monoton dan
+  // memetakan [0,1] ke [0,1], menjepit di linear identik dengan menjepit
+  // setelah konversi — dua round-trip pow() per piksel jadi bisa dihapus.
+  bool wantSharpen = uSharpen > 0.0;
+  bool wantExposure = abs(uExposure) > 0.001;
+
+  if (wantSharpen || wantExposure) {
+    vec3 linear = srgbToLinear(c);
+
+    if (wantSharpen) {
+      // Kernel memakai piksel sumber asli, bukan hasil smoothing.
+      vec3 centerLinear = linear;
+      if (uSmooth > 0.0) centerLinear = srgbToLinear(src);
+      // Gain dibatasi agar detail naik tanpa halo putih dan noise digital kasar.
+      linear = clamp(linear + sharpenLaplacian(uv, centerLinear) * uSharpen * 0.65, 0.0, 1.0);
+    }
+
+    if (wantExposure) linear = exposeLinear(linear, uExposure);
+
+    c = clamp(linearToSrgb(linear), 0.0, 1.0);
+  }
 
   // 1. Halation (Pendaran Hangat Emulsi 35mm)
   c += halation(uv, uHalation);
