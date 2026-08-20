@@ -145,6 +145,8 @@ export interface FilmPreset {
   lumaLock: number
   /** 0–1, kekuatan kurva-S kontras setelah grading. */
   contrast: number
+  /** Pengali RGB sesudah LUT untuk membedakan karakter warna dengan biaya GPU minimum. */
+  colorBalance: readonly [red: number, green: number, blue: number]
   /** 0–1, kekuatan grain prosedural. */
   grain: number
   /** 0–1, kekuatan vignette. */
@@ -157,9 +159,9 @@ export interface FilmPreset {
  * Enam look aktif yang tampil di kamera.
  *
  * Semua LUT film berasal dari RawTherapee Film Simulation Collection yang
- * sumber dan lisensinya dapat diaudit (lihat CREDITS.md). Nilainya sengaja
- * konservatif: LUT film dibuat untuk input netral, sedangkan JPEG kamera
- * ponsel sudah mendapat tone mapping, sharpening, dan saturasi dari ISP.
+ * sumber dan lisensinya dapat diaudit (lihat CREDITS.md). Kalibrasi strength,
+ * luma lock, dan color balance menjaga warna kulit sambil memastikan setiap
+ * look tetap terbaca pada preview kamera beresolusi adaptif.
  */
 export const FILM_PRESETS: readonly FilmPreset[] = [
   {
@@ -171,6 +173,7 @@ export const FILM_PRESETS: readonly FilmPreset[] = [
     strength: 0.0,
     lumaLock: 1.0,
     contrast: 0.0,
+    colorBalance: [1.0, 1.0, 1.0],
     grain: 0.0,
     vignette: 0.0,
     halation: 0.0,
@@ -181,9 +184,10 @@ export const FILM_PRESETS: readonly FilmPreset[] = [
     character: 'Netral hangat dengan kontras lembut dan grain paling halus.',
     bestFor: 'Pilihan aman · indoor/outdoor',
     lut: '/luts/everyday-100.png',
-    strength: 0.58,
-    lumaLock: 0.82,
-    contrast: 0.06,
+    strength: 0.7,
+    lumaLock: 0.65,
+    contrast: 0.07,
+    colorBalance: [1.02, 1.0, 0.98],
     grain: 0.06,
     vignette: 0.02,
     halation: 0.0,
@@ -194,9 +198,10 @@ export const FILM_PRESETS: readonly FilmPreset[] = [
     character: 'Hangat keemasan tanpa mengorbankan detail kulit dan gaun terang.',
     bestFor: 'Sore · cahaya hangat',
     lut: '/luts/golden-hour-400.png',
-    strength: 0.62,
-    lumaLock: 0.74,
-    contrast: 0.08,
+    strength: 0.82,
+    lumaLock: 0.52,
+    contrast: 0.11,
+    colorBalance: [1.1, 1.03, 0.9],
     grain: 0.11,
     vignette: 0.03,
     halation: 0.035,
@@ -207,9 +212,10 @@ export const FILM_PRESETS: readonly FilmPreset[] = [
     character: 'Warna lapang, hijau tenang, dan highlight lembut untuk suasana cerah.',
     bestFor: 'Outdoor · dekorasi terang',
     lut: '/luts/pastel-400.png',
-    strength: 0.66,
-    lumaLock: 0.72,
-    contrast: 0.06,
+    strength: 0.76,
+    lumaLock: 0.58,
+    contrast: 0.04,
+    colorBalance: [0.98, 1.02, 1.06],
     grain: 0.08,
     vignette: 0.02,
     halation: 0.015,
@@ -220,9 +226,10 @@ export const FILM_PRESETS: readonly FilmPreset[] = [
     character: 'Warna malam tetap hidup dengan pendar hangat yang terkontrol.',
     bestFor: 'Indoor malam · lampu pesta',
     lut: '/luts/neon-night-1600.png',
-    strength: 0.48,
-    lumaLock: 0.78,
-    contrast: 0.08,
+    strength: 0.78,
+    lumaLock: 0.5,
+    contrast: 0.13,
+    colorBalance: [1.08, 0.96, 1.1],
     grain: 0.15,
     vignette: 0.04,
     halation: 0.09,
@@ -235,7 +242,8 @@ export const FILM_PRESETS: readonly FilmPreset[] = [
     lut: '/luts/noir-400.png',
     strength: 1.0,
     lumaLock: 0.0,
-    contrast: 0.08,
+    contrast: 0.1,
+    colorBalance: [1.0, 1.0, 1.0],
     grain: 0.16,
     vignette: 0.035,
     halation: 0.0,
@@ -255,6 +263,7 @@ const LEGACY_FILM_PRESETS: readonly FilmPreset[] = [
     strength: 1,
     lumaLock: 0,
     contrast: 0,
+    colorBalance: [1, 1, 1],
     grain: 0.22,
     vignette: 0,
     halation: 0,
@@ -267,6 +276,7 @@ const LEGACY_FILM_PRESETS: readonly FilmPreset[] = [
     strength: 1,
     lumaLock: 0,
     contrast: 0,
+    colorBalance: [1, 1, 1],
     grain: 0.16,
     vignette: 0,
     halation: 0,
@@ -279,6 +289,7 @@ const LEGACY_FILM_PRESETS: readonly FilmPreset[] = [
     strength: 1,
     lumaLock: 0,
     contrast: 0,
+    colorBalance: [1, 1, 1],
     grain: 0.2,
     vignette: 0,
     halation: 0,
@@ -291,6 +302,7 @@ const LEGACY_FILM_PRESETS: readonly FilmPreset[] = [
     strength: 1,
     lumaLock: 0,
     contrast: 0,
+    colorBalance: [1, 1, 1],
     grain: 0.18,
     vignette: 0,
     halation: 0,

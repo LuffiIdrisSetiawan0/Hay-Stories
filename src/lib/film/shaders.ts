@@ -30,6 +30,7 @@ uniform float uSeed;
 uniform float uIntensity;
 uniform float uLumaLock;
 uniform float uContrast;
+uniform vec3  uColorBalance;
 uniform float uSmooth;
 uniform float uExposure;
 uniform float uSharpen;
@@ -267,6 +268,9 @@ void main() {
   // 3. Emulsi Warna 3D LUT
   vec3 base = clamp(c, 0.0, 1.0);
   vec3 graded = sampleLut(base, uLutSize);
+  // LUT dari stok film serupa dapat terlalu dekat setelah grade dicampur.
+  // Pengali ini memberi bias kromatik terkalibrasi tanpa texture fetch baru.
+  graded = clamp(graded * uColorBalance, 0.0, 1.0);
 
   if (uLumaLock > 0.0) {
     vec3 baseLinear = srgbToLinear(base);

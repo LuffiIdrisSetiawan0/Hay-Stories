@@ -130,6 +130,7 @@ export class FilmRenderer {
       'uIntensity',
       'uLumaLock',
       'uContrast',
+      'uColorBalance',
       'uSmooth',
       'uExposure',
       'uSharpen',
@@ -255,6 +256,12 @@ export class FilmRenderer {
     gl.uniform1f(this.uniforms.uIntensity, options.intensity ?? 1)
     gl.uniform1f(this.uniforms.uLumaLock, options.lumaLock ?? 0)
     gl.uniform1f(this.uniforms.uContrast, options.contrast ?? 0)
+    gl.uniform3f(
+      this.uniforms.uColorBalance,
+      preset.colorBalance[0],
+      preset.colorBalance[1],
+      preset.colorBalance[2]
+    )
     gl.uniform1f(this.uniforms.uSmooth, options.smooth ?? 0)
     gl.uniform1f(this.uniforms.uExposure, options.exposure ?? 0)
     gl.uniform1f(this.uniforms.uSharpen, options.sharpen ?? 0)

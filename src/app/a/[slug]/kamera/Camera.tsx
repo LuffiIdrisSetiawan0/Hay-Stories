@@ -436,6 +436,10 @@ export default function Camera({
     try {
       renderer.render(video, presetRef.current, size.width, size.height, {
         ...recipeRef.current,
+        // Penajaman memerlukan empat sampel linear-light tambahan per piksel.
+        // Terapkan pada hasil foto penuh, bukan loop preview, agar viewfinder
+        // tetap mulus tanpa mengubah warna atau karakter preset yang dipilih.
+        sharpen: 0,
         intensity: presetRef.current.strength,
         lumaLock: presetRef.current.lumaLock,
         contrast: presetRef.current.contrast,
@@ -932,7 +936,7 @@ export default function Camera({
           width: shot.width,
           height: shot.height,
           processingRecipe: {
-            engine: fallback2dRef.current ? 'canvas2d-natural-v1' : 'webgl2-film-v2',
+            engine: fallback2dRef.current ? 'canvas2d-natural-v1' : 'webgl2-film-v3',
             source: captureSource,
             sourceWidth: bitmap.width,
             sourceHeight: bitmap.height,

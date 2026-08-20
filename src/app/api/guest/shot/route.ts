@@ -23,9 +23,9 @@ const MAX_THUMB_BYTES = 5_242_880
 // capture.ts membatasi sisi terpanjang ke 4096. Sampai dimensi JPEG dibaca
 // server-side, metadata di luar kontrak tersebut harus ditolak.
 const MAX_DIMENSION = 4_096
-// Versi 2 = LUT aktif tervalidasi + exposure/luminance linear-light + thumbnail
-// diturunkan dari render penuh. Baris lama tetap default versi 1 di migrasi.
-const PROCESSING_RECIPE_VERSION = 2
+// Versi 3 = karakter warna antarpreset dikalibrasi agar tetap terbaca pada
+// preview adaptif. Baris lama tetap membawa recipe/version saat dibuat.
+const PROCESSING_RECIPE_VERSION = 3
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
 type AdminClient = ReturnType<typeof createAdminClient>
@@ -276,7 +276,9 @@ export async function POST(request: NextRequest) {
   if (
     !clientProcessingJson ||
     new TextEncoder().encode(clientProcessingJson).byteLength > 4096 ||
-    (processingEngine !== 'canvas2d-natural-v1' && processingEngine !== 'webgl2-film-v2') ||
+    (processingEngine !== 'canvas2d-natural-v1' &&
+      processingEngine !== 'webgl2-film-v2' &&
+      processingEngine !== 'webgl2-film-v3') ||
     (processingEngine === 'canvas2d-natural-v1' && selectedPreset.id !== 'natural-clean')
   ) {
     return Response.json({ error: 'Recipe pemrosesan tidak sah.' }, { status: 400 })
@@ -294,6 +296,7 @@ export async function POST(request: NextRequest) {
       strength: selectedPreset.strength,
       lumaLock: selectedPreset.lumaLock,
       contrast: selectedPreset.contrast,
+      colorBalance: selectedPreset.colorBalance,
       grain: selectedPreset.grain,
       vignette: selectedPreset.vignette,
       halation: selectedPreset.halation,

@@ -21,6 +21,13 @@ const RENDERER = join(ROOT, 'src', 'lib', 'film', 'renderer.ts')
 const BUILD_LUTS = join(ROOT, 'scripts', 'build-luts.mjs')
 const STRICT = process.argv.includes('--strict')
 const COLOR_CHUNKS = new Set(['sRGB', 'gAMA', 'cHRM', 'iCCP'])
+const MIN_EFFECTIVE_LOOK_DISTANCE = 10
+
+function readNumberField(object, field) {
+  const match = object.match(new RegExp(`${field}:\\s*(-?\\d+(?:\\.\\d+)?)`))
+  if (!match) throw new Error(`Field ${field} tidak ditemukan pada preset aktif.`)
+  return Number(match[1])
+}
 
 function parseActivePresets(source) {
   const start = source.indexOf('export const FILM_PRESETS')
@@ -32,7 +39,20 @@ function parseActivePresets(source) {
   const pattern = /\{\s*id:\s*'([^']+)'[\s\S]*?lut:\s*'([^']+)'[\s\S]*?\n\s*\}/g
 
   for (const match of block.matchAll(pattern)) {
-    entries.push({ id: match[1], lut: match[2] })
+    const object = match[0]
+    const balance = object.match(
+      /colorBalance:\s*\[\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*\]/
+    )
+    if (!balance) throw new Error(`colorBalance tidak ditemukan pada ${match[1]}.`)
+
+    entries.push({
+      id: match[1],
+      lut: match[2],
+      strength: readNumberField(object, 'strength'),
+      lumaLock: readNumberField(object, 'lumaLock'),
+      contrast: readNumberField(object, 'contrast'),
+      colorBalance: balance.slice(1, 4).map(Number),
+    })
   }
 
   if (entries.length === 0) throw new Error('Tidak ada preset aktif yang dapat dibaca.')
@@ -124,6 +144,97 @@ function cubeSampler(data, width, size, channels) {
 
 function luma([red, green, blue]) {
   return 0.2126 * red + 0.7152 * green + 0.0722 * blue
+}
+
+function clamp(value, lower = 0, upper = 1) {
+  return Math.max(lower, Math.min(upper, value))
+}
+
+function srgbToLinear(value) {
+  return value < 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4
+}
+
+function linearToSrgb(value) {
+  value = Math.max(0, value)
+  return value < 0.0031308 ? value * 12.92 : 1.055 * value ** (1 / 2.4) - 0.055
+}
+
+function mix(from, to, amount) {
+  return from + (to - from) * amount
+}
+
+/** Meniru tahap LUT, luma lock, blend, dan contrast pada shader produksi. */
+function effectiveLook(entry, sample, base) {
+  let graded = sample(base).map((value, channel) =>
+    clamp(value * entry.colorBalance[channel])
+  )
+
+  if (entry.lumaLock > 0) {
+    const baseLinear = base.map(srgbToLinear)
+    const gradedLinear = graded.map(srgbToLinear)
+    const ratio = clamp(luma(baseLinear) / Math.max(luma(gradedLinear), 0.0001), 0.25, 4)
+    graded = gradedLinear
+      .map((value) => value * mix(1, ratio, entry.lumaLock))
+      .map(linearToSrgb)
+      .map((value) => clamp(value))
+  }
+
+  let output = base.map((value, channel) => mix(value, graded[channel], entry.strength))
+  if (entry.contrast > 0) {
+    const linear = output.map(srgbToLinear)
+    const sourceLuma = luma(linear)
+    const sCurve = sourceLuma * sourceLuma * (3 - 2 * sourceLuma)
+    const targetLuma = mix(sourceLuma, sCurve, entry.contrast * 0.5)
+    const ratio = targetLuma / Math.max(sourceLuma, 0.0001)
+    output = linear
+      .map((value) => value * ratio)
+      .map(linearToSrgb)
+      .map((value) => clamp(value))
+  }
+
+  return output
+}
+
+function measureEffectiveLookDistances(entries, samplers) {
+  // Noir sengaja monokrom dan pasti jauh; Natural justru harus ikut agar setiap
+  // pilihan warna terbukti terlihat berbeda dari gambar tanpa grade.
+  const visibleLooks = entries.filter((entry) => entry.id !== 'noir-400')
+  const rows = []
+
+  for (let leftIndex = 0; leftIndex < visibleLooks.length; leftIndex++) {
+    for (let rightIndex = leftIndex + 1; rightIndex < visibleLooks.length; rightIndex++) {
+      const left = visibleLooks[leftIndex]
+      const right = visibleLooks[rightIndex]
+      const leftSample = samplers.get(left.id)
+      const rightSample = samplers.get(right.id)
+      let distance = 0
+      let count = 0
+
+      for (let blue = 0; blue <= 8; blue++) {
+        for (let green = 0; green <= 8; green++) {
+          for (let red = 0; red <= 8; red++) {
+            const input = [red / 8, green / 8, blue / 8]
+            const leftOutput = effectiveLook(left, leftSample, input)
+            const rightOutput = effectiveLook(right, rightSample, input)
+            distance += Math.sqrt(
+              leftOutput.reduce(
+                (sum, value, channel) => sum + (value - rightOutput[channel]) ** 2,
+                0
+              ) / 3
+            )
+            count++
+          }
+        }
+      }
+
+      rows.push({
+        pasangan: `${left.id} / ${right.id}`,
+        jarakRataRata: Number(((distance / count) * 255).toFixed(1)),
+      })
+    }
+  }
+
+  return rows
 }
 
 function hex(rgb) {
@@ -250,17 +361,22 @@ async function auditPreset(entry, expectedLutSize, warnings) {
   }
 
   return {
-    preset: entry.id,
-    strip: `${width}x${height}`,
-    depth: metadata.depth ?? '?',
-    sha256: createHash('sha256').update(source).digest('hex').slice(0, 12),
-    black: hex(metrics.black),
-    white: hex(metrics.white),
-    lightSkin: hex(metrics.lightSkin),
-    deepSkin: hex(metrics.deepSkin),
-    reversals: metrics.reversals,
-    neutralCast: (metrics.neutralCast * 255).toFixed(1),
-    clipped: `${(metrics.clippedRatio * 100).toFixed(1)}%`,
+    sample,
+    result: {
+      preset: entry.id,
+      strip: `${width}x${height}`,
+      depth: metadata.depth ?? '?',
+      sha256: createHash('sha256').update(source).digest('hex').slice(0, 12),
+      black: hex(metrics.black),
+      white: hex(metrics.white),
+      lightSkinLut: hex(metrics.lightSkin),
+      lightSkinFinal: hex(effectiveLook(entry, sample, [0.76, 0.52, 0.38])),
+      deepSkinLut: hex(metrics.deepSkin),
+      deepSkinFinal: hex(effectiveLook(entry, sample, [0.36, 0.22, 0.17])),
+      reversals: metrics.reversals,
+      neutralCast: (metrics.neutralCast * 255).toFixed(1),
+      clipped: `${(metrics.clippedRatio * 100).toFixed(1)}%`,
+    },
   }
 }
 
@@ -282,12 +398,26 @@ async function main() {
   const expectedLutSize = Number(sizeMatch[1])
   const warnings = []
   const results = []
+  const samplers = new Map()
 
   for (const entry of entries) {
-    results.push(await auditPreset(entry, expectedLutSize, warnings))
+    const audited = await auditPreset(entry, expectedLutSize, warnings)
+    results.push(audited.result)
+    samplers.set(entry.id, audited.sample)
   }
 
   console.table(results)
+  const lookDistances = measureEffectiveLookDistances(entries, samplers)
+  console.log('\nJarak warna efektif antarpreset (level RGB 8-bit):')
+  console.table(lookDistances)
+  const indistinct = lookDistances.filter(
+    (row) => row.jarakRataRata < MIN_EFFECTIVE_LOOK_DISTANCE
+  )
+  if (indistinct.length > 0) {
+    throw new Error(
+      `Preset terlalu mirip: ${indistinct.map((row) => `${row.pasangan} (${row.jarakRataRata})`).join(', ')}; minimum ${MIN_EFFECTIVE_LOOK_DISTANCE}.`
+    )
+  }
   if (warnings.length > 0) {
     console.warn(`\n${warnings.length} warning audit LUT:`)
     for (const warning of warnings) console.warn(`- ${warning}`)
