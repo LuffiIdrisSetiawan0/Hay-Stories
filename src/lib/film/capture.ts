@@ -69,7 +69,8 @@ export async function processCapture(
   try {
     await renderer.loadPreset(preset)
 
-    const full = await renderer.renderToBlob(renderSource, preset, width, height, {
+    const thumbSize = fitWithin(width, height, THUMB_LONG_EDGE)
+    const { full, thumb } = await renderer.renderToJpegs(renderSource, preset, width, height, {
       mirror: options.mirror,
       intensity: preset.strength,
       lumaLock: preset.lumaLock,
@@ -79,12 +80,12 @@ export async function processCapture(
       sharpen: options.sharpen,
       grainSeed,
       quality: FULL_QUALITY,
+      thumbnail: {
+        width: thumbSize.width,
+        height: thumbSize.height,
+        quality: THUMB_QUALITY,
+      },
     })
-
-    // Thumbnail harus merupakan turunan dari JPEG final, bukan render shader
-    // kedua. Dengan begitu grain, crop, exposure, dan warna di grid persis sama.
-    const thumbSize = fitWithin(width, height, THUMB_LONG_EDGE)
-    const thumb = await resizeJpeg(full, thumbSize.width, thumbSize.height, THUMB_QUALITY)
 
     return { full, thumb, width, height }
   } finally {
@@ -119,9 +120,20 @@ export async function processNaturalCapture(
   ctx.drawImage(source, 0, 0, width, height)
   ctx.restore()
 
-  const full = await canvasToBlob(canvas, FULL_QUALITY)
   const thumbSize = fitWithin(width, height, THUMB_LONG_EDGE)
-  const thumb = await resizeJpeg(full, thumbSize.width, thumbSize.height, THUMB_QUALITY)
+  const thumbCanvas = document.createElement('canvas')
+  thumbCanvas.width = thumbSize.width
+  thumbCanvas.height = thumbSize.height
+  const thumbContext = thumbCanvas.getContext('2d', { alpha: false })
+  if (!thumbContext) throw new Error('Canvas thumbnail tidak tersedia.')
+  thumbContext.imageSmoothingEnabled = true
+  thumbContext.imageSmoothingQuality = 'high'
+  thumbContext.drawImage(canvas, 0, 0, thumbSize.width, thumbSize.height)
+
+  const [full, thumb] = await Promise.all([
+    canvasToBlob(canvas, FULL_QUALITY),
+    canvasToBlob(thumbCanvas, THUMB_QUALITY),
+  ])
   return { full, thumb, width, height }
 }
 
@@ -220,37 +232,5 @@ export function fitWithin(
   return {
     width: Math.round(width * scale),
     height: Math.round(height * scale),
-  }
-}
-
-
-async function resizeJpeg(
-  source: Blob,
-  width: number,
-  height: number,
-  quality: number
-): Promise<Blob> {
-  const bitmap = await createImageBitmap(source)
-  try {
-    const canvas = document.createElement('canvas')
-    canvas.width = width
-    canvas.height = height
-
-    const ctx = canvas.getContext('2d', { alpha: false })
-    if (!ctx) throw new Error('Canvas thumbnail tidak tersedia.')
-
-    ctx.imageSmoothingEnabled = true
-    ctx.imageSmoothingQuality = 'high'
-    ctx.drawImage(bitmap, 0, 0, width, height)
-
-    return await new Promise<Blob>((resolve, reject) => {
-      canvas.toBlob(
-        (blob) => (blob ? resolve(blob) : reject(new Error('Thumbnail gagal dibuat.'))),
-        'image/jpeg',
-        quality
-      )
-    })
-  } finally {
-    bitmap.close()
   }
 }

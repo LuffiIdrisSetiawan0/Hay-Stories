@@ -292,6 +292,43 @@ export class FilmRenderer {
     return canvasToBlob(this.canvas, options.quality ?? 0.9)
   }
 
+  /**
+   * Render JPEG penuh dan thumbnail dari frame GPU yang sama.
+   *
+   * Thumbnail dibuat langsung dari canvas hasil render, bukan dengan
+   * mendekode ulang JPEG penuh. Selain lebih cepat, warna dan grain-nya juga
+   * tidak melewati satu generasi kompresi tambahan.
+   */
+  async renderToJpegs(
+    source: FilmSource,
+    preset: FilmPreset,
+    width: number,
+    height: number,
+    options: RenderOptions & {
+      quality?: number
+      thumbnail: { width: number; height: number; quality?: number }
+    }
+  ): Promise<{ full: Blob; thumb: Blob }> {
+    this.render(source, preset, width, height, options)
+
+    const thumbnailCanvas = document.createElement('canvas')
+    thumbnailCanvas.width = options.thumbnail.width
+    thumbnailCanvas.height = options.thumbnail.height
+    const context = thumbnailCanvas.getContext('2d', { alpha: false })
+    if (!context) throw new Error('Canvas thumbnail tidak tersedia.')
+
+    context.imageSmoothingEnabled = true
+    context.imageSmoothingQuality = 'high'
+    context.drawImage(this.canvas, 0, 0, thumbnailCanvas.width, thumbnailCanvas.height)
+
+    const [full, thumb] = await Promise.all([
+      canvasToBlob(this.canvas, options.quality ?? 0.9),
+      canvasToBlob(thumbnailCanvas, options.thumbnail.quality ?? 0.82),
+    ])
+
+    return { full, thumb }
+  }
+
   /** Batas aman tekstur/renderbuffer dari GPU perangkat saat ini. */
   getMaxRenderSize(): number {
     return this.maxRenderSize

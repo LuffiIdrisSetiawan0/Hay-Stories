@@ -1,4 +1,5 @@
 import type { NextRequest } from 'next/server'
+import { after } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { FILM_PRESETS } from '@/lib/catalog'
 import { getFrame } from '@/lib/frames'
@@ -371,9 +372,10 @@ export async function POST(request: NextRequest) {
     return Response.json({ error: 'Gagal menyiapkan jepretan.' }, { status: 500 })
   }
 
-  // Tidak memblokir reservasi baru bila cleanup lama gagal; tombstone tetap ada
-  // dan akan dicoba lagi pada jepretan berikutnya.
-  await cleanupAgedTombstoneObjects(supabase, session)
+  // Cleanup tombstone bukan bagian dari penyimpanan jepretan ini. Jalankan
+  // sesudah respons agar tamu tidak membayar satu query + operasi Storage lama
+  // pada setiap foto. Worker terjadwal tetap menjadi lapisan pemulihan utama.
+  after(() => cleanupAgedTombstoneObjects(supabase, session))
 
   return Response.json({
     photoId,
@@ -409,16 +411,24 @@ export async function PATCH(request: NextRequest) {
   }
 
   const supabase = createAdminClient()
+  const paths = photoPaths(session.eventId, photoId)
+  const storage = supabase.storage.from(PHOTO_BUCKET)
 
-  // Retry PATCH untuk foto yang sudah ready harus tetap sukses, bahkan bila
-  // pemeriksaan Storage sedang terganggu sesaat.
-  const { data: photo, error: photoError } = await supabase
-    .from('photos')
-    .select('status, bytes')
-    .eq('id', photoId)
-    .eq('guest_id', session.guestId)
-    .eq('event_id', session.eventId)
-    .maybeSingle()
+  // Jalur normal selalu berupa foto pending, jadi baca status dan metadata
+  // kedua objek sekaligus. Ini menghapus satu perjalanan jaringan berurutan
+  // dari setiap konfirmasi tanpa melemahkan verifikasi Storage.
+  const [photoResult, full, thumb] = await Promise.all([
+    supabase
+      .from('photos')
+      .select('status, bytes')
+      .eq('id', photoId)
+      .eq('guest_id', session.guestId)
+      .eq('event_id', session.eventId)
+      .maybeSingle(),
+    storage.info(paths.full),
+    storage.info(paths.thumb),
+  ])
+  const { data: photo, error: photoError } = photoResult
 
   if (photoError) {
     console.error('membaca status foto gagal:', photoError)
@@ -435,10 +445,6 @@ export async function PATCH(request: NextRequest) {
     await cancelReservation(supabase, session, photoId, 'late_confirmation')
     return Response.json({ error: 'Jepretan ini sudah dibatalkan.' }, { status: 409 })
   }
-
-  const paths = photoPaths(session.eventId, photoId)
-  const storage = supabase.storage.from(PHOTO_BUCKET)
-  const [full, thumb] = await Promise.all([storage.info(paths.full), storage.info(paths.thumb)])
 
   if (full.error || thumb.error || !full.data || !thumb.data) {
     const errors = [full.error, thumb.error].filter(Boolean)

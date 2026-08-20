@@ -5,7 +5,7 @@ import { ArrowLeft, ArrowRight, Camera, Clock, Lock } from 'lucide-react'
 import { resolveReveal } from '@/lib/events'
 import { findActiveGuest, findEventBySlug, isEventOpen } from '@/lib/guest/event'
 import { readGuestSession } from '@/lib/guest/session'
-import { countReadyPhotos, listPhotos, type PhotoPage } from '@/lib/photos'
+import { listPhotos, type PhotoPage } from '@/lib/photos'
 import PhotoGrid from '@/components/photos/PhotoGrid'
 import { deleteGuestPhoto } from './actions'
 import styles from './Gallery.module.css'
@@ -15,7 +15,9 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 }
 
-const PHOTO_PAGE_SIZE = 48
+// Dua puluh empat thumbnail cukup untuk satu layar panjang di ponsel dan
+// memangkas signed URL, payload RSC, serta node DOM awal menjadi separuh.
+const PHOTO_PAGE_SIZE = 24
 
 function parsePage(raw: string | string[] | undefined) {
   const value = Array.isArray(raw) ? raw[0] : raw
@@ -46,33 +48,27 @@ export default async function GalleryPage(props: PageProps<'/a/[slug]/galeri'>) 
   const reveal = resolveReveal(event)
   const hostOnly = event.gallery_visibility === 'host_only'
   const open = isEventOpen(event)
+  const page = parsePage(search.hal)
+  const visible = reveal.revealed && !hostOnly
+  const galleryPath = `/a/${event.slug}/galeri`
+
+  // Album publik dapat mulai dibaca sambil cookie diverifikasi dan tamu aktif
+  // dicari. Sebelumnya seluruh langkah ini berurutan, lalu count foto bahkan
+  // dijalankan lagi oleh listPhotos().
+  const photoPagePromise: Promise<PhotoPage> = visible
+    ? listPhotos(event.id, { page, pageSize: PHOTO_PAGE_SIZE })
+    : Promise.resolve({ photos: [], total: 0, hasMore: false, failed: false })
 
   const session = await readGuestSession(event.id)
-  const guest = session ? await findActiveGuest(session.guestId, event.id) : null
+  const [guest, photoPage] = await Promise.all([
+    session ? findActiveGuest(session.guestId, event.id) : Promise.resolve(null),
+    photoPagePromise,
+  ])
 
   // Jika album BELUM terbuka dan pengunjung belum terdaftar:
   // arahkan ke halaman utama acara untuk bergabung
   if (!reveal.revealed && !guest) {
     redirect(`/a/${event.slug}`)
-  }
-
-  const page = parsePage(search.hal)
-  const visible = reveal.revealed && !hostOnly
-  const galleryPath = `/a/${event.slug}/galeri`
-
-  let photoPage: PhotoPage = { photos: [], total: 0, hasMore: false, failed: false }
-  if (visible) {
-    const count = await countReadyPhotos(event.id)
-    if (count.failed) {
-      photoPage = { photos: [], total: 0, hasMore: false, failed: true }
-    } else {
-      const totalPages = Math.max(1, Math.ceil(count.total / PHOTO_PAGE_SIZE))
-      if (page > totalPages) {
-        redirect(totalPages === 1 ? galleryPath : `${galleryPath}?hal=${totalPages}`)
-      }
-
-      photoPage = await listPhotos(event.id, { page, pageSize: PHOTO_PAGE_SIZE })
-    }
   }
 
   const { photos, total, hasMore, failed } = photoPage
