@@ -75,3 +75,19 @@ export function supportMailto(subject?: string): string | undefined {
   if (!SUPPORT_EMAIL) return undefined
   return `mailto:${SUPPORT_EMAIL}${subject ? `?subject=${encodeURIComponent(subject)}` : ''}`
 }
+
+/**
+ * Apakah paket berbayar boleh ditawarkan sama sekali.
+ *
+ * Checkout berbayar gagal tertutup tanpa kanal bantuan yang valid (lihat
+ * `requirePaidCheckoutDisclosure`). Tanpa flag ini wizard tetap menawarkan
+ * paket berbayar, album dibuat sebagai draf, lalu halaman pembayaran menolak
+ * membuat order — album itu tidak pernah bisa aktif dan tidak bisa dihapus
+ * host. Jadi paket berbayar disembunyikan lebih dulu, bukan digagalkan
+ * belakangan.
+ *
+ * Ini hanya bagian gate yang dapat dibaca browser. Sisi server tetap memakai
+ * `paidCheckoutDisclosureIssue()` yang juga menuntut identitas operator saat
+ * production.
+ */
+export const PAID_CHECKOUT_ENABLED = Boolean(SUPPORT_EMAIL)

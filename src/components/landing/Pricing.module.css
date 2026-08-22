@@ -218,3 +218,14 @@
   color: var(--color-bg-primary);
   transform: translateY(-1px);
 }
+
+/* Paket yang belum dijual: tetap terbaca, tetapi jelas bukan tombol. */
+.planBtnClosed,
+.planBtnClosed:hover {
+  background: transparent;
+  border-style: dashed;
+  border-color: var(--color-border);
+  color: var(--color-text-secondary);
+  cursor: default;
+  transform: none;
+}

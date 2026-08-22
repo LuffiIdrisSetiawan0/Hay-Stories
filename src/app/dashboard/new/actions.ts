@@ -7,10 +7,12 @@ import {
   EVENT_TYPES,
   REVEAL_MODES,
   getTier,
+  isTierSelectable,
   type RevealMode,
   type TierId,
 } from '@/lib/catalog'
 import { generateAccessCode, resolveLimits, slugify } from '@/lib/events'
+import { paidCheckoutDisclosureIssue } from '@/lib/payments'
 
 export interface CreateEventResult {
   error: string
@@ -19,12 +21,30 @@ export interface CreateEventResult {
 const MAX_SLUG_ATTEMPTS = 6
 
 /**
+ * Gate berbayar sisi server — lebih ketat daripada `isTierSelectable`, yang
+ * hanya melihat nilai NEXT_PUBLIC_. Konfigurasi yang salah eja dianggap
+ * memblokir, bukan mengizinkan.
+ */
+function paidCheckoutBlocked(): boolean {
+  try {
+    return paidCheckoutDisclosureIssue() !== null
+  } catch {
+    return true
+  }
+}
+
+/**
  * Buat album baru untuk host yang sedang masuk.
  *
  * Paket divalidasi ulang dari katalog. Starter langsung aktif; paket berbayar
  * dibuat sebagai draf tanpa kuota dan baru diaktifkan oleh RPC settlement.
  * Insert memakai service role karena migrasi checkout sengaja mencabut INSERT
  * langsung dari role authenticated agar browser tidak dapat memalsukan limit.
+ *
+ * Kesiapan checkout diperiksa SEBELUM insert. Album draf berbayar tidak dapat
+ * dibuka host maupun dihapus dari dashboard, jadi membuatnya lebih dulu lalu
+ * menolak pembayarannya meninggalkan album mati yang tidak bisa dibereskan
+ * siapa pun.
  */
 export async function createEvent(
   _prevState: CreateEventResult | null,
@@ -59,6 +79,16 @@ export async function createEvent(
   const tier = getTier(tierId)
   if (!tier || !tier.available) {
     return { error: 'Paket yang dipilih belum tersedia.' }
+  }
+  if (!isTierSelectable(tier)) {
+    return {
+      error: 'Paket berbayar sedang ditutup. Pilih Starter, atau hubungi pengelola situs.',
+    }
+  }
+  if (tier.price > 0 && paidCheckoutBlocked()) {
+    return {
+      error: 'Checkout berbayar belum siap, jadi album berbayar belum bisa dibuat. Pilih Starter dulu.',
+    }
   }
 
   let eventDate: string | null = null

@@ -6,6 +6,8 @@
  * harga yang ditagih.
  */
 
+import { PAID_CHECKOUT_ENABLED } from './site'
+
 // ---------------------------------------------------------------------------
 // Tier
 // ---------------------------------------------------------------------------
@@ -87,6 +89,25 @@ export const COMMON_TIER_FEATURES = [
 export function getTier(id: string): Tier | undefined {
   return TIERS.find((t) => t.id === id)
 }
+
+/**
+ * Paket yang benar-benar boleh dipilih host saat ini.
+ *
+ * `available` menyatakan paket itu ada di produk. `selectable` menambahkan
+ * syarat operasional: paket berbayar hanya ditawarkan ketika checkout memang
+ * dapat diselesaikan. Tanpa syarat ini, memilih paket berbayar menghasilkan
+ * album draf yang mentok di halaman pembayaran — dibuat, tetapi tidak pernah
+ * aktif dan tidak bisa dihapus dari dashboard.
+ */
+export function isTierSelectable(tier: Tier | undefined): tier is Tier {
+  if (!tier || !tier.available) return false
+  return tier.price === 0 || PAID_CHECKOUT_ENABLED
+}
+
+/** Paket berbayar sedang disembunyikan karena checkout belum dapat dipakai. */
+export const PAID_TIERS_HIDDEN = TIERS.some(
+  (tier) => tier.available && tier.price > 0 && !isTierSelectable(tier)
+)
 
 export function formatPrice(price: number): string {
   return price === 0 ? 'Gratis' : `Rp ${price.toLocaleString('id-ID')}`

@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { getTier, type TierId } from '@/lib/catalog'
+import { getTier, isTierSelectable, type TierId } from '@/lib/catalog'
 import Wizard from './Wizard'
 
 export const metadata: Metadata = {
@@ -9,8 +9,13 @@ export const metadata: Metadata = {
 export default async function NewEventPage(props: PageProps<'/dashboard/new'>) {
   const search = await props.searchParams
   const requestedTier = Array.isArray(search.tier) ? search.tier[0] : search.tier
+  // Tautan lama (atau tautan yang dibagikan) bisa menunjuk paket yang sedang
+  // tidak dijual. Turunkan ke Starter daripada membuka wizard pada paket yang
+  // tombolnya tidak akan pernah bisa diselesaikan.
   const initialTier =
-    requestedTier && getTier(requestedTier)?.available ? (requestedTier as TierId) : 'starter'
+    requestedTier && isTierSelectable(getTier(requestedTier))
+      ? (requestedTier as TierId)
+      : 'starter'
 
   return (
     <div>

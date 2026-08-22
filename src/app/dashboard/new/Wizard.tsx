@@ -4,11 +4,13 @@ import { useActionState, useEffect, useRef, useState } from 'react'
 import { ArrowLeft, ArrowRight, Check, Loader2 } from 'lucide-react'
 import {
   EVENT_TYPES,
+  PAID_TIERS_HIDDEN,
   REVEAL_MODES,
   TIERS,
   formatGuestLimit,
   formatPrice,
   getTier,
+  isTierSelectable,
   type EventTypeId,
   type RevealMode,
   type TierId,
@@ -80,7 +82,7 @@ export default function Wizard({ initialTier = 'starter' }: { initialTier?: Tier
 
   const stepValid = [
     title.trim().length >= 3 && title.trim().length <= 80,
-    Boolean(getTier(tierId)?.available),
+    isTierSelectable(getTier(tierId)),
     revealMode !== 'scheduled' || revealAtInFuture,
     true,
   ][step]
@@ -194,8 +196,15 @@ export default function Wizard({ initialTier = 'starter' }: { initialTier?: Tier
                 Perbedaannya hanya kapasitas dan masa penyimpanan.
               </p>
 
+              {PAID_TIERS_HIDDEN && (
+                <p className={styles.blocker} role="status">
+                  Paket berbayar sedang ditutup sampai email dukungan dipasang, jadi hanya Starter
+                  yang bisa dipilih sekarang. Album yang sudah jadi tidak terpengaruh.
+                </p>
+              )}
+
               <div className={styles.tierGrid}>
-                {TIERS.filter((tier) => tier.available).map((tier) => (
+                {TIERS.filter(isTierSelectable).map((tier) => (
                   <button
                     key={tier.id}
                     type="button"

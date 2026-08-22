@@ -5,6 +5,7 @@ import {
   TIERS,
   formatPrice,
   formatGuestLimit,
+  isTierSelectable,
 } from "@/lib/catalog";
 import Reveal from "@/components/ui/Reveal";
 import SplitText from "@/components/ui/SplitText";
@@ -38,7 +39,9 @@ export default function Pricing() {
         </div>
 
         <ul className={styles.grid}>
-          {TIERS.map((plan, i) => (
+          {TIERS.map((plan, i) => {
+            const selectable = isTierSelectable(plan);
+            return (
             <Reveal
               key={plan.id}
               as="li"
@@ -67,15 +70,25 @@ export default function Pricing() {
                 ))}
               </ul>
 
-              <Link
-                href={`/dashboard/new?tier=${plan.id}`}
-                className={styles.planBtn}
-              >
-                {plan.price === 0 ? 'Mulai gratis' : `Pilih ${plan.name}`}
-                <ArrowRight size={15} />
-              </Link>
+              {/* Paket yang tidak dapat diselesaikan checkout-nya tidak
+                  diberi tautan: mengarahkan ke wizard hanya menurunkannya
+                  diam-diam ke Starter. */}
+              {selectable ? (
+                <Link
+                  href={`/dashboard/new?tier=${plan.id}`}
+                  className={styles.planBtn}
+                >
+                  {plan.price === 0 ? 'Mulai gratis' : `Pilih ${plan.name}`}
+                  <ArrowRight size={15} />
+                </Link>
+              ) : (
+                <span className={`${styles.planBtn} ${styles.planBtnClosed}`}>
+                  Pembelian belum dibuka
+                </span>
+              )}
             </Reveal>
-          ))}
+            );
+          })}
         </ul>
       </div>
     </section>
