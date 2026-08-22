@@ -62,12 +62,6 @@ export default function DashboardShell({
           </Link>
         </nav>
 
-        <div className={styles.sidebarNote}>
-          <span className={styles.sidebarNoteEyebrow}>Alur acara</span>
-          <strong>Buat, bagikan QR, lalu biarkan tamu bercerita.</strong>
-          <p>Foto resolusi penuh diproses dan disimpan otomatis.</p>
-        </div>
-
         <div className={styles.sidebarFooter}>
           <div className={styles.userInfo}>
             <div className={styles.avatar}>{email.charAt(0).toUpperCase()}</div>

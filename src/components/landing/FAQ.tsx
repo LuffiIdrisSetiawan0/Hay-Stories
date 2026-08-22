@@ -9,23 +9,31 @@ import styles from "./FAQ.module.css";
 const faqs = [
   {
     q: "Apa itu HAY Stories?",
-    a: "Kamera analog digital untuk acara. Tamu scan QR di meja, langsung motret di browser, dan semua foto candid terkumpul otomatis di satu album.",
+    a: "Kamera tamu digital untuk acara. Tamu memindai QR, memotret dari browser, dan semua foto candid terkumpul otomatis di satu album.",
   },
   {
     q: "Apakah tamu harus install aplikasi di HP?",
     a: "Tidak perlu. Cukup scan QR code lewat kamera HP, langsung memotret tanpa unduh aplikasi atau bikin akun.",
   },
   {
-    q: "Bagaimana cara membagikan galeri acara?",
-    a: "Tuan rumah dapat mengunduh QR SVG untuk dicetak atau menyalin tautan album. Galeri tidak tercantum publik, tetapi siapa pun yang menerima tautannya dapat membuka setelah reveal.",
+    q: "Siapa yang bisa melihat foto acara?",
+    a: "Album tidak dicantumkan di halaman publik. Tamu masuk lewat QR, tautan, atau kode acara; galeri baru dapat dilihat sesuai aturan reveal yang dipilih host.",
   },
   {
-    q: "Preset roll film apa saja yang tersedia?",
-    a: "Tersedia 6 look yang diaudit untuk kebutuhan berbeda—mulai dari Natural yang aman, outdoor cerah, sore hangat, hingga pesta malam. Kondisi terbaiknya tampil langsung di pemilih preset.",
+    q: "Apa perbedaan setiap paket?",
+    a: "Fitur kamera, enam nuansa film, QR, galeri, dan reveal sama. Perbedaannya ada pada kapasitas tamu dan masa penyimpanan. Paket berbayar dibayar satu kali per album melalui Midtrans.",
+  },
+  {
+    q: "Bisakah nama acara dan waktu reveal diubah?",
+    a: "Bisa. Host dapat mengubah detail album dari dashboard. Waktu reveal dapat disesuaikan selama galeri belum dibuka.",
+  },
+  {
+    q: "Nuansa film apa saja yang tersedia?",
+    a: "Ada enam pilihan—mulai dari Natural, warna hangat untuk sore, nuansa cerah, pesta malam, sampai hitam putih. Tamu dapat menggantinya pada setiap jepretan.",
   },
   {
     q: "Berapa lama foto tersimpan dan cara mengunduhnya?",
-    a: "Paket Starter menyimpan foto selama 90 hari. Selama masa itu, foto dapat dibuka dan diunduh satu per satu dalam resolusi hasilnya; unduhan ZIP belum tersedia.",
+    a: "Starter menyimpan foto selama 90 hari, sedangkan paket berbayar tidak memiliki tanggal kedaluwarsa. Foto dapat dibuka dan diunduh satu per satu dalam resolusi hasilnya; unduhan ZIP belum tersedia.",
   },
   {
     q: "Apakah ada paket gratis?",

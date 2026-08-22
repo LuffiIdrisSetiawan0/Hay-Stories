@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
-import { ArrowLeft, ArrowRight, Camera, Clock, Lock } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Camera, Clock, Lock, MessageCircleHeart } from 'lucide-react'
 import { resolveReveal } from '@/lib/events'
 import { findActiveGuest, findEventBySlug, isEventOpen } from '@/lib/guest/event'
 import { readGuestSession } from '@/lib/guest/session'
@@ -93,6 +93,16 @@ export default async function GalleryPage(props: PageProps<'/a/[slug]/galeri'>) 
             {!visible ? 'Belum terbuka' : failed ? 'Gagal dimuat' : `${total} foto`}
           </span>
         </div>
+
+        {guest && (
+          <Link
+            href={`/a/${event.slug}/guestbook`}
+            className={styles.cameraLink}
+            aria-label="Voice guestbook"
+          >
+            <MessageCircleHeart size={18} />
+          </Link>
+        )}
 
         {open && (
           <Link href={`/a/${event.slug}/kamera`} className={styles.cameraLink} aria-label="Kamera">

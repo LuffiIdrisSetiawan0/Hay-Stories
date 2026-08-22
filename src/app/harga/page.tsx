@@ -5,9 +5,10 @@ import FAQ from "@/components/landing/FAQ";
 import Footer from "@/components/landing/Footer";
 
 export const metadata: Metadata = {
-  title: "Harga · HAY Stories",
+  title: "Harga",
   description:
-    "Mulai dengan Starter gratis untuk 5 tamu dan penyimpanan 90 hari. Paket HAY Stories berbayar masih dalam daftar tunggu dan belum dapat dibeli.",
+    "Mulai dengan Starter gratis untuk 5 tamu, atau pilih paket HAY Stories berbayar hingga kapasitas 100.000 tamu dengan checkout aman Midtrans.",
+  alternates: { canonical: "/harga" },
 };
 
 export default function HargaPage() {

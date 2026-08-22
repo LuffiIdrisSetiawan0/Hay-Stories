@@ -9,10 +9,12 @@ import styles from '../Guest.module.css'
 export default function JoinForm({
   slug,
   defaultName = '',
+  destination = 'camera',
 }: {
   slug: string
   /** Terisi saat tamu kembali untuk membetulkan namanya. */
   defaultName?: string
+  destination?: 'camera' | 'guestbook'
 }) {
   const [state, formAction, pending] = useActionState(joinEvent, null)
   const [name, setName] = useState(defaultName)
@@ -23,6 +25,7 @@ export default function JoinForm({
   return (
     <form action={formAction} className={styles.form}>
       <input type="hidden" name="slug" value={slug} />
+      <input type="hidden" name="destination" value={destination} />
 
       <label className={styles.label} htmlFor="displayName">
         Siapa namamu?
@@ -40,7 +43,11 @@ export default function JoinForm({
         autoFocus
       />
 
-      <p className={styles.hint}>Ditulis di bawah setiap fotomu di galeri nanti.</p>
+      <p className={styles.hint}>
+        {destination === 'guestbook'
+          ? 'Nama ini membantu host mengenali ucapanmu.'
+          : 'Ditulis di bawah setiap fotomu di galeri nanti.'}
+      </p>
 
       {state?.error && (
         <p className={styles.error} role="alert">
@@ -63,11 +70,11 @@ export default function JoinForm({
         {pending ? (
           <>
             <Loader2 size={16} className="animate-spin" />
-            Menyiapkan kamera…
+            {destination === 'guestbook' ? 'Membuka guestbook…' : 'Menyiapkan kamera…'}
           </>
         ) : (
           <>
-            Ambil kamera
+            {destination === 'guestbook' ? 'Masuk ke guestbook' : 'Buka kamera'}
             <ArrowRight size={16} />
           </>
         )}

@@ -1,11 +1,14 @@
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
+import { safeNextPath } from '@/lib/navigation'
+import { requestOrigin } from '@/lib/origin'
 
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url)
   const code = requestUrl.searchParams.get('code')
-  const next = requestUrl.searchParams.get('next') ?? '/dashboard'
+  const nextPath = safeNextPath(requestUrl.searchParams.get('next'))
+  const origin = await requestOrigin()
 
   if (code) {
     const cookieStore = await cookies()
@@ -33,12 +36,14 @@ export async function GET(request: Request) {
     )
 
     const { error } = await supabase.auth.exchangeCodeForSession(code)
-    
+
     if (!error) {
-      return NextResponse.redirect(new URL(next, request.url))
+      return NextResponse.redirect(new URL(nextPath, origin))
     }
   }
 
-  // return the user to an error page with some instructions
-  return NextResponse.redirect(new URL('/login?error=Could not authenticate user', request.url))
+  const loginUrl = new URL('/login', origin)
+  loginUrl.searchParams.set('error', 'auth_callback_failed')
+  if (nextPath !== '/dashboard') loginUrl.searchParams.set('next', nextPath)
+  return NextResponse.redirect(loginUrl)
 }

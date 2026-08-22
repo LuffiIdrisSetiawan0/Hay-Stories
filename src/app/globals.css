@@ -1,5 +1,3 @@
-@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css");
-
 /* ================================================
    HAY Stories — Global Design System (Y-Vision Typography Standard)
    ================================================ */
@@ -301,4 +299,90 @@ ul, ol {
 .text-halation {
   color: var(--color-halation);
   text-shadow: 0 0 16px var(--color-accent-glow);
+}
+
+/* ================================================
+   Reveal — animasi masuk saat scroll
+
+   Kelas ini sengaja global: Reveal dan SplitText berbagi keadaan gerak yang
+   sama, sementara fallback <noscript> di layout harus dapat menargetkannya.
+   ================================================ */
+
+.reveal {
+  opacity: 0;
+  transition:
+    opacity 0.9s var(--ease-ref),
+    transform 0.9s var(--ease-ref),
+    filter 0.9s var(--ease-ref),
+    clip-path 0.9s var(--ease-ref);
+  transition-delay: calc(var(--i, 0) * var(--stagger-step));
+  will-change: opacity, transform;
+}
+
+.reveal-up { transform: translateY(28px); }
+.reveal-left { transform: translateX(-28px); }
+.reveal-right { transform: translateX(28px); }
+.reveal-scale { transform: scale(0.96); }
+.reveal-none { transform: none; }
+
+.reveal-blur {
+  transform: translateY(0.45em);
+  filter: blur(8px);
+}
+
+.reveal-clip {
+  opacity: 1;
+  transform: none;
+  clip-path: inset(0 100% 0 0);
+}
+
+.reveal-sweep {
+  opacity: 1;
+  transform: scaleX(0);
+  transform-origin: left center;
+}
+
+.reveal-throw {
+  transform: translateY(150px) scale(1.12) rotate(-10deg);
+  transform-origin: bottom center;
+  transition-duration: 1.05s;
+}
+
+.reveal-visible {
+  opacity: 1;
+  transform: none;
+  filter: none;
+  clip-path: inset(0);
+  will-change: auto;
+}
+
+.reveal-sweep.reveal-visible {
+  transform: scaleX(1);
+}
+
+@keyframes marquee-left {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+@keyframes marquee-right {
+  from { transform: translateX(-50%); }
+  to { transform: translateX(0); }
+}
+
+/* Jangan pernah menyembunyikan konten ketika pengguna mengurangi gerakan. */
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+    filter: none;
+    clip-path: none;
+    transition: none;
+    transition-delay: 0ms;
+    will-change: auto;
+  }
+
+  .reveal-sweep {
+    transform: scaleX(1);
+  }
 }

@@ -31,6 +31,7 @@ function formatDate(iso: string | null) {
     day: "numeric",
     month: "long",
     year: "numeric",
+    timeZone: "UTC",
   }).format(new Date(iso));
 }
 
@@ -60,7 +61,7 @@ export default async function DashboardPage() {
   const { data: events, error } = await supabase
     .from("events")
     .select(
-      "id, title, slug, event_date, shots_per_guest, status, expires_at, reveal_mode, reveal_at, is_revealed"
+      "id, title, slug, event_date, shots_per_guest, status, tier, expires_at, reveal_mode, reveal_at, is_revealed"
     )
     .eq("host_id", user.id)
     .order("created_at", { ascending: false });
@@ -191,12 +192,16 @@ export default async function DashboardPage() {
             <div className={styles.eventGrid}>
               {events.map((event, index) => {
                 const lifecycle = getEventLifecycle(event, now);
+                const eventHref =
+                  event.status === 'draft' && event.tier !== 'starter'
+                    ? `/dashboard/checkout/${event.id}`
+                    : `/dashboard/events/${event.id}`;
                 const photoCount = photoCounts.get(event.id);
                 const guestCount = guestCounts.get(event.id);
                 return (
                   <Link
                     key={event.id}
-                    href={`/dashboard/events/${event.id}`}
+                    href={eventHref}
                     className={styles.eventCard}
                   >
                     <div className={styles.eventVisual} data-tone={index % 4}>

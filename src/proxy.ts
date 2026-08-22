@@ -1,5 +1,12 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { safeNextPath } from '@/lib/navigation'
+
+function redirectWithCookies(url: URL, source: NextResponse): NextResponse {
+  const response = NextResponse.redirect(url)
+  source.cookies.getAll().forEach((cookie) => response.cookies.set(cookie))
+  return response
+}
 
 export async function proxy(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
@@ -37,16 +44,18 @@ export async function proxy(request: NextRequest) {
 
   // Protect /dashboard route
   if (!user && request.nextUrl.pathname.startsWith('/dashboard')) {
-    const url = request.nextUrl.clone()
-    url.pathname = '/login'
-    return NextResponse.redirect(url)
+    const url = new URL('/login', request.url)
+    const intendedPath = safeNextPath(
+      `${request.nextUrl.pathname}${request.nextUrl.search}`
+    )
+    url.searchParams.set('next', intendedPath)
+    return redirectWithCookies(url, supabaseResponse)
   }
 
   // Redirect from login if already authenticated
   if (user && request.nextUrl.pathname === '/login') {
-    const url = request.nextUrl.clone()
-    url.pathname = '/dashboard'
-    return NextResponse.redirect(url)
+    const nextPath = safeNextPath(request.nextUrl.searchParams.get('next'))
+    return redirectWithCookies(new URL(nextPath, request.url), supabaseResponse)
   }
 
   // IMPORTANT: You *must* return the supabaseResponse object as it is. If you're
@@ -73,7 +82,8 @@ export const config = {
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
      * - api/guest (anonymous guest routes, authenticated by their own token)
+     * - api/payments (webhook Midtrans, diverifikasi signature di route)
      */
-    '/((?!_next/static|_next/image|favicon.ico|api/guest|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!_next/static|_next/image|favicon.ico|icon|apple-icon|opengraph-image|twitter-image|manifest.webmanifest|robots.txt|sitemap.xml|api/guest|api/payments|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 }

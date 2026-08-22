@@ -2,9 +2,10 @@ import { Metadata } from "next";
 import EventPageTemplate from "@/components/events/EventPageTemplate";
 
 export const metadata: Metadata = {
-  title: "Kamera Sekali Pakai untuk Pesta & Nightout · HAY Stories",
+  title: "Kamera Tamu Digital untuk Pesta & Nightout",
   description:
     "Tangkap vibes pesta malam, lantai dansa, dan after party dengan look Resepsi 800 langsung dari browser tanpa instalasi aplikasi.",
+  alternates: { canonical: "/pesta" },
 };
 
 export default function PestaPage() {
@@ -13,8 +14,8 @@ export default function PestaPage() {
       slug="pesta"
       badge="Pesta, Music Event & Nightout 🪩"
       title="Tangkap Energi Malam Tanpa Jaim & Tanpa Filter Palsu"
-      subtitle="Musik kencang, lampu warna-warni, dan tawa lepas bersama circle. Abadikan atmosfer pesta malam dengan look film yang disiapkan untuk pencahayaan indoor."
-      heroImage="/img/scenes/05-lantai-dansa.jpg"
+      subtitle="Musik kencang, lampu warna-warni, dan tawa lepas bersama teman. Abadikan atmosfer pesta malam dengan nuansa film yang disiapkan untuk pencahayaan indoor."
+      heroImage="/img/scenes/05-lantai-dansa-v2.webp"
       benefits={[
         {
           title: "Look Resepsi 800",
@@ -33,7 +34,7 @@ export default function PestaPage() {
         },
         {
           title: "Unduh Per Foto",
-          description: "Buka hasil beresolusi penuh dari galeri dan unduh foto yang diinginkan satu per satu.",
+          description: "Buka hasil berkualitas tinggi dari galeri dan unduh foto yang diinginkan satu per satu.",
           icon: "film",
         },
       ]}
@@ -60,15 +61,10 @@ export default function PestaPage() {
         { name: "Golden Hour 400", desc: "Warna hangat untuk rooftop menjelang malam", tag: "Rooftop Sunset" },
       ]}
       sampleGallery={[
-        { img: "/img/scenes/05-lantai-dansa.jpg", caption: "Dansa malam dengan look Resepsi 800" },
-        { img: "/img/scenes/03-kue.jpg", caption: "Keseruan kumpul sahabat & selebrasi" },
-        { img: "/img/scenes/02-meja-dekorasi.jpg", caption: "Suasana hangat & toast bersama kawan" },
+        { img: "/img/scenes/05-lantai-dansa-v2.webp", caption: "Dansa malam dengan nuansa Resepsi 800" },
+        { img: "/img/scenes/03-kue-v2.webp", caption: "Keseruan kumpul dan selebrasi bersama" },
+        { img: "/img/scenes/02-meja-dekorasi-v2.webp", caption: "Suasana hangat bersama kawan" },
       ]}
-      storyQuote={{
-        quote: "Semua orang rebutan scan QR dan motret teman-temannya yang lagi joget. Candid dari banyak sudut akhirnya terkumpul di satu tempat.",
-        author: "Reza & Tim Komunitas",
-        role: "Jakarta Soundwave Party · 250 Tamu",
-      }}
       faqs={[
         {
           q: "Apakah aplikasinya support di ruangan gelap?",

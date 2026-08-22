@@ -1,13 +1,19 @@
+import type { Metadata } from "next";
 import Navbar from "@/components/ui/Navbar";
 import Hero from "@/components/landing/Hero";
 import WhySection from "@/components/landing/WhySection";
 import StatsBand from "@/components/landing/StatsBand";
+import ProductDemo from "@/components/landing/ProductDemo";
 import EventShowcase from "@/components/landing/EventShowcase";
 import FilmShowcase from "@/components/landing/FilmShowcase";
 import HowItWorks from "@/components/landing/HowItWorks";
 import Pricing from "@/components/landing/Pricing";
 import FAQ from "@/components/landing/FAQ";
 import Footer from "@/components/landing/Footer";
+
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+};
 
 /**
  * Susunan halaman: buka dengan pernyataan, lalu alasan, lalu bukti, baru
@@ -25,8 +31,9 @@ export default function HomePage() {
     <main>
       <Navbar />
       <Hero />
-      <WhySection />
       <StatsBand />
+      <WhySection />
+      <ProductDemo />
       <EventShowcase />
       <FilmShowcase />
       <HowItWorks />

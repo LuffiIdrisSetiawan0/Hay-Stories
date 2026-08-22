@@ -7,18 +7,18 @@ import styles from "./WhySection.module.css";
 const REASONS = [
   {
     icon: QrCode,
-    title: "Nol Hambatan untuk Tamu",
-    desc: "Cukup scan QR code di meja. Tamu langsung motret lewat browser tanpa perlu download aplikasi atau registrasi.",
+    title: "Masuk tanpa hambatan",
+    desc: "Scan QR, isi nama panggilan, lalu langsung memotret. Tidak ada akun tamu atau aplikasi yang harus dipasang.",
   },
   {
     icon: Film,
-    title: "Warna yang Terjaga",
-    desc: "6 look terkalibrasi untuk cahaya netral, sore hangat, outdoor, pesta malam, hingga hitam putih.",
+    title: "Suasana tetap terasa",
+    desc: "Enam nuansa film tersedia langsung di kamera untuk cahaya siang, sore hangat, pesta malam, dan hitam putih.",
   },
   {
     icon: Sparkles,
-    title: "Terkumpul & Terverifikasi",
-    desc: "Foto baru masuk ke galeri setelah berkas resolusi penuh dan thumbnail berhasil disimpan, sehingga status hasilnya jelas.",
+    title: "Kejutannya milik bersama",
+    desc: "Biarkan foto tersembunyi selama acara, lalu buka semua candid dari setiap meja pada momen yang kamu pilih.",
   },
 ] as const;
 
@@ -28,18 +28,18 @@ export default function WhySection() {
       <div className="container">
         <div className={styles.header}>
           <Reveal>
-            <p className={styles.eyebrow}>Kenapa HAY Stories</p>
+            <p className={styles.eyebrow}>Yang tidak terlihat dari panggung</p>
           </Reveal>
 
           <h2 className={styles.title}>
             <SplitText by="word" delay={60}>
-              Sudut Pandang Otentik yang Tak Terjangkau Fotografer
+              Fotografer Menangkap Panggung. Tamu Menangkap Ceritanya.
             </SplitText>
           </h2>
 
           <Reveal delay={120}>
             <p className={styles.lede}>
-              Fotografer resmi fokus pada panggung utama. HAY Stories memberi tamu kamera analog digital di genggaman mereka untuk mengabadikan tawa, kehangatan, dan momen spontan dari setiap meja.
+              Foto resmi tetap penting. HAY Stories melengkapinya dengan tawa di meja belakang, reuni kecil, dan momen spontan yang hanya terlihat oleh orang-orang terdekatmu.
             </p>
           </Reveal>
         </div>
@@ -60,8 +60,8 @@ export default function WhySection() {
         </div>
 
         <Reveal delay={320} className={styles.actionWrap}>
-          <Link href="#cara-kerja" className={styles.outlineBtn}>
-            Lihat Cara Kerjanya
+          <Link href="#pengalaman" className={styles.outlineBtn}>
+            Lihat pengalaman lengkap
             <ArrowRight size={16} />
           </Link>
         </Reveal>

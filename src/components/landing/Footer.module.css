@@ -124,21 +124,6 @@
   color: var(--color-text-primary);
 }
 
-.socials {
-  display: flex;
-  gap: 1.25rem;
-  margin-top: 1.25rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--color-text-muted);
-}
-
-.socials a:hover {
-  color: var(--color-accent);
-}
-
 .colTitle {
   font-family: var(--font-mono);
   font-size: 0.625rem;

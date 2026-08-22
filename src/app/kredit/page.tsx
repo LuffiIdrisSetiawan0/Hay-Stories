@@ -7,6 +7,7 @@ import styles from './Credits.module.css'
 export const metadata: Metadata = {
   title: 'Kredit',
   description: 'Atribusi karya pihak ketiga yang dipakai HAY Stories.',
+  alternates: { canonical: '/kredit' },
 }
 
 /**

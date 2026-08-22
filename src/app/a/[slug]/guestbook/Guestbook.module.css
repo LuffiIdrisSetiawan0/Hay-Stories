@@ -1,0 +1,386 @@
+.page {
+  min-height: 100dvh;
+  color: var(--color-text-primary);
+  background:
+    radial-gradient(circle at 50% 0%, rgba(152, 111, 61, 0.1), transparent 28rem),
+    var(--color-bg-primary);
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  width: 100%;
+  min-height: 4rem;
+  display: grid;
+  grid-template-columns: 2.5rem minmax(0, 1fr) 2.5rem;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.7rem max(1rem, env(safe-area-inset-left));
+  border-bottom: 1px solid color-mix(in srgb, var(--color-border) 82%, transparent);
+  background: color-mix(in srgb, var(--color-bg-primary) 92%, transparent);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.back,
+.privateMark {
+  width: 2.5rem;
+  height: 2.5rem;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  background: var(--color-bg-elevated);
+}
+
+.back:hover {
+  border-color: var(--color-border-hover);
+  background: var(--color-bg-hover);
+}
+
+.privateMark {
+  color: var(--color-accent);
+  background: var(--color-accent-soft);
+}
+
+.topbarTitle {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+  text-align: center;
+}
+
+.topbarTitle strong {
+  overflow: hidden;
+  font-family: var(--font-serif);
+  font-size: 0.95rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.topbarTitle span {
+  color: var(--color-text-muted);
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.shell {
+  width: min(100%, 41rem);
+  margin: 0 auto;
+  padding: clamp(2.25rem, 7vw, 4.5rem) 1rem calc(3rem + env(safe-area-inset-bottom));
+}
+
+.hero {
+  max-width: 34rem;
+  margin: 0 auto 1.5rem;
+  text-align: center;
+}
+
+.eyebrow {
+  color: var(--color-accent);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.hero h1,
+.card h1 {
+  margin-top: 0.55rem;
+  font-family: var(--font-serif);
+  font-size: clamp(2rem, 8vw, 3rem);
+  font-weight: 600;
+  letter-spacing: -0.035em;
+  line-height: 1.05;
+}
+
+.hero > p:last-child,
+.card > p {
+  margin-top: 0.85rem;
+  color: var(--color-text-secondary);
+  font-size: 0.92rem;
+  line-height: 1.65;
+}
+
+.recorderCard {
+  position: relative;
+  overflow: hidden;
+  min-height: 21.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1.25rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 2rem;
+  color: #f7f3ec;
+  background:
+    radial-gradient(circle at 50% 18%, rgba(181, 137, 79, 0.18), transparent 46%),
+    #151310;
+  box-shadow: 0 22px 60px rgba(33, 25, 17, 0.16);
+}
+
+.waveform {
+  width: min(100%, 25rem);
+  height: 5.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(0.2rem, 1vw, 0.38rem);
+  opacity: 0.46;
+}
+
+.waveform span {
+  width: clamp(0.16rem, 0.8vw, 0.25rem);
+  height: var(--wave-height);
+  min-height: 0.35rem;
+  border-radius: var(--radius-full);
+  background: linear-gradient(to top, #8f6536, #eed9b9);
+  transform: scaleY(0.34);
+  transition: transform 180ms ease;
+}
+
+.waveformLive {
+  opacity: 1;
+}
+
+.waveformLive span {
+  animation: guestbookWave 620ms ease-in-out var(--wave-delay) infinite alternate;
+}
+
+@keyframes guestbookWave {
+  from {
+    transform: scaleY(0.25);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+.timer {
+  display: flex;
+  align-items: baseline;
+  gap: 0.3rem;
+  margin-top: 0.35rem;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.timer span {
+  font-size: 1.45rem;
+  font-weight: 650;
+}
+
+.timer small {
+  color: rgba(247, 243, 236, 0.48);
+  font-size: 0.72rem;
+}
+
+.recordButton {
+  width: 5.25rem;
+  height: 5.25rem;
+  display: grid;
+  place-items: center;
+  margin-top: 1.35rem;
+  border: 0.35rem solid rgba(255, 255, 255, 0.82);
+  border-radius: 50%;
+  color: #fff;
+  background: #a84f43;
+  box-shadow: 0 0 0 0.45rem rgba(255, 255, 255, 0.08), 0 16px 32px rgba(0, 0, 0, 0.35);
+  transition: transform 150ms ease, background-color 150ms ease;
+}
+
+.recordButton:hover:not(:disabled) {
+  transform: scale(1.04);
+  background: #bd5d50;
+}
+
+.recordButton:active:not(:disabled) {
+  transform: scale(0.96);
+}
+
+.recordButtonLive {
+  color: #a84f43;
+  background: #fff;
+  animation: recordPulse 1.4s ease-in-out infinite;
+}
+
+@keyframes recordPulse {
+  50% {
+    box-shadow: 0 0 0 0.75rem rgba(194, 88, 73, 0.2), 0 16px 32px rgba(0, 0, 0, 0.35);
+  }
+}
+
+.recordHint {
+  margin-top: 1.15rem;
+  color: rgba(247, 243, 236, 0.62);
+  font-size: 0.77rem;
+  text-align: center;
+}
+
+.preview {
+  width: min(100%, 28rem);
+  margin-top: 1.4rem;
+  padding: 0.9rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.previewHeading {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-bottom: 0.75rem;
+  color: rgba(247, 243, 236, 0.78);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.audio {
+  width: 100%;
+  height: 2.75rem;
+  display: block;
+}
+
+.noteCard {
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-elevated);
+}
+
+.noteHeading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.6rem;
+  font-size: 0.78rem;
+}
+
+.noteHeading label {
+  font-weight: 650;
+}
+
+.noteHeading span {
+  color: var(--color-text-faint);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+}
+
+.noteCard textarea {
+  width: 100%;
+  min-height: 5.75rem;
+  resize: vertical;
+  padding: 0.8rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text-primary);
+  background: var(--color-bg-primary);
+  font: inherit;
+  font-size: 0.85rem;
+  line-height: 1.55;
+}
+
+.noteCard textarea:focus {
+  border-color: var(--color-accent);
+  outline: 2px solid color-mix(in srgb, var(--color-accent) 22%, transparent);
+  outline-offset: 2px;
+}
+
+.actions,
+.successActions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.error {
+  margin-top: 1rem;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid color-mix(in srgb, var(--color-error) 36%, var(--color-border));
+  border-radius: var(--radius-md);
+  color: var(--color-error);
+  background: color-mix(in srgb, var(--color-error) 7%, var(--color-bg-elevated));
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+.consent {
+  max-width: 32rem;
+  margin: 1rem auto 0;
+  color: var(--color-text-faint);
+  font-size: 0.69rem;
+  line-height: 1.55;
+  text-align: center;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: clamp(2rem, 7vw, 3.25rem);
+  border: 1px solid var(--color-border);
+  border-radius: 2rem;
+  background: var(--color-bg-elevated);
+  box-shadow: var(--shadow-sm);
+  text-align: center;
+}
+
+.successIcon,
+.closedIcon {
+  width: 4.25rem;
+  height: 4.25rem;
+  display: grid;
+  place-items: center;
+  margin-bottom: 1.25rem;
+  border-radius: 50%;
+}
+
+.successIcon {
+  color: var(--color-success);
+  background: color-mix(in srgb, var(--color-success) 11%, var(--color-bg-elevated));
+}
+
+.closedIcon {
+  color: var(--color-text-muted);
+  background: var(--color-bg-secondary);
+}
+
+.successActions {
+  width: 100%;
+  margin-top: 1.5rem;
+}
+
+@media (max-width: 480px) {
+  .shell {
+    padding-top: 2rem;
+  }
+
+  .recorderCard {
+    min-height: 20rem;
+    border-radius: 1.5rem;
+  }
+
+  .actions,
+  .successActions {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .waveformLive span,
+  .recordButtonLive {
+    animation: none;
+  }
+
+  .recordButton {
+    transition: none;
+  }
+}

@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import Navbar from "@/components/ui/Navbar";
 import Footer from "@/components/landing/Footer";
-import { formatGuestLimit, formatPrice, getTier } from "@/lib/catalog";
+import { COMMON_TIER_FEATURES, formatGuestLimit, formatPrice, getTier } from "@/lib/catalog";
 import {
   ArrowUpRight,
   CheckCircle2,
@@ -73,7 +73,6 @@ export interface EventPageProps {
   steps: { step: string; title: string; desc: string }[];
   presets: EventPreset[];
   sampleGallery: { img: string; caption: string }[];
-  storyQuote: { quote: string; author: string; role: string };
   faqs: EventFaq[];
 }
 
@@ -98,12 +97,12 @@ export default function EventPageTemplate(props: EventPageProps) {
             <p className={styles.heroSubtitle}>{props.subtitle}</p>
 
             <div className={styles.heroActions}>
-              <Link href="/login" className={styles.primaryCta}>
-                <span>Buat Album Acara Ini</span>
+              <Link href="/dashboard/new?tier=starter" className={styles.primaryCta}>
+                <span>Buat album gratis</span>
                 <ArrowUpRight size={18} />
               </Link>
               <Link href="#cara-kerja" className={styles.secondaryCta}>
-                <span>Lihat Cara Kerja</span>
+                <span>Lihat cara kerja</span>
               </Link>
             </div>
           </div>
@@ -120,7 +119,7 @@ export default function EventPageTemplate(props: EventPageProps) {
               />
               <div className={styles.photoSticker}>
                 <QrCode size={16} />
-                <span>Scan QR & Jepret Langsung</span>
+                <span>Scan QR &amp; jepret langsung</span>
               </div>
             </div>
           </div>
@@ -176,8 +175,8 @@ export default function EventPageTemplate(props: EventPageProps) {
       <section className={styles.gallerySection}>
         <div className={styles.container}>
           <div className={styles.sectionHeader}>
-            <p className={styles.sectionEyebrow}>LOOK WARNA FILM</p>
-            <h2 className={styles.sectionTitle}>Preset Film Paling Cocok</h2>
+            <p className={styles.sectionEyebrow}>CONTOH SUASANA & NUANSA FILM</p>
+            <h2 className={styles.sectionTitle}>Pilih karakter yang terasa seperti acaramu</h2>
           </div>
 
           <div className={styles.presetsRow}>
@@ -210,19 +209,6 @@ export default function EventPageTemplate(props: EventPageProps) {
         </div>
       </section>
 
-      {/* Quote / Testimonial */}
-      <section className={styles.quoteSection}>
-        <div className={styles.container}>
-          <div className={styles.quoteCard}>
-            <p className={styles.quoteText}>&ldquo;{props.storyQuote.quote}&rdquo;</p>
-            <div className={styles.quoteAuthor}>
-              <strong>{props.storyQuote.author}</strong>
-              <span>{props.storyQuote.role}</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* Recommended Package Callout */}
       <section className={styles.pricingCalloutSection}>
         <div className={styles.container}>
@@ -242,7 +228,7 @@ export default function EventPageTemplate(props: EventPageProps) {
             </div>
 
             <div className={styles.featuresList}>
-              {starter.features.map((feature) => (
+              {[...COMMON_TIER_FEATURES, ...starter.features].map((feature) => (
                 <div key={feature} className={styles.featureRow}>
                   <CheckCircle2 size={18} className={styles.checkIcon} />
                   <span>{feature}</span>
@@ -251,8 +237,8 @@ export default function EventPageTemplate(props: EventPageProps) {
             </div>
 
             <div className={styles.pricingAction}>
-              <Link href="/login" className={styles.packageBtn}>
-                <span>Buat Album Starter Gratis</span>
+              <Link href="/dashboard/new?tier=starter" className={styles.packageBtn}>
+                <span>Buat album Starter gratis</span>
                 <ArrowUpRight size={18} />
               </Link>
               <Link href="/harga" className={styles.seeAllPricing}>

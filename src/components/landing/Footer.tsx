@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+import { SUPPORT_EMAIL, supportMailto } from "@/lib/site";
 import styles from "./Footer.module.css";
 
 export default function Footer() {
   return (
     <footer className={`${styles.footer} surface-dark`}>
       <div className="container">
-        <Link href="/login" className={styles.cta}>
+        <Link href="/dashboard/new" className={styles.cta}>
           <h2 className={styles.ctaTitle}>
             Satu Acara. Satu Album.
             <br />
@@ -27,33 +28,20 @@ export default function Footer() {
           <div className={styles.brandCol}>
             <p className={styles.brandName}>HAY Stories</p>
             <p className={styles.tagline}>
-              Digital Disposable Camera untuk Pernikahan, Pesta & Acara Spesial.
+              Kamera tamu digital untuk pernikahan, pesta, dan acara spesial.
             </p>
-            <p className={styles.contact}>
-              <a href="mailto:hello@haystories.id">hello@haystories.id</a>
-              <br />
-              <a href="https://wa.me/6281234567890" target="_blank" rel="noopener noreferrer">
-                WhatsApp: +62 812-3456-7890
-              </a>
-            </p>
-            <p className={styles.socials}>
-              <a
-                href="https://instagram.com/haystories"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Instagram
-              </a>
-              <a href="https://tiktok.com/@haystories" target="_blank" rel="noopener noreferrer">
-                TikTok
-              </a>
-            </p>
+            {SUPPORT_EMAIL && (
+              <p className={styles.contact}>
+                <a href={supportMailto()}>{SUPPORT_EMAIL}</a>
+              </p>
+            )}
           </div>
 
           <div className={styles.linkCol}>
             <p className={styles.colTitle}>Fitur</p>
             <ul>
               <li><Link href="/#cara-kerja">Cara Kerja</Link></li>
+              <li><Link href="/guestbook">Voice Guestbook</Link></li>
               <li><Link href="/#preset">Preset Film</Link></li>
               <li><Link href="/harga">Paket Harga</Link></li>
             </ul>
@@ -74,17 +62,14 @@ export default function Footer() {
             <ul>
               <li><Link href="/#faq">FAQ</Link></li>
               <li><Link href="/login">Dashboard Tuan Rumah</Link></li>
-              <li>
-                <a href="mailto:hello@haystories.id?subject=Pertanyaan%20privasi%20dan%20data">
-                  Privasi &amp; data
-                </a>
-              </li>
-              <li><Link href="/kredit">Kredit & Lisensi</Link></li>
+              <li><Link href="/privasi">Kebijakan Privasi</Link></li>
+              <li><Link href="/syarat">Syarat Penggunaan</Link></li>
+              <li><Link href="/kredit">Kredit &amp; Lisensi</Link></li>
             </ul>
           </div>
         </div>
 
-        <p className={styles.copyright}>© {new Date().getFullYear()} HAY Stories. All Rights Reserved.</p>
+        <p className={styles.copyright}>© {new Date().getFullYear()} HAY Stories. Hak cipta dilindungi.</p>
       </div>
     </footer>
   );

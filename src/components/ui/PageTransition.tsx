@@ -38,7 +38,8 @@ export default function PageTransition() {
     // to uncover. A pending href is only set by navigateWithTransition().
     if (!pendingHrefRef.current) return;
 
-    window.scrollTo(0, 0);
+    const pendingTarget = new URL(pendingHrefRef.current, window.location.origin);
+    if (!pendingTarget.hash) window.scrollTo(0, 0);
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
 
     // Defer the state update to the next frame so the effect only synchronizes
@@ -48,13 +49,14 @@ export default function PageTransition() {
       timeoutRef.current = setTimeout(() => {
         setStatus("idle");
         pendingHrefRef.current = null;
-      }, 650);
+      }, 380);
     });
 
     return () => window.cancelAnimationFrame(frame);
   }, [currentLocation]);
 
-  // Navigate with calibrated 1-second curtain transition
+  // Keep the branded wipe short: it should acknowledge a click without
+  // delaying when Next.js starts loading the destination.
   const navigateWithTransition = useCallback(
     (href: string) => {
       if (status !== "idle") return;
@@ -82,26 +84,22 @@ export default function PageTransition() {
 
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
 
-      // 1. Curtain slides up (takes 600ms)
+      // Let the curtain cover the current page before swapping routes.
       timeoutRef.current = setTimeout(() => {
         setStatus("holding");
+        startTransition(() => {
+          router.push(href);
+        });
 
-        // 2. Hold for exactly 1.0 second (1000ms) while brand & loading reveal
+        // Safety fallback in case route navigation stalls.
         timeoutRef.current = setTimeout(() => {
-          startTransition(() => {
-            router.push(href);
-          });
-
-          // Safety fallback in case route navigation stalls
+          setStatus("exiting");
           timeoutRef.current = setTimeout(() => {
-            setStatus("exiting");
-            timeoutRef.current = setTimeout(() => {
-              setStatus("idle");
-              pendingHrefRef.current = null;
-            }, 650);
-          }, 2000);
-        }, 1000);
-      }, 600);
+            setStatus("idle");
+            pendingHrefRef.current = null;
+          }, 380);
+        }, 1600);
+      }, 280);
     },
     [router, status, pathname]
   );
@@ -111,6 +109,10 @@ export default function PageTransition() {
     const handleClick = (e: MouseEvent) => {
       // Only handle standard primary clicks without modifier keys
       if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.defaultPrevented) {
+        return;
+      }
+
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
         return;
       }
 
@@ -203,10 +205,10 @@ export default function PageTransition() {
           <span className={styles.cornerBR} />
         </div>
 
-        {/* Centered Brand Mark & 1s Cinematic Indicator */}
+        {/* Centered brand mark and subtle progress indicator */}
         <div className={styles.brand}>
           <span className={styles.logoText}>HAY STORIES</span>
-          <span className={styles.tagline}>DIGITAL DISPOSABLE CAMERA</span>
+          <span className={styles.tagline}>KAMERA TAMU DIGITAL</span>
           <div className={styles.loaderBar}>
             <div className={styles.loaderProgress} />
           </div>

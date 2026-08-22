@@ -44,56 +44,72 @@ export default function SharePanel({
   }
 
   return (
-    <section className={styles.card}>
+    <section className={`${styles.card} ${styles.shareCard}`}>
       <h2 className={styles.cardTitle}>Bagikan ke tamu</h2>
       <p className={styles.cardHint}>
         Cetak QR-nya untuk meja tamu, atau kirim tautannya lewat WhatsApp.
       </p>
 
-      <div className={styles.qrBox}>
-        {/* SVG dibuat di server oleh pustaka qrcode, bukan input pengguna. */}
-        <div className={styles.qr} dangerouslySetInnerHTML={{ __html: qrSvg }} />
-      </div>
+      <div className={styles.shareLayout}>
+        <div className={styles.shareQrColumn}>
+          <div className={styles.qrBox}>
+            {/* SVG dibuat di server oleh pustaka qrcode, bukan input pengguna. */}
+            <div className={styles.qr} dangerouslySetInnerHTML={{ __html: qrSvg }} />
+          </div>
 
-      <button type="button" onClick={downloadSvg} className="btn btn-secondary">
-        <Download size={15} />
-        Unduh QR (SVG)
-      </button>
-
-      <div className={styles.shareField}>
-        <span className={styles.shareLabel}>Tautan tamu</span>
-        <div className={styles.shareRow}>
-          <code className={styles.shareValue}>{url}</code>
           <button
             type="button"
-            className={styles.iconBtn}
-            onClick={() => copy(url, 'url')}
-            aria-label="Salin tautan"
+            onClick={downloadSvg}
+            className={`btn btn-secondary ${styles.shareDownload}`}
           >
-            {copied === 'url' ? <Check size={15} /> : <Copy size={15} />}
+            <Download size={15} />
+            Unduh QR
           </button>
         </div>
-      </div>
 
-      {accessCode && (
-        <div className={styles.shareField}>
-          <span className={styles.shareLabel}>Kode cadangan</span>
-          <div className={styles.shareRow}>
-            <code className={`${styles.shareValue} ${styles.code}`}>{accessCode}</code>
-            <button
-              type="button"
-              className={styles.iconBtn}
-              onClick={() => copy(accessCode, 'code')}
-              aria-label="Salin kode"
-            >
-              {copied === 'code' ? <Check size={15} /> : <Copy size={15} />}
-            </button>
+        <div className={styles.shareDetails}>
+          <div className={styles.shareField}>
+            <span className={styles.shareLabel}>Tautan tamu</span>
+            <div className={styles.shareRow}>
+              <code className={styles.shareValue}>{url}</code>
+              <button
+                type="button"
+                className={styles.iconBtn}
+                onClick={() => copy(url, 'url')}
+                aria-label="Salin tautan"
+              >
+                {copied === 'url' ? <Check size={15} /> : <Copy size={15} />}
+              </button>
+            </div>
+            <span className={styles.shareHint}>Tautan utama yang dibuka dari QR.</span>
           </div>
-          <span className={styles.shareHint}>
-            Untuk tamu yang kameranya gagal memindai QR.
-          </span>
+
+          {accessCode && (
+            <div className={styles.shareField}>
+              <span className={styles.shareLabel}>Kode cadangan</span>
+              <div className={styles.shareRow}>
+                <code className={`${styles.shareValue} ${styles.code}`}>{accessCode}</code>
+                <button
+                  type="button"
+                  className={styles.iconBtn}
+                  onClick={() => copy(accessCode, 'code')}
+                  aria-label="Salin kode"
+                >
+                  {copied === 'code' ? <Check size={15} /> : <Copy size={15} />}
+                </button>
+              </div>
+              <span className={styles.shareHint}>
+                Untuk tamu yang kameranya gagal memindai QR.
+              </span>
+            </div>
+          )}
+
+          <div className={styles.shareTip}>
+            <span>Tips cetak</span>
+            <p>Gunakan ukuran minimal 3 cm dan beri ruang putih di sekeliling QR.</p>
+          </div>
         </div>
-      )}
+      </div>
     </section>
   )
 }

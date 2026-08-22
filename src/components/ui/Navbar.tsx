@@ -3,40 +3,41 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
+import { SUPPORT_EMAIL, supportMailto } from "@/lib/site";
 import styles from "./Navbar.module.css";
 
 const SERVICE_ITEMS = [
   {
     index: "01",
-    title: "Roll Film Analog",
-    desc: "6 look warna terkalibrasi langsung di kamera browser tanpa aplikasi.",
-    href: "/#preset",
+    title: "Album siap dalam menit",
+    desc: "Buat halaman acara, atur waktu buka galeri, lalu bagikan satu tautan.",
+    href: "/#pengalaman",
   },
   {
     index: "02",
-    title: "Kamera Tamu QR",
-    desc: "Tamu cukup scan QR di meja/undangan, langsung jepret tanpa download apa pun.",
+    title: "Kamera tanpa aplikasi",
+    desc: "Tamu cukup memindai QR lalu memotret langsung dari browser ponsel.",
     href: "/#cara-kerja",
   },
   {
     index: "03",
-    title: "Galeri Satu Tautan",
-    desc: "Foto yang berhasil disimpan terkumpul di satu galeri acara berbasis tautan.",
-    href: "/#kenapa",
+    title: "Voice Guestbook",
+    desc: "Tamu meninggalkan ucapan suara personal yang hanya dapat didengar oleh host.",
+    href: "/guestbook",
   },
   {
     index: "04",
-    title: "Bingkai & Unduhan",
-    desc: "Pilih bingkai saat memotret lalu unduh tiap foto pada resolusi hasilnya.",
-    href: "/harga",
+    title: "Galeri untuk dikenang",
+    desc: "Semua sudut pandang tamu terkumpul rapi dan dapat diunduh oleh tuan rumah.",
+    href: "/#pengalaman",
   },
 ] as const;
 
 const EXPLORE_ITEMS = [
-  { label: "Pernikahan 💍", href: "/pernikahan" },
-  { label: "Ulang Tahun 🎂", href: "/ulang-tahun" },
-  { label: "Pesta & Nightout 🎉", href: "/pesta" },
-  { label: "Acara Kantor 🏢", href: "/acara-kantor" },
+  { label: "Pernikahan", href: "/pernikahan" },
+  { label: "Ulang Tahun", href: "/ulang-tahun" },
+  { label: "Pesta & Nightout", href: "/pesta" },
+  { label: "Acara Kantor", href: "/acara-kantor" },
   { label: "Cara Kerja", href: "/#cara-kerja" },
   { label: "Preset Film", href: "/#preset" },
   { label: "Daftar Harga", href: "/harga" },
@@ -138,8 +139,8 @@ export default function Navbar() {
             </Link>
 
             {/* Pill Action Button */}
-            <Link href="/login" className={styles.ctaBtn} onClick={close}>
-              Buat album
+            <Link href="/dashboard/new" className={styles.ctaBtn} onClick={close}>
+              Buat gratis
             </Link>
           </div>
 
@@ -206,18 +207,18 @@ export default function Navbar() {
                 {/* Section 3: Footer bar info */}
                 <div className={styles.menuFooter}>
                   <p className={styles.footerBrand}>
-                    HAY Stories · Digital Disposable Camera untuk Acara Spesial
+                    HAY Stories · Kamera tamu digital untuk acara spesial
                   </p>
                   <div className={styles.footerLinks}>
-                    <a href="mailto:hello@haystories.id">hello@haystories.id</a>
+                    {SUPPORT_EMAIL && (
+                      <>
+                        <a href={supportMailto()}>{SUPPORT_EMAIL}</a>
+                        <span aria-hidden="true" className={styles.dot}>·</span>
+                      </>
+                    )}
+                    <Link href="/privasi" onClick={close}>Privasi</Link>
                     <span aria-hidden="true" className={styles.dot}>·</span>
-                    <a
-                      href="https://wa.me/6281234567890"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      WhatsApp
-                    </a>
+                    <Link href="/syarat" onClick={close}>Syarat</Link>
                   </div>
                 </div>
               </div>

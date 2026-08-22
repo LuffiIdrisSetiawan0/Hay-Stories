@@ -2,9 +2,10 @@ import { Metadata } from "next";
 import EventPageTemplate from "@/components/events/EventPageTemplate";
 
 export const metadata: Metadata = {
-  title: "Kamera Sekali Pakai untuk Acara Kantor & Gathering · HAY Stories",
+  title: "Kamera Tamu Digital untuk Acara Kantor",
   description:
     "Solusi kamera tamu interaktif untuk annual gathering, team outing, dan gala dinner perusahaan. Satu QR di setiap meja, pererat bonding tim secara natural.",
+  alternates: { canonical: "/acara-kantor" },
 };
 
 export default function AcaraKantorPage() {
@@ -13,8 +14,8 @@ export default function AcaraKantorPage() {
       slug="acara-kantor"
       badge="Acara Kantor & Gathering 🏢"
       title="Team Gathering, Outing, dan Perayaan Tahunan Perusahaan"
-      subtitle="Cairkan suasana antar divisi dengan pengalaman kamera analog sekali pakai. Semua karyawan ikut mengabadikan tawa di meja, game interaktif, dan momen kebersamaan tim."
-      heroImage="/img/scenes/04-potret.jpg"
+      subtitle="Cairkan suasana antar divisi lewat kamera yang dapat dipakai semua orang. Rekan satu tim ikut mengabadikan tawa di meja, permainan, dan momen kebersamaan yang biasanya terlewat."
+      heroImage="/img/scenes/04-potret-v2.webp"
       benefits={[
         {
           title: "Pererat Bonding Karyawan",
@@ -32,7 +33,7 @@ export default function AcaraKantorPage() {
           icon: "shield",
         },
         {
-          title: "Unduhan Resolusi Penuh",
+          title: "Unduhan Foto Kualitas Tinggi",
           description: "Setiap foto yang tersimpan dapat dibuka dan diunduh satu per satu untuk dokumentasi internal.",
           icon: "download",
         },
@@ -60,15 +61,10 @@ export default function AcaraKantorPage() {
         { name: "Golden Hour 400", desc: "Warm flattering tone untuk perayaan malam", tag: "Awarding Night" },
       ]}
       sampleGallery={[
-        { img: "/img/scenes/04-potret.jpg", caption: "Keseruan tim kantor berfoto di gala dinner" },
-        { img: "/img/scenes/02-meja-dekorasi.jpg", caption: "Kartu QR di meja perayaan tahunan" },
-        { img: "/img/scenes/06-konfeti.jpg", caption: "Selebrasi awarding night & tawa bersama" },
+        { img: "/img/scenes/04-potret-v2.webp", caption: "Keseruan tim di acara perusahaan" },
+        { img: "/img/scenes/02-meja-dekorasi-v2.webp", caption: "Kehangatan meja perayaan tahunan" },
+        { img: "/img/scenes/06-konfeti-v2.webp", caption: "Selebrasi dan tawa bersama" },
       ]}
-      storyQuote={{
-        quote: "Acara gathering tahunan kami jadi jauh lebih hidup. Karyawan yang biasanya kaku jadi heboh saling foto, dan dokumentasi yang terkumpul luar biasa banyak dan natural!",
-        author: "Budi Santoso",
-        role: "Head of People & Culture · Tech Company Jakarta",
-      }}
       faqs={[
         {
           q: "Bagaimana membagikan QR di kanal internal?",
@@ -80,7 +76,7 @@ export default function AcaraKantorPage() {
         },
         {
           q: "Apakah ada batas jumlah foto yang bisa diambil karyawan?",
-          a: "Ada. Paket Starter yang tersedia saat ini mendukung hingga 5 tamu dengan 100 jepretan per tamu. Paket untuk acara lebih besar masih dalam daftar tunggu.",
+          a: "Ada. Starter gratis mendukung hingga 5 tamu. Untuk gathering yang lebih besar tersedia paket Party (50 tamu), Pesta (150 tamu), dan Skala Besar (hingga 100.000 tamu); semuanya memberi 100 jepretan per tamu.",
         },
       ]}
     />

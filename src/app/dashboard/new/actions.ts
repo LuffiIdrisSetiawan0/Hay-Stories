@@ -2,7 +2,14 @@
 
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { EVENT_TYPES, REVEAL_MODES, type RevealMode } from '@/lib/catalog'
+import { createAdminClient } from '@/lib/supabase/admin'
+import {
+  EVENT_TYPES,
+  REVEAL_MODES,
+  getTier,
+  type RevealMode,
+  type TierId,
+} from '@/lib/catalog'
 import { generateAccessCode, resolveLimits, slugify } from '@/lib/events'
 
 export interface CreateEventResult {
@@ -14,11 +21,10 @@ const MAX_SLUG_ATTEMPTS = 6
 /**
  * Buat album baru untuk host yang sedang masuk.
  *
- * Tier dipaksa `starter` sampai integrasi pembayaran selesai. Wizard memang
- * hanya menawarkan Starter, tapi Server Action tidak boleh memercayai apa pun
- * yang datang dari form — tanpa pemaksaan ini, siapa pun bisa mengirim
- * `tier=unlimited` lewat request buatan sendiri dan mendapat album tanpa batas
- * secara gratis.
+ * Paket divalidasi ulang dari katalog. Starter langsung aktif; paket berbayar
+ * dibuat sebagai draf tanpa kuota dan baru diaktifkan oleh RPC settlement.
+ * Insert memakai service role karena migrasi checkout sengaja mencabut INSERT
+ * langsung dari role authenticated agar browser tidak dapat memalsukan limit.
  */
 export async function createEvent(
   _prevState: CreateEventResult | null,
@@ -35,6 +41,7 @@ export async function createEvent(
   const title = String(formData.get('title') ?? '').trim()
   const eventType = String(formData.get('eventType') ?? 'other')
   const revealMode = String(formData.get('revealMode') ?? 'manual') as RevealMode
+  const tierId = String(formData.get('tier') ?? 'starter') as TierId
   const eventDateRaw = String(formData.get('eventDate') ?? '').trim()
   const revealAtRaw = String(formData.get('revealAt') ?? '').trim()
 
@@ -49,11 +56,20 @@ export async function createEvent(
   if (!REVEAL_MODES.some((m) => m.id === revealMode)) {
     return { error: 'Mode reveal tidak dikenal.' }
   }
+  const tier = getTier(tierId)
+  if (!tier || !tier.available) {
+    return { error: 'Paket yang dipilih belum tersedia.' }
+  }
 
   let eventDate: string | null = null
   if (eventDateRaw) {
-    const parsed = new Date(eventDateRaw)
-    if (Number.isNaN(parsed.getTime())) return { error: 'Tanggal acara tidak valid.' }
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(eventDateRaw)) {
+      return { error: 'Tanggal acara tidak valid.' }
+    }
+    const parsed = new Date(`${eventDateRaw}T00:00:00.000Z`)
+    if (Number.isNaN(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== eventDateRaw) {
+      return { error: 'Tanggal acara tidak valid.' }
+    }
     eventDate = parsed.toISOString()
   }
 
@@ -73,9 +89,11 @@ export async function createEvent(
 
   // --- Simpan -----------------------------------------------------------
 
-  const limits = resolveLimits('starter')
+  const isStarter = tier.id === 'starter'
+  const starterLimits = isStarter ? resolveLimits('starter') : null
   const base = slugify(title)
   let eventId: string | null = null
+  const admin = createAdminClient()
 
   /*
    * Coba simpan, tangani bentrok, ulangi.
@@ -91,7 +109,7 @@ export async function createEvent(
     const slug =
       attempt === 0 && base.length >= 3 ? base : `${(base || 'album').slice(0, 48)}-${suffix}`
 
-    const { data, error } = await supabase
+    const { data, error } = await admin
       .from('events')
       .insert({
         host_id: user.id,
@@ -102,11 +120,13 @@ export async function createEvent(
         reveal_mode: revealMode,
         reveal_at: revealAt,
         event_date: eventDate,
-        tier: 'starter',
-        status: 'active',
-        max_guests: limits.maxGuests,
-        shots_per_guest: limits.shotsPerGuest,
-        expires_at: limits.expiresAt?.toISOString() ?? null,
+        tier: tier.id,
+        status: isStarter ? 'active' : 'draft',
+        // Draf berbayar belum memperoleh limit apa pun. Snapshot limit yang
+        // dibeli ada di payment dan disalin atomik hanya saat settlement sah.
+        max_guests: starterLimits?.maxGuests ?? 0,
+        shots_per_guest: starterLimits?.shotsPerGuest ?? 0,
+        expires_at: starterLimits?.expiresAt?.toISOString() ?? null,
       })
       .select('id')
       .single()
@@ -128,5 +148,7 @@ export async function createEvent(
   }
 
   // redirect() bekerja dengan melempar, jadi harus di luar blok try/catch mana pun.
-  redirect(`/dashboard/events/${eventId}`)
+  redirect(
+    isStarter ? `/dashboard/events/${eventId}` : `/dashboard/checkout/${eventId}`
+  )
 }

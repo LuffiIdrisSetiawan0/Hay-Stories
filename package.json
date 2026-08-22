@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "audit:luts": "node scripts/audit-luts.mjs",
-    "cleanup:photo-tombstones": "node scripts/cleanup-photo-tombstones.mjs"
+    "cleanup:photo-tombstones": "node scripts/cleanup-photo-tombstones.mjs",
+    "cleanup:guestbook-audio": "node scripts/cleanup-guestbook-audio.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.4",

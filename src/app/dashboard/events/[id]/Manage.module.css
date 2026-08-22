@@ -38,6 +38,51 @@
   color: var(--color-text-secondary);
 }
 
+.headerActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+
+.guestbookLink {
+  min-height: 2.35rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.35rem 0.45rem 0.35rem 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  color: var(--color-text-primary);
+  background: var(--color-bg-elevated);
+  box-shadow: var(--shadow-sm);
+  font-size: 0.75rem;
+  font-weight: 650;
+}
+
+.guestbookLink > svg {
+  color: var(--color-accent);
+}
+
+.guestbookLink strong {
+  min-width: 1.55rem;
+  height: 1.55rem;
+  display: grid;
+  place-items: center;
+  padding: 0 0.35rem;
+  border-radius: var(--radius-full);
+  color: var(--color-accent);
+  background: var(--color-accent-soft);
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+}
+
+.guestbookLink:hover {
+  border-color: var(--color-accent);
+  background: var(--color-accent-soft);
+}
+
 .badge {
   padding: 0.35rem 0.85rem;
   border-radius: var(--radius-full);
@@ -90,6 +135,21 @@
   color: var(--color-text-secondary);
   font-size: 0.8125rem;
   line-height: 1.55;
+}
+
+.warningAction {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.6rem;
+  color: var(--color-accent);
+  font-size: 0.8125rem;
+  font-weight: 650;
+}
+
+.warningAction:hover {
+  text-decoration: underline;
+  text-underline-offset: 0.16em;
 }
 
 /* ===== Statistik ===== */
@@ -150,7 +210,8 @@
 
 @media (min-width: 860px) {
   .columns {
-    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1.6fr) minmax(17rem, 0.75fr);
+    align-items: stretch;
   }
 }
 
@@ -177,11 +238,25 @@
 
 /* ===== QR ===== */
 
+.shareCard,
+.revealCard {
+  min-width: 0;
+}
+
+.shareLayout {
+  display: grid;
+  gap: 1rem;
+}
+
+.shareQrColumn,
+.shareDetails {
+  min-width: 0;
+}
+
 .qrBox {
   display: grid;
   place-items: center;
   padding: 1.25rem;
-  margin-bottom: 1rem;
   background: var(--color-bg-primary);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
@@ -196,6 +271,67 @@
   width: 100%;
   height: auto;
   display: block;
+}
+
+.shareDownload {
+  width: 100%;
+  margin-top: 0.75rem;
+}
+
+.shareDetails .shareField:first-child {
+  margin-top: 0;
+}
+
+.shareTip {
+  margin-top: 1.1rem;
+  padding: 0.75rem 0.8rem;
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-secondary);
+}
+
+.shareTip span {
+  display: block;
+  color: var(--color-text-primary);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.shareTip p {
+  margin-top: 0.25rem;
+  color: var(--color-text-muted);
+  font-size: 0.725rem;
+  line-height: 1.5;
+}
+
+.revealCard {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background:
+    radial-gradient(circle at 100% 0%, var(--color-accent-soft), transparent 55%),
+    var(--color-bg-elevated);
+}
+
+.revealCard .cardHint:last-child {
+  margin-bottom: 0;
+}
+
+@media (min-width: 620px) {
+  .shareLayout {
+    grid-template-columns: minmax(10.5rem, 0.72fr) minmax(0, 1.28fr);
+    align-items: start;
+    gap: 1.25rem;
+  }
+
+  .qrBox {
+    padding: 0.9rem;
+  }
+
+  .qr {
+    max-width: 180px;
+  }
 }
 
 /* ===== Kolom berbagi ===== */
@@ -294,7 +430,452 @@
   color: var(--color-error);
 }
 
-/* ===== Catatan sementara ===== */
+/* ===== Pengaturan album ===== */
+
+.settingsCard {
+  margin-top: 1.5rem;
+  padding: 0;
+  overflow: hidden;
+}
+
+.settingsHeading {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.settingsIcon {
+  width: 2.25rem;
+  height: 2.25rem;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border-radius: var(--radius-full);
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+}
+
+.settingsIntro {
+  margin-top: 0.25rem;
+  color: var(--color-text-secondary);
+  font-size: 0.8375rem;
+  line-height: 1.55;
+}
+
+.settingsForm {
+  padding: 0 1.5rem;
+}
+
+.settingsGroup {
+  min-width: 0;
+  margin: 1.6rem 0 0;
+  padding: 0 0 1.6rem;
+  border: 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.settingsLegend {
+  display: block;
+  float: left;
+  width: 100%;
+  margin: 0 0 1.1rem;
+  padding: 0;
+  color: var(--color-text-primary);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.settingsLegend + * {
+  clear: both;
+}
+
+.settingsGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(13rem, 0.65fr);
+  gap: 1rem;
+}
+
+.settingsField {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.fieldLabelRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.fieldLabel {
+  color: var(--color-text-primary);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.fieldCounter,
+.optional {
+  color: var(--color-text-muted);
+  font-size: 0.6875rem;
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+}
+
+.settingsInput {
+  width: 100%;
+  min-height: 2.9rem;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  font: inherit;
+  font-size: 0.875rem;
+  line-height: 1.25;
+  color-scheme: light dark;
+  transition: border-color var(--transition-fast), background-color var(--transition-fast);
+}
+
+.settingsInput:hover:not(:disabled) {
+  border-color: var(--color-border-hover);
+}
+
+.settingsInput:disabled {
+  opacity: 0.58;
+  cursor: wait;
+}
+
+.settingsInput[aria-invalid='true'] {
+  border-color: color-mix(in srgb, var(--color-error) 72%, var(--color-border));
+}
+
+.inputWithIcon {
+  position: relative;
+}
+
+.inputWithIcon > svg {
+  position: absolute;
+  z-index: 1;
+  top: 50%;
+  left: 0.8rem;
+  transform: translateY(-50%);
+  color: var(--color-text-muted);
+  pointer-events: none;
+}
+
+.inputWithIcon .settingsInput {
+  padding-left: 2.35rem;
+}
+
+.fieldHelp,
+.fieldError {
+  display: block;
+  font-size: 0.725rem;
+  line-height: 1.5;
+}
+
+.fieldHelp {
+  color: var(--color-text-muted);
+}
+
+.fieldError {
+  color: var(--color-error);
+}
+
+.settingsOptions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.settingsOption {
+  position: relative;
+  min-width: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+  min-height: 6.4rem;
+  padding: 0.9rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-primary);
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background-color var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.settingsOption:hover:not(.settingsOptionDisabled) {
+  border-color: var(--color-border-hover);
+  background: var(--color-bg-hover);
+}
+
+.settingsOption:has(input:focus-visible) {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+.settingsOptionSelected {
+  border-color: var(--color-accent);
+  background: var(--color-accent-soft);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-accent) 28%, transparent);
+}
+
+.settingsOptionDisabled {
+  opacity: 0.58;
+  cursor: not-allowed;
+}
+
+.settingsOption strong,
+.settingsOption small {
+  display: block;
+}
+
+.settingsOption strong {
+  color: var(--color-text-primary);
+  font-size: 0.8125rem;
+  line-height: 1.35;
+}
+
+.settingsOption small {
+  margin-top: 0.3rem;
+  color: var(--color-text-muted);
+  font-size: 0.725rem;
+  line-height: 1.45;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.optionRadio {
+  width: 1rem;
+  height: 1rem;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  margin-top: 0.08rem;
+  border: 1px solid var(--color-border-hover);
+  border-radius: var(--radius-full);
+  background: var(--color-bg-elevated);
+}
+
+.optionRadio > span {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: var(--radius-full);
+  background: transparent;
+}
+
+.settingsOptionSelected .optionRadio {
+  border-color: var(--color-accent);
+}
+
+.settingsOptionSelected .optionRadio > span {
+  background: var(--color-accent);
+}
+
+.optionIcon {
+  width: 1.8rem;
+  height: 1.8rem;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border-radius: var(--radius-full);
+  background: var(--color-bg-secondary);
+  color: var(--color-text-secondary);
+}
+
+.settingsOptionSelected .optionIcon {
+  background: var(--color-bg-elevated);
+  color: var(--color-accent);
+}
+
+.visibilityOptions {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.visibilityOptions .settingsOption {
+  min-height: 5.3rem;
+}
+
+.revealDateField {
+  max-width: 28rem;
+  margin-top: 1rem;
+}
+
+.settingsNotice {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  margin-top: 1rem;
+  padding: 0.8rem 0.9rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-secondary);
+  color: var(--color-text-secondary);
+}
+
+.settingsNotice > svg {
+  flex: 0 0 auto;
+  margin-top: 0.1rem;
+  color: var(--color-accent);
+}
+
+.settingsNotice p {
+  font-size: 0.775rem;
+  line-height: 1.55;
+}
+
+.settingsNotice strong {
+  color: var(--color-text-primary);
+}
+
+.settingsNoticeWarm {
+  border-color: color-mix(in srgb, var(--color-warning) 38%, var(--color-border));
+  background: color-mix(in srgb, var(--color-warning) 7%, var(--color-bg-elevated));
+}
+
+.settingsNoticeWarm > svg {
+  color: var(--color-warning);
+}
+
+.settingsFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.2rem 0 1.5rem;
+}
+
+.settingsFeedback {
+  min-width: 0;
+  color: var(--color-text-muted);
+  font-size: 0.775rem;
+  line-height: 1.45;
+}
+
+.settingsSuccess {
+  color: var(--color-success);
+  font-weight: 600;
+}
+
+.settingsError {
+  color: var(--color-error);
+}
+
+.lifecycleSettings {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 1rem 1.5rem;
+  padding: 1.25rem 1.5rem;
+  border-top: 1px solid color-mix(in srgb, var(--color-warning) 25%, var(--color-border));
+  background: color-mix(in srgb, var(--color-warning) 4%, var(--color-bg-secondary));
+}
+
+.lifecycleCopy {
+  min-width: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.lifecycleIcon {
+  width: 2.15rem;
+  height: 2.15rem;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border-radius: var(--radius-full);
+  background: color-mix(in srgb, var(--color-warning) 12%, var(--color-bg-elevated));
+  color: var(--color-warning);
+}
+
+.lifecycleIconActive {
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+}
+
+.lifecycleCopy h3 {
+  color: var(--color-text-primary);
+  font-size: 0.875rem;
+  font-weight: 650;
+}
+
+.lifecycleCopy p,
+.lifecycleConfirm p {
+  margin-top: 0.2rem;
+  color: var(--color-text-secondary);
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+.lifecycleForm {
+  justify-self: end;
+}
+
+.lifecycleConfirm {
+  max-width: 23rem;
+  padding: 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-elevated);
+}
+
+.lifecycleConfirm p {
+  margin-top: 0;
+}
+
+.lifecycleButtons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 0.65rem;
+}
+
+.archiveButton,
+.archiveConfirmButton {
+  color: var(--color-warning);
+  border-color: color-mix(in srgb, var(--color-warning) 48%, var(--color-border));
+  background: var(--color-bg-elevated);
+}
+
+.archiveButton:hover:not(:disabled),
+.archiveConfirmButton:hover:not(:disabled) {
+  color: var(--color-on-accent);
+  border-color: var(--color-warning);
+  background: var(--color-warning);
+}
+
+.lifecycleError,
+.lifecycleSuccess {
+  grid-column: 1 / -1;
+  margin-left: 2.9rem;
+  font-size: 0.75rem;
+}
+
+.lifecycleError {
+  color: var(--color-error);
+}
+
+.lifecycleSuccess {
+  color: var(--color-success);
+  font-weight: 600;
+}
 
 /* ===== Foto masuk ===== */
 
@@ -386,6 +967,105 @@
 }
 
 @media (max-width: 560px) {
+  .headerActions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .guestbookLink {
+    flex: 1;
+    justify-content: center;
+  }
+
+  /*
+   * `auto-fit` dasar memilih dua track 150px pada ponsel, sehingga tiga stat
+   * terlihat seperti grid 2x2 dengan sel terakhir kosong. Di layar kecil,
+   * ketiga ringkasan lebih jelas sebagai satu baris kompak dan seimbang.
+   */
+  .stats {
+    margin-top: 1.5rem;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .stat {
+    min-width: 0;
+    align-items: center;
+    padding: 0.9rem 0.45rem;
+    text-align: center;
+  }
+
+  .statValue {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    max-width: 100%;
+    font-size: clamp(1.15rem, 5.5vw, 1.4rem);
+    white-space: nowrap;
+  }
+
+  .statMax {
+    font-size: 0.68rem;
+  }
+
+  .statLabel {
+    font-size: 0.58rem;
+    line-height: 1.35;
+    letter-spacing: 0.075em;
+    overflow-wrap: anywhere;
+  }
+
+  .settingsHeading,
+  .settingsForm,
+  .lifecycleSettings {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .settingsGrid,
+  .settingsOptions,
+  .visibilityOptions {
+    grid-template-columns: 1fr;
+  }
+
+  .settingsOption {
+    min-height: 0;
+  }
+
+  .settingsFooter {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .settingsFooter > button {
+    width: 100%;
+  }
+
+  .lifecycleSettings {
+    grid-template-columns: 1fr;
+  }
+
+  .lifecycleForm {
+    width: 100%;
+    justify-self: stretch;
+  }
+
+  .lifecycleForm > button {
+    width: 100%;
+  }
+
+  .lifecycleConfirm {
+    max-width: none;
+  }
+
+  .lifecycleButtons > button {
+    flex: 1;
+  }
+
+  .lifecycleError,
+  .lifecycleSuccess {
+    margin-left: 0;
+  }
+
   .pagination {
     grid-template-columns: 1fr 1fr;
     gap: 0.75rem;

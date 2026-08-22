@@ -1,11 +1,17 @@
 import type { Metadata } from 'next'
+import { getTier, type TierId } from '@/lib/catalog'
 import Wizard from './Wizard'
 
 export const metadata: Metadata = {
   title: 'Buat Album Baru — HAY Stories',
 }
 
-export default function NewEventPage() {
+export default async function NewEventPage(props: PageProps<'/dashboard/new'>) {
+  const search = await props.searchParams
+  const requestedTier = Array.isArray(search.tier) ? search.tier[0] : search.tier
+  const initialTier =
+    requestedTier && getTier(requestedTier)?.available ? (requestedTier as TierId) : 'starter'
+
   return (
     <div>
       <header style={{ marginBottom: '2rem' }}>
@@ -26,11 +32,11 @@ export default function NewEventPage() {
             fontSize: '0.9375rem',
           }}
         >
-          Tiga langkah, sekitar semenit.
+          Empat langkah, sekitar semenit.
         </p>
       </header>
 
-      <Wizard />
+      <Wizard initialTier={initialTier} />
     </div>
   )
 }

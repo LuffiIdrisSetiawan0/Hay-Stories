@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
-import { Images } from 'lucide-react'
+import { Images, PartyPopper } from 'lucide-react'
 import { resolveReveal } from '@/lib/events'
 import { findActiveGuest, findEventBySlug, isEventOpen } from '@/lib/guest/event'
 import { readGuestSession } from '@/lib/guest/session'
@@ -40,12 +40,16 @@ export default async function GuestEntryPage(props: PageProps<'/a/[slug]'>) {
   const session = await readGuestSession(event.id)
   const guest = session ? await findActiveGuest(session.guestId, event.id) : null
 
-  const renaming = 'ganti' in (await props.searchParams)
+  const search = await props.searchParams
+  const renaming = 'ganti' in search
+  const destination = search.tujuan === 'guestbook' ? 'guestbook' : 'camera'
 
   // Jika tamu sudah terdaftar dan tidak sedang ganti nama:
   // arahkan langsung ke kamera jika acara buka, atau ke galeri jika album sudah terbuka
   if (guest && !renaming) {
-    if (open) {
+    if (destination === 'guestbook') {
+      redirect(`/a/${event.slug}/guestbook`)
+    } else if (open) {
       redirect(`/a/${event.slug}/kamera`)
     } else if (reveal.revealed) {
       redirect(`/a/${event.slug}/galeri`)
@@ -59,18 +63,18 @@ export default async function GuestEntryPage(props: PageProps<'/a/[slug]'>) {
 
         <h1 className={styles.title}>{event.title}</h1>
 
-        <p className={styles.lede}>Kamera sekali pakai untuk acara ini.</p>
+        <p className={styles.lede}>
+          {destination === 'guestbook'
+            ? 'Tinggalkan pesan suara singkat yang hanya dapat didengar host acara.'
+            : 'Kamera tamu digital untuk menangkap sudut pandangmu.'}
+        </p>
 
         {reveal.revealed ? (
           <div
-            className={styles.notice}
-            style={{
-              background: 'rgba(255, 199, 44, 0.12)',
-              borderColor: 'rgba(255, 199, 44, 0.45)',
-            }}
+            className={`${styles.notice} ${styles.noticeReady}`}
           >
-            <p className={styles.noticeTitle} style={{ color: '#d97706' }}>
-              🎉 Album Foto Sudah Dibuka!
+            <p className={`${styles.noticeTitle} ${styles.noticeTitleReady}`}>
+              <PartyPopper size={17} aria-hidden="true" /> Galeri sudah dibuka
             </p>
             <p className={styles.noticeBody}>
               Semua foto jepretan dari acara ini sudah dibuka dan siap dilihat.
@@ -81,7 +85,7 @@ export default async function GuestEntryPage(props: PageProps<'/a/[slug]'>) {
               style={{ width: '100%', marginTop: '1rem' }}
             >
               <Images size={16} />
-              Buka Galeri Foto
+              Buka galeri foto
             </Link>
           </div>
         ) : !open ? (
@@ -108,7 +112,11 @@ export default async function GuestEntryPage(props: PageProps<'/a/[slug]'>) {
                 Mau ikut menjepret foto juga?
               </p>
             )}
-            <JoinForm slug={event.slug} defaultName={guest?.display_name ?? ''} />
+            <JoinForm
+              slug={event.slug}
+              defaultName={guest?.display_name ?? ''}
+              destination={destination}
+            />
 
             <p className={styles.fine}>
               {reveal.revealed

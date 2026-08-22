@@ -2,7 +2,15 @@ import type { Metadata } from 'next'
 import { io } from 'next/cache'
 import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
-import { AlertTriangle, ArrowLeft, ArrowRight, Users, Image as ImageIcon, Clock } from 'lucide-react'
+import {
+  AlertTriangle,
+  ArrowLeft,
+  ArrowRight,
+  Users,
+  Image as ImageIcon,
+  Clock,
+  MessageCircleHeart,
+} from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { getEventLifecycle, guestUrl, resolveReveal, type EventLifecycle } from '@/lib/events'
 import { listPhotos } from '@/lib/photos'
@@ -11,6 +19,7 @@ import { qrSvg } from '@/lib/qr'
 import PhotoGrid from '@/components/photos/PhotoGrid'
 import SharePanel from './SharePanel'
 import RevealControl from './RevealControl'
+import SettingsPanel, { LocalDateTime } from './SettingsPanel'
 import { deleteHostPhoto } from './actions'
 import styles from './Manage.module.css'
 
@@ -20,11 +29,11 @@ export const metadata: Metadata = {
   title: 'Kelola Album — HAY Stories',
 }
 
-function formatDate(iso: string | null, withTime = false) {
+function formatDate(iso: string | null) {
   if (!iso) return null
   return new Intl.DateTimeFormat('id-ID', {
     dateStyle: 'long',
-    ...(withTime ? { timeStyle: 'short' } : {}),
+    timeZone: 'UTC',
   }).format(new Date(iso))
 }
 
@@ -78,14 +87,23 @@ export default async function ManageEventPage(props: PageProps<'/dashboard/event
    * ditandatangani. Kepemilikannya sudah terbukti di kueri `event` di atas:
    * baris yang bukan miliknya berakhir di `notFound()` sebelum sampai sini.
    */
-  const [guestCountResult, photoPage] = await Promise.all([
+  const [guestCountResult, guestbookCountResult, photoPage] = await Promise.all([
     supabase.from('guests').select('id', { count: 'exact', head: true }).eq('event_id', event.id),
+    supabase
+      .from('messages')
+      .select('id', { count: 'exact', head: true })
+      .eq('event_id', event.id)
+      .eq('status', 'ready'),
     listPhotos(event.id, { page, pageSize: PHOTO_PAGE_SIZE, includeHidden: true }),
   ])
 
   const guestCount = guestCountResult.error ? null : guestCountResult.count
   if (guestCountResult.error) {
     console.error(`Gagal menghitung tamu acara ${event.id}:`, guestCountResult.error)
+  }
+  const guestbookCount = guestbookCountResult.error ? null : guestbookCountResult.count
+  if (guestbookCountResult.error) {
+    console.error(`Gagal menghitung voice guestbook ${event.id}:`, guestbookCountResult.error)
   }
 
   const photoCount = photoPage.total
@@ -105,6 +123,16 @@ export default async function ManageEventPage(props: PageProps<'/dashboard/event
   const reveal = resolveReveal(event, lifecycleNow)
   const url = guestUrl(event.slug, await requestOrigin())
   const svg = await qrSvg(url)
+  const revealMode =
+    event.reveal_mode === 'immediate' ||
+    event.reveal_mode === 'scheduled' ||
+    event.reveal_mode === 'manual'
+      ? event.reveal_mode
+      : 'manual'
+  const galleryVisibility = event.gallery_visibility === 'host_only' ? 'host_only' : 'guests'
+  const expiresAt = event.expires_at ? new Date(event.expires_at).getTime() : null
+  const reactivationAllowed =
+    expiresAt === null || !Number.isFinite(expiresAt) || expiresAt > lifecycleNow
 
   return (
     <div className={styles.page}>
@@ -118,13 +146,20 @@ export default async function ManageEventPage(props: PageProps<'/dashboard/event
           <h1 className={styles.title}>{event.title}</h1>
           <p className={styles.subtitle}>{formatDate(event.event_date) ?? 'Belum ada tanggal'}</p>
         </div>
-        <span
-          className={`${styles.badge} ${
-            lifecycle.acceptsPhotos ? styles.badgeLive : styles.badgeClosed
-          }`}
-        >
-          {lifecycle.label}
-        </span>
+        <div className={styles.headerActions}>
+          <Link href={`/dashboard/events/${event.id}/guestbook`} className={styles.guestbookLink}>
+            <MessageCircleHeart size={16} aria-hidden="true" />
+            <span>Voice guestbook</span>
+            {guestbookCount !== null && <strong>{guestbookCount}</strong>}
+          </Link>
+          <span
+            className={`${styles.badge} ${
+              lifecycle.acceptsPhotos ? styles.badgeLive : styles.badgeClosed
+            }`}
+          >
+            {lifecycle.label}
+          </span>
+        </div>
       </header>
 
       {!lifecycle.acceptsPhotos && (
@@ -133,6 +168,12 @@ export default async function ManageEventPage(props: PageProps<'/dashboard/event
           <div>
             <strong>QR tidak lagi menerima jepretan</strong>
             <p>{closedAccessMessage(lifecycle.tone)}</p>
+            {lifecycle.tone === 'draft' && event.tier !== 'starter' && (
+              <Link href={`/dashboard/checkout/${event.id}`} className={styles.warningAction}>
+                Lanjutkan pembayaran
+                <ArrowRight size={14} />
+              </Link>
+            )}
           </div>
         </section>
       )}
@@ -153,7 +194,9 @@ export default async function ManageEventPage(props: PageProps<'/dashboard/event
             ) : (
               <>
                 {guestCount}
-                <span className={styles.statMax}>/{event.max_guests}</span>
+                <span className={styles.statMax}>
+                  /{event.max_guests.toLocaleString('id-ID')}
+                </span>
               </>
             )}
           </span>
@@ -169,15 +212,25 @@ export default async function ManageEventPage(props: PageProps<'/dashboard/event
       <div className={styles.columns}>
         <SharePanel url={url} accessCode={event.access_code} qrSvg={svg} title={event.title} />
 
-        <section className={styles.card}>
+        <section className={`${styles.card} ${styles.revealCard}`}>
           <h2 className={styles.cardTitle}>Waktu terbuka</h2>
           <p className={styles.cardHint}>
             {event.reveal_mode === 'immediate' &&
               'Foto langsung muncul di galeri begitu tamu menjepret.'}
             {event.reveal_mode === 'scheduled' &&
-              (reveal.revealed
-                ? `Sudah terbuka sejak ${formatDate(event.reveal_at, true)}.`
-                : `Terbuka otomatis pada ${formatDate(event.reveal_at, true)}.`)}
+              (event.reveal_at ? (
+                reveal.revealed ? (
+                  <>
+                    Sudah terbuka sejak <LocalDateTime value={event.reveal_at} />.
+                  </>
+                ) : (
+                  <>
+                    Terbuka otomatis pada <LocalDateTime value={event.reveal_at} />.
+                  </>
+                )
+              ) : (
+                'Waktu terbuka otomatis belum ditentukan.'
+              ))}
             {event.reveal_mode === 'manual' &&
               (reveal.revealed
                 ? 'Kamu sudah membuka album ini.'
@@ -187,6 +240,18 @@ export default async function ManageEventPage(props: PageProps<'/dashboard/event
           {!reveal.revealed && <RevealControl eventId={event.id} />}
         </section>
       </div>
+
+      <SettingsPanel
+        eventId={event.id}
+        initialTitle={event.title}
+        initialEventDate={event.event_date}
+        initialRevealMode={revealMode}
+        initialRevealAt={event.reveal_at}
+        initialGalleryVisibility={galleryVisibility}
+        initialStatus={event.status ?? 'draft'}
+        revealLocked={reveal.revealed || event.status === 'revealed'}
+        reactivationAllowed={reactivationAllowed}
+      />
 
       <section id="foto" className={`${styles.card} ${styles.photos}`}>
         <h2 className={styles.cardTitle}>Foto masuk</h2>

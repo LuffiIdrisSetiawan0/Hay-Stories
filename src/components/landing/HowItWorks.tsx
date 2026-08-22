@@ -6,24 +6,24 @@ import styles from "./HowItWorks.module.css";
 const steps = [
   {
     number: "01",
-    icon: QrCode,
-    title: "Pasang QR Code",
+    icon: Camera,
+    title: "Buat Album Acara",
     description:
-      "Cetak kartu QR di meja tamu atau tampilkan di layar utama. Tamu langsung tahu di mana harus memindai.",
+      "Beri nama acara, tentukan kapan galeri dibuka, lalu album langsung siap dipakai.",
   },
   {
     number: "02",
-    icon: Camera,
-    title: "Tamu Scan & Motret",
+    icon: QrCode,
+    title: "Bagikan Satu QR",
     description:
-      "Tamu memindai QR lewat kamera smartphone dan langsung masuk ke kamera web analog tanpa perlu unduh aplikasi.",
+      "Unduh QR untuk kartu meja atau bagikan tautannya. Tamu scan, isi nama, dan langsung memotret.",
   },
   {
     number: "03",
     icon: Sparkles,
-    title: "Terkumpul Otomatis",
+    title: "Buka Ceritanya Bersama",
     description:
-      "Foto yang berhasil disimpan masuk ke satu galeri acara berbasis tautan dan dapat diunduh satu per satu dalam resolusi hasilnya.",
+      "Setiap candid tersimpan otomatis. Buka galerinya saat kamu siap, lalu unduh foto berkualitas tinggi.",
   },
 ];
 
@@ -33,18 +33,18 @@ export default function HowItWorks() {
       <div className="container">
         <div className={styles.head}>
           <Reveal>
-            <p className={styles.eyebrow}>Cara Kerja</p>
+            <p className={styles.eyebrow}>Siap dalam hitungan menit</p>
           </Reveal>
 
           <h2 className={styles.title}>
             <SplitText by="word" delay={60}>
-              Tiga Langkah Instan Tanpa Ribet
+              Tiga Langkah, Selesai Sebelum Acara Dimulai
             </SplitText>
           </h2>
 
           <Reveal delay={120}>
             <p className={styles.lede}>
-              Bebas instruksi rumit. Tamu cukup memindai dan langsung ikut mengabadikan momen dari meja mereka.
+              Tidak perlu perangkat sewaan atau kru tambahan. Siapkan album, bagikan aksesnya, dan biarkan tamu mengisi cerita.
             </p>
           </Reveal>
         </div>

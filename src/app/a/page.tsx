@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import CodeForm from './CodeForm'
 import styles from './Guest.module.css'
 
@@ -13,14 +14,21 @@ export default function GuestCodePage() {
       <div className={styles.card}>
         <p className={styles.brand}>HAY Stories</p>
 
-        <h1 className={styles.title}>Masukkan kode</h1>
+        <h1 className={styles.title}>Masukkan kode acara</h1>
 
         <p className={styles.lede}>
-          Untuk kamu yang QR-nya susah dipindai. Kodenya tercetak di kartu yang sama.
+          Jika QR sulit dipindai, ketik enam karakter yang tercetak di kartu acara.
         </p>
 
         <CodeForm />
       </div>
+
+      <p className={styles.footer}>
+        Bukan tamu acara?{' '}
+        <Link href="/" className={styles.footerLink}>
+          Kembali ke beranda
+        </Link>
+      </p>
     </main>
   )
 }

@@ -1,107 +1,72 @@
-"use client";
-
-import { useCallback, useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import styles from "./EventShowcase.module.css";
 
 const EVENTS = [
   {
     href: "/pernikahan",
     label: "Pernikahan",
-    line: "Abadikan momen haru, tawa di meja tamu, dan dansa spontan yang tak tertangkap fotografer.",
+    line: "Bukan hanya foto resmi. Momen hangat di sela-selanya.",
+    image: "/img/scenes/06-konfeti-v2.webp",
+    alt: "pengantin berjalan di antara keluarga dan kelopak bunga",
   },
   {
     href: "/ulang-tahun",
     label: "Ulang Tahun",
-    line: "Rekam tiup lilin bersama sahabat dan keseruan pesta, bebas antre photobooth.",
+    line: "Dari tiup lilin sampai foto paling random bersama sahabat.",
+    image: "/img/scenes/03-kue-v2.webp",
+    alt: "perayaan ulang tahun intim bersama sahabat di kafe",
   },
   {
     href: "/pesta",
     label: "Pesta & Nightout",
-    line: "Look warna untuk cahaya pesta dan galeri bersama untuk menangkap energi malam dari banyak sudut.",
+    line: "Flash menyala. Jaim mati. Energi malam tersimpan dari banyak sudut.",
+    image: "/img/scenes/05-lantai-dansa-v2.webp",
+    alt: "teman-teman menari dalam pesta malam",
   },
   {
     href: "/acara-kantor",
     label: "Acara Kantor",
-    line: "Cairkan suasana dan rekam momen bonding tim secara spontan di annual gathering.",
+    line: "Satu tim, banyak sudut—dari penghargaan sampai tawa setelah acara.",
+    image: "/img/scenes/04-potret-v2.webp",
+    alt: "tim kantor Indonesia tertawa bersama di acara perusahaan",
   },
 ] as const;
 
 export default function EventShowcase() {
-  const wrapRef = useRef<HTMLDivElement>(null);
-  const [active, setActive] = useState(0);
-
-  const isPinned = useCallback(
-    () =>
-      typeof window !== "undefined" &&
-      window.matchMedia("(min-width: 768px)").matches &&
-      !window.matchMedia("(prefers-reduced-motion: reduce)").matches,
-    []
-  );
-
-  useEffect(() => {
-    if (!isPinned()) return;
-
-    const onScroll = () => {
-      const wrap = wrapRef.current;
-      if (!wrap) return;
-
-      const rect = wrap.getBoundingClientRect();
-      const scrollable = rect.height - window.innerHeight;
-      if (scrollable <= 0) return;
-
-      const progress = Math.max(0, Math.min(1, -rect.top / scrollable));
-      const nextIndex = Math.min(EVENTS.length - 1, Math.floor(progress * EVENTS.length));
-
-      setActive(nextIndex);
-    };
-
-    window.addEventListener("scroll", onScroll, { passive: true });
-    onScroll();
-    return () => window.removeEventListener("scroll", onScroll);
-  }, [isPinned]);
-
   return (
-    <section id="acara" ref={wrapRef} className={`${styles.wrap} surface-dark`}>
-      <div className={styles.sticky}>
-        <div className="container">
-          <div className={styles.head}>
-            <p className={styles.eyebrow}>Untuk Setiap Acara</p>
-            <p className={styles.counter} aria-hidden="true">
-              {String(active + 1).padStart(2, "0")}
-              <span className={styles.counterTotal}>
-                {" / "}
-                {String(EVENTS.length).padStart(2, "0")}
-              </span>
-            </p>
-          </div>
+    <section id="acara" className={`${styles.section} surface-dark`}>
+      <div className="container">
+        <div className={styles.header}>
+          <p className={styles.eyebrow}>Untuk setiap cara merayakan</p>
+          <h2 className={styles.title}>Acaranya berbeda. Ceritanya sama berharganya.</h2>
+        </div>
 
-          <div className={styles.body}>
-            {EVENTS.map((event, i) => (
-              <article
-                key={event.href}
-                className={`${styles.slide} ${i === active ? styles.slideActive : ""}`}
-              >
-                <h2 className={styles.name}>{event.label}</h2>
-                <p className={styles.line}>{event.line}</p>
-                <Link href={event.href} className={styles.cta}>
-                  Pelajari paket {event.label.toLowerCase()}
-                  <ArrowRight size={16} />
-                </Link>
-              </article>
-            ))}
-          </div>
-
-          {/* Dots Indicator */}
-          <div className={styles.dots} aria-hidden="true">
-            {EVENTS.map((event, i) => (
-              <span
-                key={event.href}
-                className={`${styles.dot} ${i === active ? styles.dotActive : ""}`}
-              />
-            ))}
-          </div>
+        <div className={styles.grid}>
+          {EVENTS.map((event, index) => (
+            <article key={event.href} className={styles.card}>
+              <Link href={event.href} className={styles.cardLink}>
+                <Image
+                  src={event.image}
+                  alt={event.alt}
+                  fill
+                  sizes="(max-width: 760px) 100vw, 50vw"
+                  className={styles.image}
+                />
+                <span className={styles.scrim} aria-hidden="true" />
+                <span className={styles.index}>{String(index + 1).padStart(2, "0")}</span>
+                <span className={styles.content}>
+                  <span className={styles.name}>{event.label}</span>
+                  <span className={styles.line}>{event.line}</span>
+                  <span className={styles.cta}>
+                    Lihat untuk {event.label.toLowerCase()}
+                    <ArrowUpRight size={16} />
+                  </span>
+                </span>
+              </Link>
+            </article>
+          ))}
         </div>
       </div>
     </section>

@@ -16,19 +16,16 @@ export interface Tier {
   id: TierId
   name: string
   tagline: string
-  /** Hanya tier ini yang bisa dibuat oleh alur produk saat ini. */
+  /** Tier dapat dipilih dan, bila berbayar, dibeli lewat checkout. */
   available: boolean
   /** Rupiah. 0 = gratis. */
   price: number
-  /** Harga coret, untuk menampilkan diskon. */
-  wasPrice?: number
-  /** null = tanpa batas. */
+  /** null dipertahankan untuk kompatibilitas data lama. */
   maxGuests: number | null
   shotsPerGuest: number
-  /** Berapa lama foto disimpan setelah acara. null = permanen. */
+  /** null = tidak kedaluwarsa otomatis selama layanan dan akun aktif. */
   retentionDays: number | null
   features: string[]
-  recommended?: boolean
 }
 
 export const TIERS: readonly Tier[] = [
@@ -41,65 +38,50 @@ export const TIERS: readonly Tier[] = [
     maxGuests: 5,
     shotsPerGuest: 100,
     retentionDays: 90,
-    features: [
-      '1 album acara',
-      'Preset Film Analog & Natural Clean',
-      'Galeri interaktif',
-      'Unduhan resolusi penuh',
-    ],
+    features: ['Foto disimpan selama 90 hari'],
   },
   {
     id: 'party',
     name: 'Party',
-    tagline: 'Untuk acara kecil · segera hadir',
-    available: false,
+    tagline: 'Untuk acara intim',
+    available: true,
     price: 199_000,
-    wasPrice: 299_000,
     maxGuests: 50,
     shotsPerGuest: 100,
     retentionDays: null,
-    features: [
-      'Semua fitur Starter',
-      'Sistem reveal bersama',
-      'QR code siap cetak',
-      'Ringkasan tamu di dashboard',
-    ],
+    features: ['Tidak kedaluwarsa otomatis selama layanan dan akun aktif'],
   },
   {
     id: 'pesta',
     name: 'Pesta',
-    tagline: 'Untuk acara menengah · segera hadir',
-    available: false,
+    tagline: 'Untuk perayaan ramai',
+    available: true,
     price: 499_000,
-    wasPrice: 699_000,
     maxGuests: 150,
     shotsPerGuest: 100,
     retentionDays: null,
-    features: [
-      'Semua fitur Party',
-      'Hingga 150 tamu',
-      'Penyimpanan tanpa tanggal kedaluwarsa',
-      'Prioritas support',
-    ],
-    recommended: true,
+    features: ['Tidak kedaluwarsa otomatis selama layanan dan akun aktif'],
   },
   {
     id: 'unlimited',
-    name: 'Unlimited',
-    tagline: 'Untuk acara besar · segera hadir',
-    available: false,
+    name: 'Skala Besar',
+    tagline: 'Untuk acara hingga 100.000 tamu',
+    available: true,
     price: 1_099_000,
-    wasPrice: 1_490_000,
-    maxGuests: null,
+    maxGuests: 100_000,
     shotsPerGuest: 100,
     retentionDays: null,
-    features: [
-      'Semua fitur Pesta',
-      'Tamu tak terbatas',
-      'Penyimpanan tanpa tanggal kedaluwarsa',
-      'Dedicated support',
-    ],
+    features: ['Tidak kedaluwarsa otomatis selama layanan dan akun aktif'],
   },
+] as const
+
+/** Fitur produk yang benar-benar sama di setiap tier; ditampilkan satu kali. */
+export const COMMON_TIER_FEATURES = [
+  'QR code dan kode akses acara',
+  '6 roll film yang bisa diganti tiap jepretan',
+  'Voice guestbook privat hingga 20 detik',
+  'Reveal manual, terjadwal, atau langsung',
+  'Galeri dan unduhan foto kualitas tinggi',
 ] as const
 
 export function getTier(id: string): Tier | undefined {
@@ -111,7 +93,9 @@ export function formatPrice(price: number): string {
 }
 
 export function formatGuestLimit(maxGuests: number | null): string {
-  return maxGuests === null ? 'Tamu tak terbatas' : `Hingga ${maxGuests} tamu`
+  return maxGuests === null
+    ? 'Kapasitas mengikuti kontrak'
+    : `Hingga ${maxGuests.toLocaleString('id-ID')} tamu`
 }
 
 // ---------------------------------------------------------------------------

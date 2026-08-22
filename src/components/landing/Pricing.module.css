@@ -46,6 +46,31 @@
   text-wrap: pretty;
 }
 
+.included {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.55rem 1rem;
+  max-width: 52rem;
+  margin: 1.4rem auto 0;
+  padding: 0;
+  list-style: none;
+}
+
+.includedItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--color-text-secondary);
+  font-size: 0.75rem;
+  line-height: 1.35;
+}
+
+.includedItem svg {
+  flex: 0 0 auto;
+  color: var(--color-accent);
+}
+
 /* ===== Pricing Grid ===== */
 
 .grid {
@@ -91,31 +116,6 @@
   transform: translateY(-2px);
 }
 
-.cardBest {
-  border: 1.5px solid var(--color-accent);
-  box-shadow: 0 12px 32px rgba(179, 139, 89, 0.12);
-  background: #ffffff;
-}
-
-.cardBest:hover {
-  box-shadow: 0 16px 40px rgba(179, 139, 89, 0.2);
-}
-
-.badge {
-  align-self: flex-start;
-  margin-bottom: 0.85rem;
-  padding: 0.25rem 0.65rem;
-  border-radius: var(--radius-full);
-  background: rgba(179, 139, 89, 0.12);
-  border: 1px solid rgba(179, 139, 89, 0.25);
-  font-family: var(--font-mono);
-  font-size: 0.625rem;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--color-accent);
-}
-
 .planName {
   font-family: var(--font-sans);
   font-size: 1.2rem;
@@ -138,12 +138,6 @@
   margin-top: 1.25rem;
 }
 
-.wasPrice {
-  font-size: 0.8125rem;
-  color: var(--color-text-faint);
-  text-decoration: line-through;
-}
-
 .price {
   font-family: var(--font-sans);
   font-size: 1.75rem;
@@ -151,6 +145,12 @@
   letter-spacing: -0.035em;
   line-height: 1;
   color: var(--color-text-primary);
+}
+
+.priceSuffix {
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+  font-weight: 500;
 }
 
 .guests {
@@ -217,16 +217,4 @@
   border-color: var(--color-text-primary);
   color: var(--color-bg-primary);
   transform: translateY(-1px);
-}
-
-.planBtnBest {
-  background: var(--color-text-primary);
-  border-color: var(--color-text-primary);
-  color: #ffffff;
-}
-
-.planBtnBest:hover {
-  background: #000000;
-  border-color: #000000;
-  color: #ffffff;
 }

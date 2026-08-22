@@ -17,6 +17,7 @@ import {
   Frame,
   Images,
   Loader2,
+  Mic,
   RefreshCw,
   SlidersHorizontal,
   Sparkles,
@@ -212,6 +213,10 @@ export default function Camera({
 }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const previewSourceRef = useRef<{
+    canvas: HTMLCanvasElement
+    context: CanvasRenderingContext2D
+  } | null>(null)
   const rendererRef = useRef<FilmRenderer | null>(null)
   const captureCanvasRef = useRef<HTMLCanvasElement | null>(null)
   const captureRendererRef = useRef<FilmRenderer | null>(null)
@@ -422,6 +427,32 @@ export default function Camera({
     ctx.restore()
   }, [])
 
+  const downscalePreviewFrame = useCallback(
+    (video: HTMLVideoElement, width: number, height: number): HTMLCanvasElement => {
+      let source = previewSourceRef.current
+      if (!source) {
+        const canvas = document.createElement('canvas')
+        const context = canvas.getContext('2d', { alpha: false, desynchronized: true })
+        if (!context) throw new Error('Canvas preview tidak tersedia.')
+        source = { canvas, context }
+        previewSourceRef.current = source
+      }
+
+      if (source.canvas.width !== width || source.canvas.height !== height) {
+        source.canvas.width = width
+        source.canvas.height = height
+        source.context.imageSmoothingEnabled = true
+        // Preview bergerak lebih diuntungkan oleh latensi rendah. Renderer foto
+        // tersimpan tetap memakai resize high-quality pada bitmap sensor penuh.
+        source.context.imageSmoothingQuality = 'low'
+      }
+
+      source.context.drawImage(video, 0, 0, width, height)
+      return source.canvas
+    },
+    []
+  )
+
   const drawFrame = useCallback(() => {
     const video = videoRef.current
     if (!video || video.readyState < 2) return
@@ -434,7 +465,14 @@ export default function Camera({
     if (!renderer || presetLoadingRef.current) return
     const size = fitWithin(video.videoWidth, video.videoHeight, PREVIEW_LADDER[previewTierRef.current])
     try {
-      renderer.render(video, presetRef.current, size.width, size.height, {
+      // Kamera belakang lazim memberi frame 4K. Mengirim video mentah ke WebGL
+      // membuat setiap frame tetap menyalin ~50 MB walaupun output hanya 720p.
+      // Kecilkan lebih dulu agar texture upload mengikuti tangga preview.
+      const previewSource =
+        video.videoWidth > size.width || video.videoHeight > size.height
+          ? downscalePreviewFrame(video, size.width, size.height)
+          : video
+      renderer.render(previewSource, presetRef.current, size.width, size.height, {
         ...recipeRef.current,
         // Penajaman memerlukan empat sampel linear-light tambahan per piksel.
         // Terapkan pada hasil foto penuh, bukan loop preview, agar viewfinder
@@ -450,7 +488,7 @@ export default function Camera({
       console.error('Preview kamera gagal:', error)
       activateCompatibilityMode('GPU tidak stabil; kamera beralih ke Natural agar foto tetap aman.')
     }
-  }, [activateCompatibilityMode, drawFallbackFrame])
+  }, [activateCompatibilityMode, downscalePreviewFrame, drawFallbackFrame])
 
   const stopLoop = useCallback(() => {
     const loop = loopRef.current
@@ -499,9 +537,10 @@ export default function Camera({
 
       setPhase({ kind: 'starting' })
       stopLoop()
-      // Kamera depan dan belakang punya beban render berbeda, jadi tangga
-      // resolusi dipelajari ulang dari tingkat teratas setiap pergantian.
-      previewTierRef.current = 0
+      // Kamera belakang biasanya mengirim stream sensor yang jauh lebih besar.
+      // Mulai pada 864 px; tangga adaptif tetap boleh naik ke 1080 setelah
+      // perangkat terbukti lancar selama beberapa detik.
+      previewTierRef.current = facing === 'environment' ? 1 : 0
       frameBudgetRef.current = 1000 / 30
       resetFrameClock()
       exposureRequestRef.current += 1
@@ -1334,10 +1373,16 @@ export default function Camera({
                 : `Semua ${shotsLimit} jepretan sudah terpakai dan tersimpan.`}
             </p>
             {pendingJobs === 0 && (
-              <Link href={`/a/${slug}/galeri`} className="btn btn-accent">
-                <Images size={16} />
-                Lihat galeri
-              </Link>
+              <div className={styles.overlayActions}>
+                <Link href={`/a/${slug}/guestbook`} className="btn btn-accent">
+                  <Mic size={16} />
+                  Tinggalkan ucapan
+                </Link>
+                <Link href={`/a/${slug}/galeri`} className={styles.overlayTextLink}>
+                  <Images size={15} />
+                  Lihat galeri
+                </Link>
+              </div>
             )}
           </div>
         )}

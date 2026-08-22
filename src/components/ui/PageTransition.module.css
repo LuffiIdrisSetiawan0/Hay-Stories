@@ -1,5 +1,5 @@
 /* ===========================================================================
-   Page Transition Curtain (Y-Vision Style with 1s Calibrated Hold)
+   Short branded route transition
    =========================================================================== */
 
 .overlay {
@@ -24,19 +24,19 @@
   justify-content: center;
 }
 
-/* Entering: Slide up from bottom (100% -> 0%) in 0.6s */
+/* Entering: Slide up from bottom while the route starts loading. */
 .entering .curtain {
-  animation: slideUpEnter 0.6s cubic-bezier(0.76, 0, 0.24, 1) forwards;
+  animation: slideUpEnter 0.28s cubic-bezier(0.76, 0, 0.24, 1) forwards;
 }
 
-/* Holding: Stay covering the screen during 1s navigation load */
+/* Hold only for the actual navigation time. */
 .holding .curtain {
   transform: translateY(0%);
 }
 
-/* Exiting: Slide up off the top (0% -> -100%) in 0.6s */
+/* Exiting: Slide up off the top as soon as the destination is ready. */
 .exiting .curtain {
-  animation: slideUpExit 0.6s cubic-bezier(0.76, 0, 0.24, 1) forwards;
+  animation: slideUpExit 0.36s cubic-bezier(0.76, 0, 0.24, 1) forwards;
 }
 
 @keyframes slideUpEnter {
@@ -140,7 +140,7 @@
   color: var(--color-accent);
 }
 
-/* 1-Second Cinematic Loading Line */
+/* Progress line */
 .loaderBar {
   width: 120px;
   height: 2px;
@@ -162,15 +162,22 @@
   box-shadow: 0 0 8px var(--color-accent);
 }
 
+.entering .loaderProgress,
 .holding .loaderProgress {
-  animation: load1s 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: loadRoute 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-@keyframes load1s {
+@keyframes loadRoute {
   0% {
     width: 0%;
   }
   100% {
     width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .overlay {
+    display: none;
   }
 }

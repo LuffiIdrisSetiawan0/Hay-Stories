@@ -2,9 +2,10 @@ import { Metadata } from "next";
 import EventPageTemplate from "@/components/events/EventPageTemplate";
 
 export const metadata: Metadata = {
-  title: "Kamera Sekali Pakai untuk Pernikahan · HAY Stories",
+  title: "Kamera Tamu Digital untuk Pernikahan",
   description:
-    "Berikan pengalaman kamera analog digital bagi para tamu pernikahanmu. Satu QR code di meja resepsi, semua foto candid tersimpan dengan look warna terkalibrasi.",
+    "Satu QR di meja resepsi, kamera langsung terbuka tanpa aplikasi, dan semua foto candid tamu terkumpul di satu galeri pernikahan.",
+  alternates: { canonical: "/pernikahan" },
 };
 
 export default function PernikahanPage() {
@@ -13,8 +14,8 @@ export default function PernikahanPage() {
       slug="pernikahan"
       badge="Pernikahan & Resepsi 💍"
       title="Momen Pernikahan yang Tak Tertangkap Fotografer"
-      subtitle="Fotografer resmi berdiri di depan pelaminan. Namun tawa haru sahabat, reuni keluarga jauh, dan dansa spontan tamu terabadikan nyata lewat kamera disposable di tangan mereka."
-      heroImage="/img/scenes/01-pelaminan.jpg"
+      subtitle="Fotografer resmi menangkap momen utama. HAY Stories menyimpan tawa sahabat, reuni keluarga, dan dansa spontan dari sudut pandang para tamu."
+      heroImage="/img/scenes/01-pelaminan-v2.webp"
       benefits={[
         {
           title: "Satu QR di Setiap Meja",
@@ -32,7 +33,7 @@ export default function PernikahanPage() {
           icon: "monitor",
         },
         {
-          title: "Unduh Foto Resolusi Penuh",
+          title: "Unduh Foto Berkualitas Tinggi",
           description: "Setiap foto yang tersimpan dapat dibuka dan diunduh satu per satu dari galeri acara.",
           icon: "image",
         },
@@ -72,16 +73,10 @@ export default function PernikahanPage() {
         },
       ]}
       sampleGallery={[
-        { img: "/img/scenes/01-pelaminan.jpg", caption: "Senyum Bahagia Bersama Pengantin" },
-        { img: "/img/scenes/02-meja-dekorasi.jpg", caption: "Kehangatan Meja Jamuan Tamu" },
-        { img: "/img/scenes/06-konfeti.jpg", caption: "Taburan Bunga & Doa Restu Keluarga" },
+        { img: "/img/scenes/01-pelaminan-v2.webp", caption: "Senyum bahagia bersama pengantin" },
+        { img: "/img/scenes/02-meja-dekorasi-v2.webp", caption: "Kehangatan meja jamuan tamu" },
+        { img: "/img/scenes/06-konfeti-v2.webp", caption: "Taburan bunga dan doa restu keluarga" },
       ]}
-      storyQuote={{
-        quote:
-          "Foto terbaik di resepsi kami bukan cuma dari fotografer panggung, tapi candid hangat teman dan keluarga di meja makan yang kami dapatkan lewat HAY Stories!",
-        author: "Dimas & Sarah",
-        role: "Resepsi Pernikahan di Jakarta · 300 Tamu",
-      }}
       faqs={[
         {
           q: "Bagaimana cara meletakkan QR code di resepsi?",
@@ -89,7 +84,7 @@ export default function PernikahanPage() {
         },
         {
           q: "Apakah fotografer utama kami tetap dibutuhkan?",
-          a: "Tentu! Fotografer utama mengurus momen resmi di paminan, sedangkan HAY Stories menangkap sudut pandang candid dari ratusan tamu di meja.",
+          a: "Tentu. Fotografer utama mengurus momen resmi di pelaminan, sedangkan HAY Stories melengkapinya dengan sudut pandang candid dari para tamu.",
         },
       ]}
     />

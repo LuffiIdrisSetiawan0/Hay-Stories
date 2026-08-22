@@ -1,42 +1,53 @@
-import { FILM_PRESETS, getTier } from "@/lib/catalog";
-import Reveal from "@/components/ui/Reveal";
-import SplitText from "@/components/ui/SplitText";
-import Counter from "@/components/ui/Counter";
+import { Download, QrCode, ShieldCheck, Smartphone } from "lucide-react";
 import styles from "./StatsBand.module.css";
 
-const STARTER = getTier("starter")!;
+const SIGNALS = [
+  {
+    icon: Smartphone,
+    title: "Tanpa aplikasi",
+    description: "Berjalan langsung di browser iPhone dan Android.",
+  },
+  {
+    icon: QrCode,
+    title: "Satu QR & tautan",
+    description: "Mudah dipasang di meja, layar, atau undangan digital.",
+  },
+  {
+    icon: ShieldCheck,
+    title: "Album privat",
+    description: "Tidak tercantum publik; akses dibagikan oleh pemilik acara.",
+  },
+  {
+    icon: Download,
+    title: "Foto kualitas tinggi",
+    description: "Hasil tersimpan dapat diunduh kembali dari galeri.",
+  },
+] as const;
 
 export default function StatsBand() {
-  const stats = [
-    { value: 0, suffix: "", label: "Aplikasi yang perlu diinstal tamu" },
-    { value: FILM_PRESETS.length, suffix: "", label: "Preset roll film analog siap pakai" },
-    { value: STARTER.shotsPerGuest, suffix: "", label: "Jatah jepretan gratis per tamu" },
-    { value: STARTER.retentionDays ?? 365, suffix: " hari", label: "Masa aktif galeri tersimpan aman" },
-  ] as const;
-
   return (
-    <section id="angka" className={`${styles.section} surface-dark`}>
+    <section className={styles.section} aria-labelledby="trust-title">
       <div className="container">
-        <Reveal>
-          <p className={styles.eyebrow}>Kemudahan Maksimal</p>
-        </Reveal>
-
-        <h2 className={styles.title}>
-          <SplitText by="word" delay={80}>
-            Satu QR code di meja, semua tamu langsung ikut memotret.
-          </SplitText>
-        </h2>
+        <div className={styles.intro}>
+          <p className={styles.eyebrow}>Ringkas untuk tamu, lengkap untuk host</p>
+          <h2 id="trust-title" className={styles.title}>
+            Tamu cukup membawa HP-nya sendiri.
+          </h2>
+        </div>
 
         <ul className={styles.grid}>
-          {stats.map((stat, i) => (
-            <Reveal key={stat.label} as="li" delay={i * 110} className={styles.cell}>
-              <span className={styles.value}>
-                <Counter to={stat.value} duration={1200 + i * 150} />
-                {stat.suffix}
-              </span>
-              <span className={styles.label}>{stat.label}</span>
-            </Reveal>
-          ))}
+          {SIGNALS.map((signal) => {
+            const Icon = signal.icon;
+            return (
+              <li key={signal.title} className={styles.cell}>
+                <Icon size={19} strokeWidth={1.8} aria-hidden="true" />
+                <div>
+                  <h3>{signal.title}</h3>
+                  <p>{signal.description}</p>
+                </div>
+              </li>
+            );
+          })}
         </ul>
       </div>
     </section>

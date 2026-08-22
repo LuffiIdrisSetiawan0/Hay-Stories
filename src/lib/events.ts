@@ -223,7 +223,7 @@ export const UNLIMITED_GUESTS = 100_000
 export interface EventLimits {
   maxGuests: number
   shotsPerGuest: number
-  /** null = disimpan permanen */
+  /** null = tidak diberi kedaluwarsa otomatis; bukan jaminan arsip permanen. */
   expiresAt: Date | null
 }
 

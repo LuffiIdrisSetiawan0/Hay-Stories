@@ -15,27 +15,27 @@ const HERO_PRESETS = FILM_PRESETS;
 
 const SCENES: Record<string, { src: string; alt: string }> = {
   "natural-clean": {
-    src: "/img/scenes/01-pelaminan.jpg",
+    src: "/img/scenes/01-pelaminan-v2.webp",
     alt: "potret natural cerah dengan warna asli dan nada kulit alami",
   },
   "everyday-100": {
-    src: "/img/scenes/04-potret.jpg",
-    alt: "potret tamu dengan warna netral hangat dan detail kulit alami",
+    src: "/img/scenes/04-potret-v2.webp",
+    alt: "rekan satu tim tertawa bersama dalam acara kantor dengan warna hangat alami",
   },
   "golden-hour-400": {
-    src: "/img/scenes/05-lantai-dansa.jpg",
-    alt: "suasana pesta sore dengan cahaya hangat keemasan",
+    src: "/img/scenes/05-lantai-dansa-v2.webp",
+    alt: "teman-teman menari spontan dalam pesta malam dengan cahaya warna-warni",
   },
   "pastel-400": {
-    src: "/img/scenes/06-konfeti.jpg",
+    src: "/img/scenes/06-konfeti-v2.webp",
     alt: "prosesi pengantin luar ruang bertabur kelopak bunga diiringi senyum para tamu",
   },
   "neon-night-1600": {
-    src: "/img/scenes/03-kue.jpg",
-    alt: "detail pesta malam dengan lampu hangat dan pendar yang terkontrol",
+    src: "/img/scenes/03-kue-v2.webp",
+    alt: "perayaan ulang tahun intim bersama sahabat dengan cahaya kafe yang hangat",
   },
   "noir-400": {
-    src: "/img/scenes/02-meja-dekorasi.jpg",
+    src: "/img/scenes/02-meja-dekorasi-v2.webp",
     alt: "detail dekorasi dalam hitam putih dokumenter",
   },
 };
@@ -81,26 +81,30 @@ export default function Hero() {
           const target = targetsRef.current.get(preset.id);
           if (!target) continue;
 
-          const response = await fetch(scene.src);
+          const response = await fetch(scene.src, { cache: "force-cache" });
           if (!response.ok) continue;
           const bitmap = await createImageBitmap(await response.blob());
-          if (cancelled) return;
+          try {
+            if (cancelled) return;
 
-          await renderer.loadPreset(preset);
-          if (cancelled) return;
+            await renderer.loadPreset(preset);
+            if (cancelled) return;
 
-          renderer.render(bitmap, preset, bitmap.width, bitmap.height, {
-            intensity: preset.strength,
-            lumaLock: preset.lumaLock,
-            contrast: preset.contrast,
-          });
-          if (cancelled) return;
+            renderer.render(bitmap, preset, bitmap.width, bitmap.height, {
+              intensity: preset.strength,
+              lumaLock: preset.lumaLock,
+              contrast: preset.contrast,
+            });
+            if (cancelled) return;
 
-          target.width = bitmap.width;
-          target.height = bitmap.height;
-          const ctx = target.getContext("2d");
-          if (!ctx) continue;
-          ctx.drawImage(glCanvas, 0, 0);
+            target.width = bitmap.width;
+            target.height = bitmap.height;
+            const ctx = target.getContext("2d");
+            if (!ctx) continue;
+            ctx.drawImage(glCanvas, 0, 0);
+          } finally {
+            bitmap.close();
+          }
         }
       } catch (err) {
         console.warn("WebGL film preview failed in Hero:", err);
@@ -117,9 +121,11 @@ export default function Hero() {
   return (
     <section className={`${styles.hero} surface-dark`}>
       <div className={styles.inner}>
+        <p className={styles.eyebrow}>Kamera tamu digital untuk acara</p>
+
         <h1 className={styles.headline}>
           <SplitText by="word" delay={60}>
-            Abadikan Hari Bahagia, Lewat Sudut Pandang Tamu
+            Hari Besarmu, Diceritakan dari Setiap Sudut
           </SplitText>
         </h1>
 
@@ -171,19 +177,21 @@ export default function Hero() {
 
         <p className={styles.lede}>
           <SplitText by="word" direction="up" delay={80}>
-            Satu QR code di meja. Tamu scan dan langsung jepret dengan look warna yang sesuai cahaya tanpa perlu download aplikasi. Semua foto candid terkumpul otomatis.
+            Bagikan satu QR. Tamu langsung memotret dari browser—tanpa aplikasi dan tanpa akun. Setiap foto tersimpan otomatis, lalu bisa dibuka bersama setelah acara.
           </SplitText>
         </p>
 
         <div className={styles.actions}>
-          <Link href="/login" className={styles.primaryBtn}>
-            Buat Album Acara
+          <Link href="/dashboard/new" className={styles.primaryBtn}>
+            Buat album gratis
             <ArrowRight size={17} />
           </Link>
-          <Link href="#cara-kerja" className={styles.ghostBtn}>
-            Lihat Cara Kerja
+          <Link href="/a" className={styles.ghostBtn}>
+            Masuk sebagai tamu
           </Link>
         </div>
+
+        <p className={styles.note}>Gratis untuk 5 tamu · Tanpa kartu kredit</p>
 
         <ScrollCue href="#kenapa" label="Gulir ke bawah" />
       </div>

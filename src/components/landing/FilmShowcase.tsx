@@ -8,7 +8,7 @@ import { useInView } from "@/components/ui/useInView";
 import SplitText from "@/components/ui/SplitText";
 import styles from "./FilmShowcase.module.css";
 
-const SAMPLE = "/img/scenes/01-pelaminan.jpg";
+const SAMPLE = "/img/scenes/01-pelaminan-v2.webp";
 
 export default function FilmShowcase() {
   const { ref: sectionRef, inView } = useInView<HTMLDivElement>({ threshold: 0.05 });
@@ -84,7 +84,7 @@ export default function FilmShowcase() {
     <Section id="preset" tone="dark">
       <div ref={sectionRef} className={styles.inner}>
         <div className={styles.head}>
-          <p className={styles.eyebrow}>Pilihan Look Film</p>
+          <p className={styles.eyebrow}>Nuansa film</p>
           <p className={styles.counter} aria-hidden="true">
             {String(active + 1).padStart(2, "0")}
             <span className={styles.counterTotal}>
@@ -96,7 +96,7 @@ export default function FilmShowcase() {
 
         <h2 className={styles.title}>
           <SplitText by="word" delay={60}>
-            Karakter Warna Analog untuk Setiap Suasana Acara
+            Setiap Cahaya Punya Suasananya
           </SplitText>
         </h2>
 
@@ -139,11 +139,11 @@ export default function FilmShowcase() {
             <div className={styles.featureMeta}>
               <div className={styles.metaBadgeRow}>
                 <h3 className={styles.featureName}>{current.name}</h3>
-                <span className={styles.presetBadge}>Look Tervalidasi</span>
+                <span className={styles.presetBadge}>Siap dipakai</span>
               </div>
               <p className={styles.featureCharacter}>{current.character}</p>
               <p className={styles.footnote}>
-                Dirender langsung di perangkat dengan LUT berlisensi dan pipeline warna yang diaudit.
+                Nuansa warna diterapkan langsung di perangkat, jadi tamu melihat hasilnya sebelum memotret.
               </p>
             </div>
           </div>

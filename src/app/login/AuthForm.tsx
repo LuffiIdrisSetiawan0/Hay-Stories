@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { safeNextPath } from "@/lib/navigation";
 import { Mail, Lock, Loader2 } from "lucide-react";
 import styles from "./Login.module.css";
 
@@ -23,9 +24,16 @@ function translate(message: string): string {
   return message;
 }
 
-export default function AuthForm({ initialError }: { initialError?: string }) {
+export default function AuthForm({
+  initialError,
+  nextPath,
+}: {
+  initialError?: string;
+  nextPath?: string;
+}) {
   const router = useRouter();
   const supabase = createClient();
+  const destination = safeNextPath(nextPath);
 
   const [mode, setMode] = useState<Mode>("password");
   const [signingUp, setSigningUp] = useState(false);
@@ -37,17 +45,25 @@ export default function AuthForm({ initialError }: { initialError?: string }) {
   );
 
   const handleGoogleLogin = async () => {
+    if (loading) return;
+    setLoading(true);
     setMessage(null);
+
+    const callbackUrl = new URL("/auth/callback", window.location.origin);
+    if (destination !== "/dashboard") callbackUrl.searchParams.set("next", destination);
 
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
+      options: { redirectTo: callbackUrl.toString() },
     });
 
     // Kalau provider Google belum diaktifkan di dashboard Supabase, panggilan
     // ini gagal tanpa berpindah halaman. Tanpa menampilkan errornya, tombol
     // terasa rusak begitu saja — diklik, tidak terjadi apa-apa.
-    if (error) setMessage({ type: "error", text: translate(error.message) });
+    if (error) {
+      setMessage({ type: "error", text: translate(error.message) });
+      setLoading(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -57,9 +73,11 @@ export default function AuthForm({ initialError }: { initialError?: string }) {
 
     try {
       if (mode === "magic") {
+        const callbackUrl = new URL("/auth/callback", window.location.origin);
+        if (destination !== "/dashboard") callbackUrl.searchParams.set("next", destination);
         const { error } = await supabase.auth.signInWithOtp({
           email,
-          options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+          options: { emailRedirectTo: callbackUrl.toString() },
         });
         if (error) throw error;
         setMessage({ type: "success", text: "Cek emailmu untuk tautan masuk." });
@@ -67,10 +85,12 @@ export default function AuthForm({ initialError }: { initialError?: string }) {
       }
 
       if (signingUp) {
+        const callbackUrl = new URL("/auth/callback", window.location.origin);
+        if (destination !== "/dashboard") callbackUrl.searchParams.set("next", destination);
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
-          options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+          options: { emailRedirectTo: callbackUrl.toString() },
         });
         if (error) throw error;
 
@@ -81,7 +101,7 @@ export default function AuthForm({ initialError }: { initialError?: string }) {
          * bingung kenapa dashboard-nya menolak.
          */
         if (data.session) {
-          router.push("/dashboard");
+          router.push(destination);
           router.refresh();
         } else {
           setMessage({
@@ -98,7 +118,7 @@ export default function AuthForm({ initialError }: { initialError?: string }) {
       // `refresh()` wajib: middleware membaca cookie sesi di sisi server, dan
       // tanpa ini navigasinya memakai render lama yang masih menganggap kita
       // belum masuk.
-      router.push("/dashboard");
+      router.push(destination);
       router.refresh();
     } catch (err) {
       setMessage({
@@ -112,7 +132,12 @@ export default function AuthForm({ initialError }: { initialError?: string }) {
 
   return (
     <div className={styles.authForm}>
-      <button onClick={handleGoogleLogin} className={styles.googleBtn} type="button">
+      <button
+        onClick={handleGoogleLogin}
+        className={styles.googleBtn}
+        type="button"
+        disabled={loading}
+      >
         <svg viewBox="0 0 24 24" width="20" height="20" xmlns="http://www.w3.org/2000/svg">
           <g transform="matrix(1, 0, 0, 1, 27.009001, -39.238998)">
             <path fill="#4285F4" d="M -3.264 51.509 C -3.264 50.719 -3.334 49.969 -3.454 49.239 L -14.754 49.239 L -14.754 53.749 L -8.284 53.749 C -8.574 55.229 -9.424 56.479 -10.684 57.329 L -10.684 60.329 L -6.824 60.329 C -4.564 58.239 -3.264 55.159 -3.264 51.509 Z" />
@@ -121,7 +146,7 @@ export default function AuthForm({ initialError }: { initialError?: string }) {
             <path fill="#EA4335" d="M -14.754 43.989 C -12.984 43.989 -11.404 44.599 -10.154 45.789 L -6.734 42.369 C -8.804 40.429 -11.514 39.239 -14.754 39.239 C -19.444 39.239 -23.494 41.939 -25.464 45.859 L -21.484 48.949 C -20.534 46.099 -17.884 43.989 -14.754 43.989 Z" />
           </g>
         </svg>
-        Lanjutkan dengan Google
+        {loading ? "Menghubungkan…" : "Lanjutkan dengan Google"}
       </button>
 
       <div className={styles.divider}>
@@ -133,6 +158,7 @@ export default function AuthForm({ initialError }: { initialError?: string }) {
           <Mail size={18} className={styles.inputIcon} />
           <input
             type="email"
+            aria-label="Email"
             placeholder="Email"
             required
             value={email}
@@ -147,7 +173,8 @@ export default function AuthForm({ initialError }: { initialError?: string }) {
           <div className={styles.inputGroup}>
             <Lock size={18} className={styles.inputIcon} />
             <input
-              type="password"
+            type="password"
+            aria-label="Kata sandi"
               placeholder="Kata sandi"
               required
               minLength={6}
@@ -163,7 +190,12 @@ export default function AuthForm({ initialError }: { initialError?: string }) {
         )}
 
         {message && (
-          <div className={`${styles.message} ${styles[message.type]}`}>{message.text}</div>
+          <div
+            className={`${styles.message} ${styles[message.type]}`}
+            role={message.type === "error" ? "alert" : "status"}
+          >
+            {message.text}
+          </div>
         )}
 
         <button

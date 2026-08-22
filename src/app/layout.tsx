@@ -1,17 +1,19 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import PageTransition from "@/components/ui/PageTransition";
+import { appOrigin } from "@/lib/origin";
 import "./globals.css";
 
 export const metadata: Metadata = {
+  metadataBase: new URL(appOrigin()),
   title: {
-    default: "HAY Stories • Premium Digital Disposable Camera",
+    default: "HAY Stories • Kamera Tamu Digital untuk Acara",
     template: "%s • HAY Stories",
   },
   description:
-    "Kamera acara berbasis QR dengan tangkapan sensor beresolusi tinggi, look film yang terukur, dan galeri acara berbasis tautan.",
+    "Bagikan satu QR agar tamu dapat memotret tanpa aplikasi. Semua foto candid tersimpan otomatis di satu galeri acara.",
   applicationName: "HAY Stories",
-  authors: [{ name: "HAY Stories", url: "https://haystories.id" }],
+  authors: [{ name: "HAY Stories", url: "/" }],
   keywords: [
     "kamera sekali pakai",
     "kamera sekali pakai pernikahan",
@@ -27,24 +29,29 @@ export const metadata: Metadata = {
   ],
   creator: "HAY Stories",
   publisher: "HAY Stories",
+  category: "photography",
+  manifest: "/manifest.webmanifest",
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
   robots: { index: true, follow: true },
   openGraph: {
     type: "website",
     locale: "id_ID",
     siteName: "HAY Stories",
-    title: "HAY Stories • Kamera Sekali Pakai untuk Acaramu",
+    title: "HAY Stories • Kamera Tamu Digital untuk Acaramu",
     description:
-      "Tamu memotret lewat QR dengan still sensor beresolusi tinggi dan look film yang sesuai cahaya. Foto tersimpan di satu galeri acara berbasis tautan.",
+      "Tamu memotret lewat QR tanpa aplikasi. Semua foto candid tersimpan otomatis dan dapat dibuka bersama setelah acara.",
+    images: ["/opengraph-image.png"],
   },
   twitter: {
     card: "summary_large_image",
-    title: "HAY Stories • Kamera Sekali Pakai untuk Acaramu",
+    title: "HAY Stories • Kamera Tamu Digital untuk Acaramu",
     description:
-      "Tamu memotret lewat QR dengan still sensor beresolusi tinggi dan look film yang sesuai cahaya. Foto tersimpan di satu galeri acara berbasis tautan.",
-  },
-  icons: {
-    icon: "/icon.svg",
-    shortcut: "/icon.svg",
+      "Tamu memotret lewat QR tanpa aplikasi. Semua foto candid tersimpan otomatis dan dapat dibuka bersama setelah acara.",
+    images: ["/opengraph-image.png"],
   },
 };
 
@@ -61,7 +68,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body>
         <noscript>
-          <style>{`.reveal { opacity: 1 !important; transform: none !important; filter: none !important; clip-path: none !important; transition: none !important; } .reveal-sweep { transform: scaleX(1) !important; }`}</style>
+          <style>{`.reveal { opacity: 1 !important; transform: none !important; filter: none !important; clip-path: none !important; transition: none !important; transition-delay: 0ms !important; will-change: auto !important; } .reveal-sweep { transform: scaleX(1) !important; }`}</style>
         </noscript>
         <Suspense fallback={null}>
           <PageTransition />

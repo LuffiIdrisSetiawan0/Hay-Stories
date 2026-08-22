@@ -14,6 +14,8 @@ Buka **SQL Editor** di dashboard Supabase, lalu jalankan berkas di `migrations/`
    processing recipe, dan TTL untuk unggahan pending
 7. `0007_dashboard_statistics.sql` — agregasi jumlah foto/tamu host tanpa
    mengambil seluruh baris atau membuat request per album
+8. `0008_paid_checkout.sql` — snapshot harga/limit, payment pending idempoten,
+   aktivasi atomik dari status Midtrans tepercaya, dan proteksi kolom tier
 
 Seluruh migrasi ditulis **idempoten**, jadi aman dijalankan ulang dan aman pada
 database yang sudah terlanjur memakai `schema.sql` versi lama.
@@ -77,3 +79,15 @@ bucket `photos` privat dan tidak punya policy apa pun.
   grading per foto. Naikkan versi setiap kali LUT atau perilaku renderer berubah.
 - **`expires_at`** pada `events` mengatur retensi. Tanpa mekanisme pembersih yang
   menghormati kolom ini, biaya storage naik selamanya tanpa pendapatan berulang.
+- **`ensure_pending_event_payment()`** mengunci event dan mengembalikan payment
+  pending yang sama pada retry/tab paralel. Harga serta limit disimpan sebagai
+  snapshot sebelum order Midtrans dibuat.
+- **`apply_midtrans_payment_update()`** mengunci payment + event, menolak
+  nominal/tier yang tidak persis sama, mencegah regresi status akibat webhook
+  terlambat, dan mengaktifkan draf beserta limitnya dalam satu transaksi. Kedua
+  RPC pembayaran hanya dapat dipanggil `service_role`.
+- Role `authenticated` tidak lagi dapat melakukan `INSERT` event atau mengubah
+  `tier`, `status`, `max_guests`, `shots_per_guest`, dan `expires_at` langsung
+  lewat PostgREST. Server Action pembuatan album adalah satu-satunya jalur
+  insert, sementara settlement tepercaya adalah satu-satunya jalur aktivasi
+  paket berbayar.

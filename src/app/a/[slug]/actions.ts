@@ -31,6 +31,7 @@ export async function joinEvent(
   formData: FormData
 ): Promise<JoinResult | null> {
   const slug = String(formData.get('slug') ?? '').trim()
+  const destination = formData.get('destination') === 'guestbook' ? 'guestbook' : 'camera'
   const displayName = String(formData.get('displayName') ?? '').trim().replace(/\s+/g, ' ')
 
   if (displayName.length < GUEST_NAME_MIN) {
@@ -92,5 +93,5 @@ export async function joinEvent(
    *
    * redirect() bekerja dengan melempar, jadi harus di luar try/catch mana pun.
    */
-  redirect(`/a/${event.slug}/kamera`)
+  redirect(`/a/${event.slug}/${destination === 'guestbook' ? 'guestbook' : 'kamera'}`)
 }

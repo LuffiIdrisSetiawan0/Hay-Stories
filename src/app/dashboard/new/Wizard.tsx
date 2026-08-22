@@ -5,9 +5,13 @@ import { ArrowLeft, ArrowRight, Check, Loader2 } from 'lucide-react'
 import {
   EVENT_TYPES,
   REVEAL_MODES,
+  TIERS,
+  formatGuestLimit,
+  formatPrice,
   getTier,
   type EventTypeId,
   type RevealMode,
+  type TierId,
 } from '@/lib/catalog'
 import { createEvent } from './actions'
 import styles from './Wizard.module.css'
@@ -17,17 +21,16 @@ import styles from './Wizard.module.css'
  * bisa diganti tiap jepretan, jadi tidak ada satu pun keputusan soal film yang
  * perlu diambil host di muka.
  */
-const STEPS = ['Acara', 'Reveal', 'Tinjau'] as const
+const STEPS = ['Acara', 'Paket', 'Reveal', 'Tinjau'] as const
 
-const STARTER = getTier('starter')!
-
-export default function Wizard() {
+export default function Wizard({ initialTier = 'starter' }: { initialTier?: TierId }) {
   const [state, formAction, pending] = useActionState(createEvent, null)
 
   const [step, setStep] = useState(0)
   const [title, setTitle] = useState('')
   const [eventType, setEventType] = useState<EventTypeId>('wedding')
   const [eventDate, setEventDate] = useState('')
+  const [tierId, setTierId] = useState<TierId>(initialTier)
   const [revealMode, setRevealMode] = useState<RevealMode>('manual')
   const [revealAt, setRevealAt] = useState('')
   const stepHeadingRef = useRef<HTMLHeadingElement>(null)
@@ -66,6 +69,7 @@ export default function Wizard() {
       : title.trim().length < 3
         ? 'Nama acara minimal 3 karakter.'
         : null,
+    null,
     revealMode === 'scheduled' && !revealAtInFuture
       ? revealAt
         ? 'Waktu reveal harus di masa depan.'
@@ -76,11 +80,13 @@ export default function Wizard() {
 
   const stepValid = [
     title.trim().length >= 3 && title.trim().length <= 80,
+    Boolean(getTier(tierId)?.available),
     revealMode !== 'scheduled' || revealAtInFuture,
     true,
   ][step]
 
   const revealMeta = REVEAL_MODES.find((m) => m.id === revealMode)
+  const selectedTier = getTier(tierId)!
   const typeLabel = EVENT_TYPES.find((t) => t.id === eventType)?.label ?? '—'
   // datetime-local tidak memuat offset. Konversi di browser agar server tidak
   // menafsirkan jam Jakarta sebagai UTC (atau timezone host deployment).
@@ -114,6 +120,7 @@ export default function Wizard() {
         <input type="hidden" name="title" value={title.trim()} />
         <input type="hidden" name="eventType" value={eventType} />
         <input type="hidden" name="eventDate" value={eventDate} />
+        <input type="hidden" name="tier" value={tierId} />
         <input type="hidden" name="revealMode" value={revealMode} />
         <input type="hidden" name="revealAt" value={revealAtInstant} />
 
@@ -180,6 +187,48 @@ export default function Wizard() {
           {step === 1 && (
             <>
               <h2 ref={stepHeadingRef} className={styles.panelTitle} tabIndex={-1}>
+                Berapa banyak tamu yang akan memotret?
+              </h2>
+              <p className={styles.panelHint}>
+                Semua paket memakai kamera, roll film, QR, galeri, dan mode reveal yang sama.
+                Perbedaannya hanya kapasitas dan masa penyimpanan.
+              </p>
+
+              <div className={styles.tierGrid}>
+                {TIERS.filter((tier) => tier.available).map((tier) => (
+                  <button
+                    key={tier.id}
+                    type="button"
+                    onClick={() => setTierId(tier.id)}
+                    aria-pressed={tierId === tier.id}
+                    className={`${styles.tierCard} ${tierId === tier.id ? styles.tierCardActive : ''}`}
+                  >
+                    <span className={styles.tierTopline}>
+                      <span>
+                        <strong className={styles.tierName}>{tier.name}</strong>
+                        <span className={styles.tierTagline}>{tier.tagline}</span>
+                      </span>
+                      <span className={styles.tierRadio} aria-hidden="true">
+                        {tierId === tier.id && <span />}
+                      </span>
+                    </span>
+                    <span className={styles.tierPrice}>
+                      {formatPrice(tier.price)}
+                      {tier.price > 0 && <small> / album</small>}
+                    </span>
+                    <span className={styles.tierLimits}>
+                      {formatGuestLimit(tier.maxGuests)} · {tier.shotsPerGuest} jepretan/tamu
+                    </span>
+                    <span className={styles.tierRetention}>{tier.features[0]}</span>
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+
+          {step === 2 && (
+            <>
+              <h2 ref={stepHeadingRef} className={styles.panelTitle} tabIndex={-1}>
                 Kapan foto boleh dilihat?
               </h2>
               <p className={styles.panelHint}>
@@ -231,17 +280,23 @@ export default function Wizard() {
             </>
           )}
 
-          {step === 2 && (
+          {step === 3 && (
             <>
               <h2 ref={stepHeadingRef} className={styles.panelTitle} tabIndex={-1}>
                 Tinjau sebelum dibuat
               </h2>
               <p className={styles.panelHint}>
-                Nama dan waktu reveal masih bisa diubah nanti.
+                Nama acara bisa diubah nanti. Waktu reveal bisa diubah selama album belum terbuka.
               </p>
 
               <div className={styles.fields}>
                 <div className={styles.summary}>
+                  <div className={styles.summaryRow}>
+                    <span className={styles.summaryKey}>Paket</span>
+                    <span className={styles.summaryValue}>
+                      {selectedTier.name} · {formatPrice(selectedTier.price)}
+                    </span>
+                  </div>
                   <div className={styles.summaryRow}>
                     <span className={styles.summaryKey}>Nama acara</span>
                     <span className={styles.summaryValue}>{title.trim() || '—'}</span>
@@ -254,8 +309,11 @@ export default function Wizard() {
                     <span className={styles.summaryKey}>Tanggal</span>
                     <span className={styles.summaryValue}>
                       {eventDate
-                        ? new Intl.DateTimeFormat('id-ID', { dateStyle: 'long' }).format(
-                            new Date(eventDate)
+                        ? new Intl.DateTimeFormat('id-ID', {
+                            dateStyle: 'long',
+                            timeZone: 'UTC',
+                          }).format(
+                            new Date(`${eventDate}T00:00:00.000Z`)
                           )
                         : 'Belum ditentukan'}
                     </span>
@@ -278,16 +336,25 @@ export default function Wizard() {
                   <div className={styles.summaryRow}>
                     <span className={styles.summaryKey}>Kapasitas</span>
                     <span className={styles.summaryValue}>
-                      {STARTER.maxGuests} tamu &middot; {STARTER.shotsPerGuest} jepretan/tamu
+                      {formatGuestLimit(selectedTier.maxGuests)} &middot;{' '}
+                      {selectedTier.shotsPerGuest} jepretan/tamu
                     </span>
                   </div>
                 </div>
 
                 <p className={styles.tierNote}>
-                  Album dibuat pada paket <strong>Starter</strong> yang gratis: sampai{' '}
-                  {STARTER.maxGuests} tamu, {STARTER.shotsPerGuest} jepretan per tamu, foto disimpan{' '}
-                  {STARTER.retentionDays} hari. Paket berbayar untuk acara lebih besar menyusul
-                  begitu pembayaran aktif.
+                  {selectedTier.id === 'starter' ? (
+                    <>
+                      Album <strong>Starter</strong> langsung aktif dan foto disimpan selama{' '}
+                      {selectedTier.retentionDays} hari.
+                    </>
+                  ) : (
+                    <>
+                      Album dibuat sebagai draf, lalu kamu diarahkan ke halaman pembayaran Midtrans.
+                      Album baru aktif setelah pembayaran <strong>{formatPrice(selectedTier.price)}</strong>{' '}
+                      dikonfirmasi aman oleh server.
+                    </>
+                  )}
                 </p>
               </div>
             </>
@@ -331,11 +398,11 @@ export default function Wizard() {
                 {pending ? (
                   <>
                     <Loader2 size={16} className="animate-spin" />
-                    Membuat album…
+                    Menyiapkan album…
                   </>
                 ) : (
                   <>
-                    Buat album
+                    {selectedTier.id === 'starter' ? 'Buat album gratis' : 'Lanjut ke pembayaran'}
                     <ArrowRight size={16} />
                   </>
                 )}

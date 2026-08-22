@@ -160,6 +160,18 @@
   color: var(--color-text-secondary);
 }
 
+.noticeReady {
+  background: rgba(221, 181, 122, 0.1);
+  border-color: rgba(221, 181, 122, 0.42);
+}
+
+.noticeTitleReady {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--color-accent);
+}
+
 /* ===== Kaki halaman ===== */
 
 .footer {

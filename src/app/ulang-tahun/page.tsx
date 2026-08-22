@@ -2,9 +2,10 @@ import { Metadata } from "next";
 import EventPageTemplate from "@/components/events/EventPageTemplate";
 
 export const metadata: Metadata = {
-  title: "Kamera Sekali Pakai untuk Pesta Ulang Tahun · HAY Stories",
+  title: "Kamera Tamu Digital untuk Ulang Tahun",
   description:
-    "Bikin pesta ulang tahunmu lebih berkesan dengan kamera analog disposable digital. Tamu scan QR, tiup lilin bersama, foto candid terkumpul otomatis.",
+    "Tamu memindai QR dan langsung memotret tanpa aplikasi. Semua foto candid ulang tahun terkumpul otomatis di satu galeri.",
+  alternates: { canonical: "/ulang-tahun" },
 };
 
 export default function UlangTahunPage() {
@@ -13,8 +14,8 @@ export default function UlangTahunPage() {
       slug="ulang-tahun"
       badge="Pesta Ulang Tahun & Sweet 17 🎂"
       title="Tiup Lilin Sampai Tawa Terakhir Bersama Circle-mu"
-      subtitle="Ulang tahun cuma datang setahun sekali. Abadikan momen pelukan teman terdekat, tawa saat tiup lilin, dan ekspresi konyol dengan roll kamera analog sekali pakai digital."
-      heroImage="/img/scenes/03-kue.jpg"
+      subtitle="Ulang tahun datang setahun sekali. Simpan pelukan teman terdekat, tawa saat tiup lilin, dan ekspresi paling spontan dari kamera di tangan mereka."
+      heroImage="/img/scenes/03-kue-v2.webp"
       benefits={[
         {
           title: "Bingkai Cetak Retro",
@@ -60,15 +61,10 @@ export default function UlangTahunPage() {
         { name: "Everyday 160", desc: "Netral hangat untuk pilihan aman indoor maupun outdoor", tag: "Outdoor Picnic" },
       ]}
       sampleGallery={[
-        { img: "/img/scenes/03-kue.jpg", caption: "Tiup lilin & kue ulang tahun bersama sahabat" },
-        { img: "/img/scenes/05-lantai-dansa.jpg", caption: "Keseruan pesta malam & candid tawa" },
-        { img: "/img/scenes/02-meja-dekorasi.jpg", caption: "Suasana santai & toasting di cafe" },
+        { img: "/img/scenes/03-kue-v2.webp", caption: "Tiup lilin bersama sahabat" },
+        { img: "/img/scenes/05-lantai-dansa-v2.webp", caption: "Keseruan pesta malam dan candid tawa" },
+        { img: "/img/scenes/02-meja-dekorasi-v2.webp", caption: "Suasana santai bersama teman-teman" },
       ]}
-      storyQuote={{
-        quote: "Pesta ulang tahun anak saya jadi seru banget! Teman-temannya heboh saling foto, lalu semua candidnya terkumpul di satu galeri.",
-        author: "Mama Cindy & Cindy",
-        role: "Birthday Party di Bandung · 80 Tamu",
-      }}
       faqs={[
         {
           q: "Apakah teman-teman harus install aplikasi?",

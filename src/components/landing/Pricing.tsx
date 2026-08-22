@@ -1,6 +1,11 @@
 import Link from "next/link";
 import { Check, ArrowRight } from "lucide-react";
-import { TIERS, formatPrice, formatGuestLimit } from "@/lib/catalog";
+import {
+  COMMON_TIER_FEATURES,
+  TIERS,
+  formatPrice,
+  formatGuestLimit,
+} from "@/lib/catalog";
 import Reveal from "@/components/ui/Reveal";
 import SplitText from "@/components/ui/SplitText";
 import styles from "./Pricing.module.css";
@@ -13,14 +18,23 @@ export default function Pricing() {
           <p className={styles.eyebrow}>Paket Harga</p>
           <h2 className={styles.title}>
             <SplitText by="word" delay={80}>
-              Mulai Gratis, Naik Paket Nanti
+              Satu Acara, Kapasitas Sesuai Kebutuhan
             </SplitText>
           </h2>
           <p className={styles.lede}>
             <SplitText by="word" direction="up" delay={160}>
-              Starter tersedia sekarang dan menyimpan foto selama 90 hari. Paket berbayar masih dalam daftar tunggu dan belum dapat dibeli.
+              Harga sekali bayar per album. Pilih Starter untuk mencoba gratis, atau paket berbayar untuk acara yang lebih ramai.
             </SplitText>
           </p>
+
+          <ul className={styles.included} aria-label="Fitur di semua paket">
+            {COMMON_TIER_FEATURES.map((feature) => (
+              <li key={feature} className={styles.includedItem}>
+                <Check size={13} strokeWidth={2.5} />
+                {feature}
+              </li>
+            ))}
+          </ul>
         </div>
 
         <ul className={styles.grid}>
@@ -30,18 +44,14 @@ export default function Pricing() {
               as="li"
               direction="throw"
               delay={i * 110}
-              className={`${styles.card} ${plan.recommended ? styles.cardBest : ""}`}
+              className={styles.card}
             >
-              {!plan.available && <p className={styles.badge}>Segera hadir</p>}
-
               <h3 className={styles.planName}>{plan.name}</h3>
               <p className={styles.planTagline}>{plan.tagline}</p>
 
               <p className={styles.priceBlock}>
-                {plan.available && plan.wasPrice && (
-                  <span className={styles.wasPrice}>{formatPrice(plan.wasPrice)}</span>
-                )}
                 <span className={styles.price}>{formatPrice(plan.price)}</span>
+                <span className={styles.priceSuffix}>/ album</span>
               </p>
 
               <p className={styles.guests}>
@@ -57,22 +67,13 @@ export default function Pricing() {
                 ))}
               </ul>
 
-              {plan.available ? (
-                <Link href="/login" className={styles.planBtn}>
-                  Mulai Starter Gratis
-                  <ArrowRight size={15} />
-                </Link>
-              ) : (
-                <a
-                  href={`mailto:hello@haystories.id?subject=${encodeURIComponent(
-                    `Daftar tunggu paket ${plan.name}`
-                  )}`}
-                  className={`${styles.planBtn} ${plan.recommended ? styles.planBtnBest : ""}`}
-                >
-                  Gabung Daftar Tunggu
-                  <ArrowRight size={15} />
-                </a>
-              )}
+              <Link
+                href={`/dashboard/new?tier=${plan.id}`}
+                className={styles.planBtn}
+              >
+                {plan.price === 0 ? 'Mulai gratis' : `Pilih ${plan.name}`}
+                <ArrowRight size={15} />
+              </Link>
             </Reveal>
           ))}
         </ul>
