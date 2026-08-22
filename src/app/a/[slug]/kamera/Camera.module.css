@@ -429,14 +429,25 @@
   pointer-events: none;
 }
 
+/*
+ * Kontrol yang selalu menempel di atas viewfinder TIDAK memakai backdrop-filter.
+ *
+ * Blur backdrop dihitung ulang setiap kali latarnya berubah, dan latar di sini
+ * adalah canvas kamera yang menggambar 30 kali per detik. Tujuh lapisan blur
+ * permanen membuat compositor mengulang pekerjaan itu tiap frame — penyebab
+ * viewfinder patah-patah di ponsel kelas menengah. Latar solid yang sedikit
+ * lebih pekat memberi kontras yang sama dengan biaya mendekati nol.
+ *
+ * Panel yang muncul sesaat (overlay, bottom sheet, toast) tetap memakai blur:
+ * jumlahnya satu dan hanya hadir saat pengguna berhenti memotret.
+ */
+
 .qualityMeta,
 .syncMeta {
   padding: 0.27rem 0.5rem;
   border: 1px solid rgba(255, 255, 255, 0.13);
   border-radius: var(--radius-full);
-  background: rgba(8, 8, 8, 0.56);
-  backdrop-filter: blur(9px);
-  -webkit-backdrop-filter: blur(9px);
+  background: rgba(8, 8, 8, 0.72);
 }
 
 .qualityMeta {
@@ -742,13 +753,11 @@
   gap: 0.35rem;
   padding: 0.32rem 0.75rem;
   border-radius: var(--radius-full);
-  background: rgba(20, 20, 20, 0.65);
+  background: rgba(20, 20, 20, 0.8);
   border: 1px solid rgba(255, 255, 255, 0.16);
   color: rgba(245, 242, 236, 0.85);
   font-size: 0.75rem;
   font-weight: 500;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
   cursor: pointer;
   min-height: 2.75rem;
   transition: all 0.2s ease;
@@ -858,17 +867,16 @@
   width: 2.75rem;
   height: 2.75rem;
   border-radius: var(--radius-full);
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(28, 28, 28, 0.72);
   color: #f5f2ec;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.18);
   transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .iconBtn:hover,
 .thumbSlot:hover {
-  background: rgba(255, 255, 255, 0.22);
+  background: rgba(56, 56, 56, 0.82);
+  border-color: rgba(255, 255, 255, 0.3);
 }
 
 .iconBtn:disabled {

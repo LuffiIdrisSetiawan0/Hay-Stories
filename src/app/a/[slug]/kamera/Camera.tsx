@@ -52,12 +52,28 @@ import styles from './Camera.module.css'
  * pernah menyentuh kualitas hasil jepretan — hanya kehalusan preview.
  */
 const PREVIEW_LADDER = [1080, 864, 720, 600]
-/** Turun satu tingkat setelah ~0,7 detik konsisten tersendat. */
-const SLOW_FRAMES_BEFORE_DOWNGRADE = 20
-/** Naik hanya setelah ~5 detik lancar, supaya tidak berosilasi. */
-const FAST_FRAMES_BEFORE_UPGRADE = 150
+/** Turun satu tingkat setelah frame yang dijatuhkan menumpuk sebanyak ini. */
+const DROPPED_FRAMES_BEFORE_DOWNGRADE = 10
+/** Naik hanya setelah ~5 detik tanpa frame jatuh, supaya tidak berosilasi. */
+const CLEAN_FRAMES_BEFORE_UPGRADE = 150
+/**
+ * Resolusi stream maksimum, dipakai ketika frame video ITU SENDIRI yang
+ * menjadi foto tersimpan — yaitu pada browser tanpa Image Capture.
+ */
 const STREAM_WIDTH = 4096
 const STREAM_HEIGHT = 3072
+/**
+ * Resolusi stream ketika foto tersimpan diambil terpisah oleh
+ * `ImageCapture.takePhoto()` pada resolusi sensor penuh.
+ *
+ * Viewfinder tidak pernah dirender di atas 1080 px, jadi meminta 12 MP per
+ * frame hanya membebani pipeline kamera dan upload tekstur tanpa menambah
+ * satu piksel pun pada foto yang disimpan. 5 MP juga tetap cadangan yang
+ * layak untuk perangkat langka yang mengiklankan Image Capture tetapi
+ * menolak `takePhoto()` dan jatuh ke frame video.
+ */
+const PREVIEW_STREAM_WIDTH = 2560
+const PREVIEW_STREAM_HEIGHT = 1920
 const MAX_ACTIVE_JOBS = 2
 const SKIN_SMOOTH = 0.14
 
@@ -122,13 +138,26 @@ const SHARPNESS_OPTIONS = [
   { label: 'Tajam', hint: 'Untuk cahaya terang dan detail dekorasi', value: 0.32 },
 ] as const
 
+/**
+ * Apakah foto tersimpan berasal dari still sensor, bukan dari frame stream.
+ *
+ * `captureBestFrame()` memakai `ImageCapture.takePhoto()` bila tersedia, dan
+ * itu selalu memotret pada resolusi sensor penuh terlepas dari resolusi
+ * stream. Browser tanpa Image Capture (antara lain Safari iOS) memakai frame
+ * video sebagai foto, jadi di sana stream tetap diminta sebesar mungkin.
+ */
+function stillsComeFromSensor(): boolean {
+  return typeof ImageCapture !== 'undefined'
+}
+
 async function requestCamera(facing: 'environment' | 'user'): Promise<MediaStream> {
+  const sensorStills = stillsComeFromSensor()
   try {
     return await navigator.mediaDevices.getUserMedia({
       video: {
         facingMode: { ideal: facing },
-        width: { ideal: STREAM_WIDTH },
-        height: { ideal: STREAM_HEIGHT },
+        width: { ideal: sensorStills ? PREVIEW_STREAM_WIDTH : STREAM_WIDTH },
+        height: { ideal: sensorStills ? PREVIEW_STREAM_HEIGHT : STREAM_HEIGHT },
         aspectRatio: { ideal: 4 / 3 },
         frameRate: { ideal: 30, max: 30 },
       },
@@ -213,10 +242,6 @@ export default function Camera({
 }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const previewSourceRef = useRef<{
-    canvas: HTMLCanvasElement
-    context: CanvasRenderingContext2D
-  } | null>(null)
   const rendererRef = useRef<FilmRenderer | null>(null)
   const captureCanvasRef = useRef<HTMLCanvasElement | null>(null)
   const captureRendererRef = useRef<FilmRenderer | null>(null)
@@ -224,7 +249,7 @@ export default function Camera({
   const streamRef = useRef<MediaStream | null>(null)
   const loopRef = useRef<{ kind: 'raf' | 'rvfc'; id: number } | null>(null)
   const previewTierRef = useRef(0)
-  const frameClockRef = useRef({ last: 0, ema: 0, slow: 0, fast: 0 })
+  const frameClockRef = useRef({ last: 0, ema: 0, slow: 0, fast: 0, presented: 0 })
   const frameBudgetRef = useRef(1000 / 30)
   const mountedRef = useRef(true)
   const fallback2dRef = useRef(false)
@@ -349,13 +374,72 @@ export default function Camera({
   }, [])
 
   const resetFrameClock = useCallback(() => {
-    frameClockRef.current = { last: 0, ema: 0, slow: 0, fast: 0 }
+    frameClockRef.current = { last: 0, ema: 0, slow: 0, fast: 0, presented: 0 }
   }, [])
 
+  const stepPreviewDown = useCallback(() => {
+    if (previewTierRef.current >= PREVIEW_LADDER.length - 1) return
+    previewTierRef.current += 1
+    resetFrameClock()
+  }, [resetFrameClock])
+
+  const stepPreviewUp = useCallback(() => {
+    if (previewTierRef.current <= 0) return
+    previewTierRef.current -= 1
+    resetFrameClock()
+  }, [resetFrameClock])
+
   /**
-   * Interval antar frame yang melar berarti GPU tidak sanggup pada resolusi
-   * viewfinder saat ini. Turunkan satu tingkat daripada membiarkan preview
-   * patah-patah, lalu naikkan lagi begitu perangkat terbukti lancar.
+   * Hitung frame yang benar-benar dijatuhkan compositor.
+   *
+   * `presentedFrames` bertambah satu untuk setiap frame video yang disusun ke
+   * layar. Bila loop render tidak selesai tepat waktu, beberapa frame lewat
+   * sebelum callback berikutnya terdaftar dan angkanya melompat — pengukuran
+   * langsung atas beban render.
+   *
+   * Jarak antar-callback TIDAK dipakai di sini. Kamera ponsel menurunkan frame
+   * rate demi eksposur begitu ruangan meredup, sehingga jarak itu melar tanpa
+   * GPU tersendat sama sekali; memakainya membuat viewfinder diturunkan sampai
+   * 600 px justru di ruangan pesta, dan tidak pernah bisa naik lagi.
+   */
+  const trackDroppedFrames = useCallback(
+    (metadata: VideoFrameCallbackMetadata) => {
+      const clock = frameClockRef.current
+      const presented = metadata.presentedFrames
+      if (typeof presented !== 'number') return
+
+      const previous = clock.presented
+      clock.presented = presented
+      if (previous === 0) return
+
+      const skipped = presented - previous - 1
+      // Halaman sempat tidak terlihat, atau stream baru saja dimulai ulang.
+      if (skipped < 0 || skipped > 12) {
+        clock.slow = 0
+        clock.fast = 0
+        return
+      }
+
+      if (skipped > 0) {
+        clock.fast = 0
+        clock.slow += skipped
+        if (clock.slow >= DROPPED_FRAMES_BEFORE_DOWNGRADE) stepPreviewDown()
+        return
+      }
+
+      // Frame bersih meluruhkan hitungan, jadi sendatan sesaat akibat GC atau
+      // panel yang dibuka tidak menumpuk sampai memicu penurunan resolusi.
+      clock.slow = Math.max(0, clock.slow - 1)
+      clock.fast += 1
+      if (clock.fast >= CLEAN_FRAMES_BEFORE_UPGRADE) stepPreviewUp()
+    },
+    [stepPreviewDown, stepPreviewUp]
+  )
+
+  /**
+   * Cadangan untuk browser tanpa `requestVideoFrameCallback`, yang tidak
+   * melaporkan frame terpresentasi. Di sana interval antar-tick adalah satu-
+   * satunya sinyal yang ada.
    */
   const trackPreviewPace = useCallback(() => {
     const clock = frameClockRef.current
@@ -379,29 +463,20 @@ export default function Camera({
     if (clock.ema > budget * 1.25) {
       clock.fast = 0
       clock.slow += 1
-      if (
-        clock.slow >= SLOW_FRAMES_BEFORE_DOWNGRADE &&
-        previewTierRef.current < PREVIEW_LADDER.length - 1
-      ) {
-        previewTierRef.current += 1
-        resetFrameClock()
-      }
+      if (clock.slow >= DROPPED_FRAMES_BEFORE_DOWNGRADE * 2) stepPreviewDown()
       return
     }
 
     if (clock.ema < budget * 1.1) {
       clock.slow = 0
       clock.fast += 1
-      if (clock.fast >= FAST_FRAMES_BEFORE_UPGRADE && previewTierRef.current > 0) {
-        previewTierRef.current -= 1
-        resetFrameClock()
-      }
+      if (clock.fast >= CLEAN_FRAMES_BEFORE_UPGRADE) stepPreviewUp()
       return
     }
 
     clock.slow = 0
     clock.fast = 0
-  }, [resetFrameClock])
+  }, [stepPreviewDown, stepPreviewUp])
 
   const drawFallbackFrame = useCallback(() => {
     const video = videoRef.current
@@ -427,32 +502,6 @@ export default function Camera({
     ctx.restore()
   }, [])
 
-  const downscalePreviewFrame = useCallback(
-    (video: HTMLVideoElement, width: number, height: number): HTMLCanvasElement => {
-      let source = previewSourceRef.current
-      if (!source) {
-        const canvas = document.createElement('canvas')
-        const context = canvas.getContext('2d', { alpha: false, desynchronized: true })
-        if (!context) throw new Error('Canvas preview tidak tersedia.')
-        source = { canvas, context }
-        previewSourceRef.current = source
-      }
-
-      if (source.canvas.width !== width || source.canvas.height !== height) {
-        source.canvas.width = width
-        source.canvas.height = height
-        source.context.imageSmoothingEnabled = true
-        // Preview bergerak lebih diuntungkan oleh latensi rendah. Renderer foto
-        // tersimpan tetap memakai resize high-quality pada bitmap sensor penuh.
-        source.context.imageSmoothingQuality = 'low'
-      }
-
-      source.context.drawImage(video, 0, 0, width, height)
-      return source.canvas
-    },
-    []
-  )
-
   const drawFrame = useCallback(() => {
     const video = videoRef.current
     if (!video || video.readyState < 2) return
@@ -465,14 +514,13 @@ export default function Camera({
     if (!renderer || presetLoadingRef.current) return
     const size = fitWithin(video.videoWidth, video.videoHeight, PREVIEW_LADDER[previewTierRef.current])
     try {
-      // Kamera belakang lazim memberi frame 4K. Mengirim video mentah ke WebGL
-      // membuat setiap frame tetap menyalin ~50 MB walaupun output hanya 720p.
-      // Kecilkan lebih dulu agar texture upload mengikuti tangga preview.
-      const previewSource =
-        video.videoWidth > size.width || video.videoHeight > size.height
-          ? downscalePreviewFrame(video, size.width, size.height)
-          : video
-      renderer.render(previewSource, presetRef.current, size.width, size.height, {
+      // Elemen video dikirim langsung ke WebGL. Menyisipkan canvas 2D untuk
+      // mengecilkan frame lebih dulu terdengar lebih murah, tetapi upload
+      // canvas->tekstur menempuh jalur lambat di GPU mobile (sering readback
+      // ke CPU), sedangkan video->tekstur adalah jalur yang memang
+      // dioptimalkan browser. Pengecilan ke ukuran viewfinder dikerjakan
+      // sekalian saat sampling di fragment shader.
+      renderer.render(video, presetRef.current, size.width, size.height, {
         ...recipeRef.current,
         // Penajaman memerlukan empat sampel linear-light tambahan per piksel.
         // Terapkan pada hasil foto penuh, bukan loop preview, agar viewfinder
@@ -488,7 +536,7 @@ export default function Camera({
       console.error('Preview kamera gagal:', error)
       activateCompatibilityMode('GPU tidak stabil; kamera beralih ke Natural agar foto tetap aman.')
     }
-  }, [activateCompatibilityMode, downscalePreviewFrame, drawFallbackFrame])
+  }, [activateCompatibilityMode, drawFallbackFrame])
 
   const stopLoop = useCallback(() => {
     const loop = loopRef.current
@@ -505,8 +553,8 @@ export default function Camera({
     resetFrameClock()
 
     if (typeof video.requestVideoFrameCallback === 'function') {
-      const tick = () => {
-        trackPreviewPace()
+      const tick: VideoFrameRequestCallback = (_now, metadata) => {
+        trackDroppedFrames(metadata)
         drawFrame()
         loopRef.current = { kind: 'rvfc', id: video.requestVideoFrameCallback(tick) }
       }
@@ -520,7 +568,7 @@ export default function Camera({
       loopRef.current = { kind: 'raf', id: requestAnimationFrame(tick) }
     }
     loopRef.current = { kind: 'raf', id: requestAnimationFrame(tick) }
-  }, [drawFrame, resetFrameClock, stopLoop, trackPreviewPace])
+  }, [drawFrame, resetFrameClock, stopLoop, trackDroppedFrames, trackPreviewPace])
 
   useEffect(() => {
     let cancelled = false
