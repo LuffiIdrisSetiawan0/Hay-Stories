@@ -1,0 +1,476 @@
+/* ===========================================================================
+   Rel fitur — enam kartu produk yang menyapu di bawah judul yang dipaku
+   =========================================================================== */
+
+.section {
+  --card-w: clamp(17rem, 27vw, 25rem);
+  --card-gap: 1rem;
+  --rail-h: clamp(20rem, 50svh, 26rem);
+
+  position: relative;
+  border-radius: var(--radius-panel) var(--radius-panel) 0 0;
+  background-color: var(--surface);
+  box-shadow: 0 -26px 60px rgba(72, 52, 32, 0.12);
+  /* Sama seperti di panggung langkah: `clip` tidak menjadikan seksi ini wadah
+     gulir, `hidden` menjadikannya — dan itu mematikan paku di dalamnya. */
+  overflow: clip;
+}
+
+.stage {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: clamp(1.75rem, 4vw, 3.5rem);
+  padding-block: clamp(3rem, 6vw, 5rem);
+  overflow: hidden;
+}
+
+/* ===== Kepala ===== */
+
+.head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(0.75rem, 1.6vw, 1.1rem);
+  width: 100%;
+  max-width: 46rem;
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+  text-align: center;
+}
+
+.title {
+  font-size: var(--display-md);
+  line-height: 1.02;
+  letter-spacing: -0.04em;
+  text-wrap: balance;
+}
+
+/* ===== Rel ===== */
+
+.viewport {
+  width: 100%;
+  overflow: hidden;
+}
+
+.rail {
+  /* Lebar seluruh rel, dihitung dari jumlah kartunya. Menambah kartu ketujuh
+     cukup mengubah `--count` di komponen; jarak sapuannya ikut menyesuaikan
+     sendiri.
+
+     Kedua rumus ini harus tinggal di sini, bukan di `.section`. `--count`
+     ditulis sebagai gaya sebaris pada relnya sendiri, jadi di `.section` ia
+     belum ada — dan `calc()` yang memuat variabel tak dikenal tidak gagal
+     dengan berisik melainkan diam-diam menjadi tidak sah, sehingga seluruh
+     `transform`-nya ikut diabaikan dan relnya berdiri diam sepanjang tiga
+     layar penuh tanpa satu pun pesan galat. */
+  --track: calc(var(--count) * var(--card-w) + (var(--count) - 1) * var(--card-gap));
+  /* Sejauh mana rel harus bergeser supaya kartu terakhir berhenti tepat di tepi
+     kanan. `max()` menjaga nilainya tidak pernah negatif: di layar yang sangat
+     lebar seluruh rel sudah muat dan tidak ada yang perlu digeser. */
+  --sweep: max(0px, calc(var(--track) + 2 * var(--gutter) - 100vw));
+
+  display: flex;
+  gap: var(--card-gap);
+  width: max-content;
+  height: var(--rail-h);
+  padding-inline: var(--gutter);
+  transform: translate3d(calc(var(--p, 0) * var(--sweep) * -1), 0, 0);
+  will-change: transform;
+}
+
+.card {
+  flex: none;
+  width: var(--card-w);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.9rem, 2vw, 1.35rem);
+  padding: clamp(1.25rem, 1.9vw, 1.75rem);
+  border-radius: clamp(1.5rem, 2.6vw, 2.5rem);
+  box-shadow: var(--shadow-card);
+  /* Wajib: beberapa peraga sengaja diberi margin negatif supaya menembus tepi
+     kartu, dan tepi inilah yang memotongnya. */
+  overflow: hidden;
+}
+
+/* Judul pindah ke kaki kartu. `column-reverse` dan bukan `order`: dengan
+   membalik arah kolomnya, `margin-top: auto` pada peraga tetap bekerja ke arah
+   yang benar tanpa satu aturan tambahan pun. */
+.cardBottom {
+  flex-direction: column-reverse;
+}
+
+.cardTitle {
+  flex: none;
+  font-size: clamp(1.15rem, 1rem + 0.6vw, 1.5rem);
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+  text-wrap: balance;
+}
+
+.cardArt {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* Rona kartu. Gradien lembut, sama seperti kartu di panggung langkah — dua
+   seksi berturut-turut yang kartunya berlainan sifat permukaan akan terbaca
+   sebagai dua situs yang berbeda. */
+
+.peach {
+  background: linear-gradient(150deg, #fdf1e8 0%, #fbe6d8 55%, #f4d3bd 100%);
+}
+
+.butter {
+  background: linear-gradient(150deg, #fdf6e4 0%, #fbeecb 55%, #f5e2ad 100%);
+}
+
+.sage {
+  background: linear-gradient(150deg, #eef3ea 0%, #e4ebdf 55%, #d2ddca 100%);
+}
+
+.blush {
+  background: linear-gradient(150deg, #fdeef0 0%, #f8e2e4 55%, #f1cdd1 100%);
+}
+
+.sky {
+  background: linear-gradient(150deg, #eef3f7 0%, #e2eaf1 55%, #cfdde8 100%);
+}
+
+/* ===== Peraga: kamera ===== */
+
+.artCamera {
+  display: flex;
+  justify-content: center;
+  /* Ponselnya menembus kaki kartu, bukan berdiri utuh di dalamnya. Layar penuh
+     yang terpotong tepi kartu terbaca sebagai alat yang sedang dipakai; ponsel
+     utuh yang mengambang terbaca sebagai stiker. */
+  margin-bottom: clamp(-5rem, -8vw, -3rem);
+  align-items: flex-end;
+}
+
+/* Lebarnya dibatasi tinggi kartu, bukan lebar kartu. Ponsel berbanding 9:19:
+   pada 11rem tingginya 23rem, dan kartu di layar sempit cuma setinggi 20rem —
+   jadi yang terpotong bukan lagi kakinya melainkan separuh layarnya. */
+.cameraPhone {
+  width: min(100%, 9.5rem);
+}
+
+.cam {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: #17150f;
+  color: #f9f6f0;
+}
+
+.camTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.9rem 0.6rem 0.4rem;
+  font-size: 0.45rem;
+  font-weight: 600;
+}
+
+.camTop span:last-child {
+  color: rgba(249, 246, 240, 0.6);
+  font-weight: 400;
+}
+
+.camView {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+  margin-inline: 0.35rem;
+  border-radius: 0.7rem;
+  background: #24211a;
+}
+
+.camBar {
+  display: grid;
+  place-items: center;
+  padding-block: 0.5rem 0.8rem;
+}
+
+.camShutter {
+  width: 1.55rem;
+  height: 1.55rem;
+  border-radius: 50%;
+  background: #f9f6f0;
+  box-shadow: 0 0 0 2px rgba(249, 246, 240, 0.3);
+}
+
+/* ===== Peraga: galeri ===== */
+
+.galleryGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.35rem;
+}
+
+.galleryCell {
+  position: relative;
+  display: block;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: 0.6rem;
+  background: var(--surface-raised);
+}
+
+.galleryMore {
+  display: grid;
+  place-items: center;
+  font-size: 0.875rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--ink-soft);
+  background: rgba(255, 255, 255, 0.72);
+}
+
+/* Keduanya kotak yang meninggi atau bujur sangkar — viewfinder ponsel kira-kira
+   2:3 dan petak galeri 1:1 — jadi yang dipangkas sisi kiri-kanannya. */
+.photo {
+  object-fit: cover;
+  object-position: var(--focus-tall, center);
+}
+
+/* ===== Peraga: buku tamu suara ===== */
+
+.voice {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.65rem 0.8rem;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: var(--shadow-soft);
+}
+
+.voicePlay {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 1.85rem;
+  height: 1.85rem;
+  padding-left: 0.1rem;
+  border-radius: 50%;
+  color: var(--on-accent);
+  background: var(--accent-strong);
+}
+
+.wave {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 1.5rem;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.wave i {
+  flex: 1;
+  min-width: 2px;
+  border-radius: var(--radius-pill);
+  background: var(--tint-blush-deep);
+  animation: wave-bob 1.8s ease-in-out infinite;
+}
+
+/* Batang bergoyang bergiliran, jadi gelombangnya terbaca sedang diputar. */
+.wave i:nth-child(3n) { animation-delay: 0.2s; }
+.wave i:nth-child(3n + 1) { animation-delay: 0.45s; }
+.wave i:nth-child(4n) { animation-delay: 0.7s; }
+
+@keyframes wave-bob {
+  0%, 100% { transform: scaleY(1); }
+  50% { transform: scaleY(0.55); }
+}
+
+.voiceTime {
+  flex: none;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--ink-muted);
+}
+
+/* ===== Peraga: waktu buka ===== */
+
+.modes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.mode {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.5rem 0.85rem;
+  border-radius: var(--radius-pill);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.modeOn {
+  color: var(--on-accent);
+  background: var(--ink);
+}
+
+/* ===== Peraga: kode acara ===== */
+
+.code {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 0.3rem;
+}
+
+.codeCell {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 3 / 4;
+  border-radius: 0.55rem;
+  font-family: var(--font-mono);
+  font-size: clamp(0.8rem, 1.4vw, 1rem);
+  font-weight: 700;
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: var(--shadow-soft);
+}
+
+/* Jarak gulir yang menahan pakunya. */
+.spacer {
+  height: 100svh;
+}
+
+/* Nama keyframe-nya diberi awalan oleh CSS Module, jadi ia harus didefinisikan
+   di berkas ini juga — keyframe global bernama apa adanya dan tidak akan pernah
+   ditemukan dari sini. */
+
+@keyframes rail-run {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(-50%, 0, 0); }
+}
+
+/* Salinan kedua tiap kartu. Hanya dipakai oleh ticker di ponsel; di mana pun
+   selain itu ia tidak boleh ada, termasuk tidak boleh ikut menentukan lebar rel
+   saat jarak sapuan dihitung. Ditulis sesudah `.card` supaya menang tanpa perlu
+   menaikkan kekhususan. */
+.copy {
+  display: none;
+}
+
+/* ===========================================================================
+   Layar sempit dan gerakan yang dikurangi
+
+   Keduanya melepas pakunya — di ponsel, panggung setinggi layar hanya
+   menyisakan sekitar 300px untuk kartu setinggi 448px, dan memaksanya tetap
+   dipaku di sana berarti memotong kartunya sendiri.
+
+   Sesudah itu keduanya berpisah jalan. Di ponsel relnya berjalan sendiri tanpa
+   henti seperti di referensi; ketika pengguna meminta gerakan dikurangi,
+   gerakan terus-menerus di tepi pandangan justru hal yang paling memicu mabuk
+   gerak, jadi di sana relnya diam dan digulir tangan.
+   =========================================================================== */
+
+@media (max-width: 820px), (prefers-reduced-motion: reduce) {
+  .stage {
+    position: static;
+    height: auto;
+    overflow: visible;
+    padding-block: var(--section-py);
+  }
+
+  .spacer {
+    display: none;
+  }
+}
+
+/* ===== Ponsel: rel berjalan sendiri ===== */
+
+@media (max-width: 820px) {
+  /* Kartu referensi di ponsel 320×480 — lebih lebar dan lebih tinggi daripada
+     hasil `clamp` desktop yang menyempit sampai 17rem di sana. Kartu selebar
+     272px membuat maket ponsel di dalamnya nyaris menyentuh kedua tepi. */
+  .section {
+    --card-w: min(20rem, 82vw);
+    --rail-h: min(28rem, 58svh);
+  }
+
+  .viewport {
+    overflow: hidden;
+    /* Bayangan kartu terpotong tepi wadah tanpa ruang sisa ini. */
+    padding-block: 0.75rem 1.5rem;
+  }
+
+  /* Jaraknya pindah dari `gap` ke margin tiap kartu, dan itu bukan soal selera.
+     Trek digeser tepat −50% dari lebarnya sendiri saat mengulang. Dengan `gap`,
+     satu salinan selebar 6 kartu + 5 sela sementara setengah trek selebar
+     6 kartu + 5,5 sela — meleset setengah sela tiap putaran, dan sambungannya
+     tersentak. Dengan margin, tiap kartu selebar kartu + sela tanpa kecuali,
+     jadi setengah trek persis sama dengan satu salinan. */
+  .rail {
+    gap: 0;
+    /* Padding mendatarnya harus nol. Trek digeser −50% dari lebarnya sendiri,
+       dan lebar itu ikut menghitung padding — 20px di kiri dan kanan membuat
+       setengah trek meleset 20px dari satu salinan, jadi sambungannya
+       tersentak sekali tiap putaran. */
+    padding-inline: 0;
+    animation: rail-run 48s linear infinite;
+    will-change: transform;
+  }
+
+  .card {
+    margin-right: var(--card-gap);
+  }
+
+  .copy {
+    display: flex;
+  }
+}
+
+/* ===== Gerakan dikurangi: rel diam, digulir tangan ===== */
+
+@media (prefers-reduced-motion: reduce) {
+  .viewport {
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    padding-block: 0.75rem 1.5rem;
+  }
+
+  .viewport::-webkit-scrollbar {
+    display: none;
+  }
+
+  .rail {
+    gap: var(--card-gap);
+    transform: none;
+    animation: none;
+    will-change: auto;
+  }
+
+  .card {
+    margin-right: 0;
+    scroll-snap-align: center;
+  }
+
+  .copy {
+    display: none;
+  }
+
+  .wave i {
+    animation: none;
+  }
+}

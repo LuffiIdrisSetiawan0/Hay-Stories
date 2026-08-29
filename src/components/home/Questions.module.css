@@ -1,0 +1,170 @@
+/* ===========================================================================
+   Pertanyaan yang sering diajukan
+   =========================================================================== */
+
+.section {
+  position: relative;
+  padding-block: var(--section-py);
+  background-color: var(--canvas-warm);
+}
+
+.inner {
+  width: 100%;
+  max-width: var(--max-width);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: clamp(2.25rem, 5vw, 3.5rem);
+  align-items: start;
+}
+
+@media (min-width: 900px) {
+  .inner {
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+    column-gap: clamp(3rem, 6vw, 5rem);
+  }
+
+  .aside {
+    position: sticky;
+    top: calc(var(--nav-height) + 2.5rem);
+  }
+}
+
+/* ===== Kolom kiri ===== */
+
+.title {
+  margin-top: 1.15rem;
+  font-size: var(--display-sm);
+  line-height: 1.04;
+  letter-spacing: -0.035em;
+  max-width: 15ch;
+  text-wrap: balance;
+}
+
+.note {
+  margin-top: 1.1rem;
+  max-width: 34ch;
+  font-size: 0.9375rem;
+  line-height: 1.7;
+  color: var(--ink-soft);
+}
+
+.mail {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 1.15rem;
+  padding: 0.7rem 1.2rem;
+  border-radius: var(--radius-pill);
+  background: var(--surface-raised);
+  box-shadow: var(--shadow-soft);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+  transition: transform 0.3s var(--ease-ref), box-shadow 0.3s ease, color 0.25s ease;
+}
+
+.mail:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-card);
+  color: var(--accent-ink);
+}
+
+/* ===== Daftar ===== */
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.item {
+  border-radius: var(--radius-media);
+  background: var(--surface-raised);
+  box-shadow: var(--shadow-soft);
+  transition: box-shadow 0.4s var(--ease-ref);
+}
+
+.item:hover {
+  box-shadow: var(--shadow-card);
+}
+
+.itemOpen {
+  box-shadow: var(--shadow-card);
+}
+
+.head {
+  margin: 0;
+}
+
+.trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+  width: 100%;
+  padding: clamp(1.05rem, 2vw, 1.4rem) clamp(1.15rem, 2.2vw, 1.6rem);
+  text-align: left;
+  font-size: clamp(0.9375rem, 0.9rem + 0.35vw, 1.125rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.4;
+  color: var(--ink);
+  transition: color 0.3s ease;
+}
+
+.trigger:hover {
+  color: var(--accent-ink);
+}
+
+.icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 1.9rem;
+  height: 1.9rem;
+  border-radius: 50%;
+  color: var(--ink);
+  background: var(--canvas-warm);
+  transition: transform 0.45s var(--ease-ref), background-color 0.3s ease, color 0.3s ease;
+}
+
+.itemOpen .icon {
+  transform: rotate(135deg);
+  color: var(--on-accent);
+  background: var(--accent-strong);
+}
+
+/* Dibuka dengan grid 0fr → 1fr supaya tingginya tidak perlu ditebak. */
+.answer {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.45s var(--ease-ref);
+}
+
+.itemOpen .answer {
+  grid-template-rows: 1fr;
+}
+
+.answerInner {
+  overflow: hidden;
+}
+
+.answerInner p {
+  max-width: 58ch;
+  padding: 0 clamp(1.15rem, 2.2vw, 1.6rem) clamp(1.15rem, 2.2vw, 1.5rem);
+  font-size: 0.9375rem;
+  line-height: 1.75;
+  color: var(--ink-soft);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .answer,
+  .icon,
+  .trigger,
+  .item,
+  .mail {
+    transition-duration: 1ms;
+  }
+}

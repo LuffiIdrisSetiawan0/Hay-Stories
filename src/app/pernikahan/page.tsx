@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import { SCENES } from "@/lib/scenes";
 import EventPageTemplate from "@/components/events/EventPageTemplate";
 
 export const metadata: Metadata = {
@@ -12,10 +13,10 @@ export default function PernikahanPage() {
   return (
     <EventPageTemplate
       slug="pernikahan"
-      badge="Pernikahan & Resepsi 💍"
-      title="Momen Pernikahan yang Tak Tertangkap Fotografer"
+      badge="Pernikahan & Resepsi"
+      title="Momen Pernikahan yang Luput dari Lensa Fotografer"
       subtitle="Fotografer resmi menangkap momen utama. HAY Stories menyimpan tawa sahabat, reuni keluarga, dan dansa spontan dari sudut pandang para tamu."
-      heroImage="/img/scenes/01-pelaminan-v2.webp"
+      heroScene={SCENES.pernikahanBuket}
       benefits={[
         {
           title: "Satu QR di Setiap Meja",
@@ -46,8 +47,8 @@ export default function PernikahanPage() {
         },
         {
           step: "02",
-          title: "Tamu Scan & Motret",
-          desc: "Tamu langsung masuk ke kamera web analog dengan batas jepretan yang Anda tentukan.",
+          title: "Tamu Memindai dan Memotret",
+          desc: "Tamu langsung masuk ke kamera bernuansa film, dengan batas jepretan yang kamu tentukan.",
         },
         {
           step: "03",
@@ -73,9 +74,9 @@ export default function PernikahanPage() {
         },
       ]}
       sampleGallery={[
-        { img: "/img/scenes/01-pelaminan-v2.webp", caption: "Senyum bahagia bersama pengantin" },
-        { img: "/img/scenes/02-meja-dekorasi-v2.webp", caption: "Kehangatan meja jamuan tamu" },
-        { img: "/img/scenes/06-konfeti-v2.webp", caption: "Taburan bunga dan doa restu keluarga" },
+        { scene: SCENES.pernikahanBuket, caption: "Senyum bahagia bersama pengantin" },
+        { scene: SCENES.tamuMemotret, caption: "Kehangatan sahabat yang datang jauh-jauh" },
+        { scene: SCENES.mejaDekorasi, caption: "Taburan bunga dan doa restu keluarga" },
       ]}
       faqs={[
         {

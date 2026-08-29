@@ -1,30 +1,35 @@
 "use client";
 
+import type { CSSProperties } from "react";
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import Navbar from "@/components/ui/Navbar";
-import Footer from "@/components/landing/Footer";
+import SiteHeader from "@/components/home/SiteHeader";
+import SiteFooter from "@/components/home/SiteFooter";
+import Reveal from "@/components/ui/Reveal";
+import SplitText from "@/components/ui/SplitText";
 import { COMMON_TIER_FEATURES, formatGuestLimit, formatPrice, getTier } from "@/lib/catalog";
+import { sceneFocus, type Scene } from "@/lib/scenes";
 import {
-  ArrowUpRight,
-  CheckCircle2,
-  ChevronDown,
-  Sparkles,
-  QrCode,
-  MonitorPlay,
-  Film,
-  Camera,
-  Users,
+  ArrowRight,
   Building2,
-  ShieldCheck,
-  Image as ImageIcon,
-  Zap,
   Cake,
-  PartyPopper,
-  Heart,
+  Camera,
+  Check,
   Download,
-  LucideIcon,
+  Film,
+  Heart,
+  Image as ImageIcon,
+  LockKeyhole,
+  MonitorPlay,
+  PartyPopper,
+  Plus,
+  QrCode,
+  ShieldCheck,
+  Sparkles,
+  Users,
+  Zap,
+  type LucideIcon,
 } from "lucide-react";
 import styles from "./EventPageTemplate.module.css";
 
@@ -43,6 +48,7 @@ const ICON_MAP: Record<string, LucideIcon> = {
   party: PartyPopper,
   heart: Heart,
   download: Download,
+  lock: LockKeyhole,
 };
 
 export interface EventBenefit {
@@ -67,222 +73,289 @@ export interface EventPageProps {
   badge: string;
   title: string;
   subtitle: string;
-  heroImage: string;
+  heroScene: Scene;
   accentColor?: string;
   benefits: EventBenefit[];
   steps: { step: string; title: string; desc: string }[];
   presets: EventPreset[];
-  sampleGallery: { img: string; caption: string }[];
+  sampleGallery: { scene: Scene; caption: string }[];
   faqs: EventFaq[];
 }
 
+/**
+ * Kerangka halaman per jenis acara.
+ *
+ * Memakai bahasa visual yang sama dengan halaman utama — kanvas krem, judul
+ * serif besar, foto berbingkai cetak, dan baris bergaris tipis — sehingga
+ * berpindah dari beranda ke halaman pernikahan tidak terasa seperti berpindah
+ * situs. Isinya seluruhnya datang dari props, jadi satu berkas ini melayani
+ * keempat halaman acara.
+ */
 export default function EventPageTemplate(props: EventPageProps) {
   const [openFaq, setOpenFaq] = useState<number | null>(0);
   const starter = getTier("starter")!;
 
   return (
     <main className={styles.page}>
-      <Navbar />
+      <SiteHeader />
 
-      {/* Hero Section */}
+      {/* ===== Hero ===== */}
       <section className={styles.hero}>
-        <div className={styles.heroContainer}>
-          <div className={styles.heroContent}>
-            <div className={styles.badge}>
-              <Sparkles size={14} />
-              <span>{props.badge}</span>
-            </div>
+        <div className={styles.heroInner}>
+          <div className={styles.heroCopy}>
+            <Reveal>
+              <p className="kicker">{props.badge}</p>
+            </Reveal>
 
-            <h1 className={styles.heroTitle}>{props.title}</h1>
-            <p className={styles.heroSubtitle}>{props.subtitle}</p>
+            <h1 className={styles.heroTitle}>
+              <SplitText by="word" delay={70}>
+                {props.title}
+              </SplitText>
+            </h1>
 
-            <div className={styles.heroActions}>
-              <Link href="/dashboard/new?tier=starter" className={styles.primaryCta}>
-                <span>Buat album gratis</span>
-                <ArrowUpRight size={18} />
+            <Reveal delay={280}>
+              <p className={styles.heroText}>{props.subtitle}</p>
+            </Reveal>
+
+            <Reveal delay={360} className={styles.heroActions}>
+              <Link href="/dashboard/new?tier=starter" className={styles.primary}>
+                Buat album gratis
+                <ArrowRight size={17} strokeWidth={1.8} />
               </Link>
-              <Link href="#cara-kerja" className={styles.secondaryCta}>
-                <span>Lihat cara kerja</span>
+              <Link href="#cara-kerja" className={styles.secondary}>
+                Lihat cara kerja
               </Link>
-            </div>
+            </Reveal>
+
+            <Reveal delay={440}>
+              <p className={styles.heroNote}>
+                Gratis untuk lima tamu pertama &middot; tanpa kartu kredit
+              </p>
+            </Reveal>
           </div>
 
-          <div className={styles.heroVisual}>
-            <div className={styles.heroImageFrame}>
-              <Image
-                src={props.heroImage}
-                alt={props.title}
-                fill
-                priority
-                sizes="(max-width: 768px) 100vw, 560px"
-                className={styles.heroImg}
-              />
-              <div className={styles.photoSticker}>
-                <QrCode size={16} />
-                <span>Scan QR &amp; jepret langsung</span>
-              </div>
-            </div>
-          </div>
+          <Reveal direction="scale" delay={220} className={styles.heroFigureSlot}>
+            <figure className={styles.heroFigure}>
+              <span className={styles.heroWindow}>
+                <Image
+                  src={props.heroScene.src}
+                  alt={props.heroScene.alt}
+                  fill
+                  preload
+                  sizes="(max-width: 900px) 88vw, 34vw"
+                  quality={88}
+                  style={sceneFocus(props.heroScene) as CSSProperties}
+                  className={styles.photo}
+                />
+              </span>
+              <figcaption className={styles.heroCaption}>
+                <QrCode size={14} strokeWidth={1.8} />
+                Pindai, potret, selesai.
+              </figcaption>
+            </figure>
+          </Reveal>
         </div>
       </section>
 
-      {/* Benefits Grid */}
-      <section className={styles.benefitsSection}>
-        <div className={styles.container}>
-          <div className={styles.sectionHeader}>
-            <p className={styles.sectionEyebrow}>KEUNGGULAN</p>
-            <h2 className={styles.sectionTitle}>Kenapa Menggunakan HAY Stories?</h2>
+      {/* ===== Keunggulan ===== */}
+      <section className={styles.section}>
+        <div className={styles.inner}>
+          <div className={styles.sectionHead}>
+            <Reveal>
+              <p className="kicker">Keunggulan</p>
+            </Reveal>
+            <h2 className={styles.sectionTitle}>
+              <SplitText by="word" delay={60}>
+                Kenapa Memilih HAY Stories
+              </SplitText>
+            </h2>
           </div>
 
-          <div className={styles.benefitsGrid}>
-            {props.benefits.map((b, i) => {
-              const IconComp = ICON_MAP[b.icon] || Sparkles;
+          <ul className={styles.benefits}>
+            {props.benefits.map((benefit, i) => {
+              const Icon = ICON_MAP[benefit.icon] ?? Sparkles;
               return (
-                <div key={i} className={styles.benefitCard}>
-                  <div className={styles.benefitIcon}>
-                    <IconComp size={22} />
+                <Reveal as="li" key={benefit.title} delay={i * 90} className={styles.benefit}>
+                  <span className={styles.benefitIcon} aria-hidden="true">
+                    <Icon size={18} strokeWidth={1.7} />
+                  </span>
+                  <div>
+                    <h3 className={styles.benefitTitle}>{benefit.title}</h3>
+                    <p className={styles.benefitText}>{benefit.description}</p>
                   </div>
-                  <h3>{b.title}</h3>
-                  <p>{b.description}</p>
-                </div>
+                </Reveal>
               );
             })}
-          </div>
+          </ul>
         </div>
       </section>
 
-      {/* 3 Step Timeline */}
-      <section id="cara-kerja" className={styles.stepsSection}>
-        <div className={styles.container}>
-          <div className={styles.sectionHeader}>
-            <p className={styles.sectionEyebrow}>ALUR PENGGUNAAN</p>
-            <h2 className={styles.sectionTitle}>3 Langkah Mudah di Hari H</h2>
+      {/* ===== Tiga langkah ===== */}
+      <section id="cara-kerja" className={`${styles.section} ${styles.sectionWarm}`}>
+        <div className={styles.inner}>
+          <div className={styles.sectionHead}>
+            <Reveal>
+              <p className="kicker">Alur di hari acara</p>
+            </Reveal>
+            <h2 className={styles.sectionTitle}>
+              <SplitText by="word" delay={60}>
+                Tiga Langkah Saja
+              </SplitText>
+            </h2>
           </div>
 
-          <div className={styles.stepsGrid}>
-            {props.steps.map((s, i) => (
-              <div key={i} className={styles.stepCard}>
-                <span className={styles.stepNumber}>{s.step}</span>
-                <h3>{s.title}</h3>
-                <p>{s.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Recommended Presets & Sample Shots */}
-      <section className={styles.gallerySection}>
-        <div className={styles.container}>
-          <div className={styles.sectionHeader}>
-            <p className={styles.sectionEyebrow}>CONTOH SUASANA & NUANSA FILM</p>
-            <h2 className={styles.sectionTitle}>Pilih karakter yang terasa seperti acaramu</h2>
-          </div>
-
-          <div className={styles.presetsRow}>
-            {props.presets.map((p, i) => (
-              <div key={i} className={styles.presetChip}>
-                <Film size={16} />
+          <ol className={styles.steps}>
+            {props.steps.map((step, i) => (
+              <Reveal as="li" key={step.step} delay={i * 110} className={styles.step}>
+                <span className={styles.stepNumber}>{step.step}</span>
                 <div>
-                  <strong>{p.name}</strong> · <span>{p.desc}</span>
+                  <h3 className={styles.stepTitle}>{step.title}</h3>
+                  <p className={styles.stepText}>{step.desc}</p>
                 </div>
-              </div>
+              </Reveal>
             ))}
-          </div>
-
-          <div className={styles.samplesGrid}>
-            {props.sampleGallery.map((sample, i) => (
-              <div key={i} className={styles.sampleCard}>
-                <div className={styles.sampleFrame}>
-                  <Image
-                    src={sample.img}
-                    alt={sample.caption}
-                    fill
-                    sizes="(max-width: 640px) 100vw, 33vw"
-                    className={styles.sampleImg}
-                  />
-                </div>
-                <p className={styles.sampleCaption}>{sample.caption}</p>
-              </div>
-            ))}
-          </div>
+          </ol>
         </div>
       </section>
 
-      {/* Recommended Package Callout */}
-      <section className={styles.pricingCalloutSection}>
-        <div className={styles.container}>
-          <div className={styles.pricingCard}>
-            <div className={styles.pricingHeader}>
-              <div>
-                <span className={styles.packagePill}>Tersedia sekarang</span>
-                <h3 className={styles.packageName}>Paket {starter.name}</h3>
-                <p className={styles.packageGuests}>
-                  {formatGuestLimit(starter.maxGuests)} · {starter.retentionDays} hari penyimpanan
+      {/* ===== Nuansa & contoh foto ===== */}
+      <section className={styles.section}>
+        <div className={styles.inner}>
+          <div className={styles.sectionHead}>
+            <Reveal>
+              <p className="kicker">Nuansa yang cocok</p>
+            </Reveal>
+            <h2 className={styles.sectionTitle}>
+              <SplitText by="word" delay={60}>
+                Pilih Karakter yang Terasa Seperti Acaramu
+              </SplitText>
+            </h2>
+          </div>
+
+          <Reveal delay={160}>
+            <ul className={styles.presets}>
+              {props.presets.map((preset) => (
+                <li key={preset.name} className={styles.preset}>
+                  <Film size={14} strokeWidth={1.7} />
+                  <strong>{preset.name}</strong>
+                  <span>{preset.desc}</span>
+                </li>
+              ))}
+            </ul>
+          </Reveal>
+
+          <ul className={styles.gallery}>
+            {props.sampleGallery.map((sample, i) => (
+              <Reveal as="li" key={sample.caption} delay={i * 100} className={styles.galleryItem}>
+                <span className={styles.galleryWindow}>
+                  <Image
+                    src={sample.scene.src}
+                    alt={sample.scene.alt}
+                    fill
+                    sizes="(max-width: 760px) 88vw, 30vw"
+                    style={sceneFocus(sample.scene) as CSSProperties}
+                    className={styles.photo}
+                  />
+                </span>
+                <p className={styles.galleryCaption}>{sample.caption}</p>
+              </Reveal>
+            ))}
+          </ul>
+        </div>
+      </section>
+
+      {/* ===== Ajakan ===== */}
+      <section className={`${styles.section} ${styles.sectionWarm}`}>
+        <div className={styles.inner}>
+          <Reveal direction="scale" className={styles.offerSlot}>
+            <div className={styles.offer}>
+              <div className={styles.offerHead}>
+                <div>
+                  <p className={styles.offerLabel}>Tersedia sekarang</p>
+                  <h2 className={styles.offerTitle}>Paket {starter.name}</h2>
+                  <p className={styles.offerMeta}>
+                    {formatGuestLimit(starter.maxGuests)} &middot; penyimpanan{" "}
+                    {starter.retentionDays} hari
+                  </p>
+                </div>
+                <p className={styles.offerPrice}>
+                  <span>{formatPrice(starter.price)}</span>
+                  <small>tanpa kartu kredit</small>
                 </p>
               </div>
-              <div className={styles.priceTag}>
-                <span className={styles.priceValue}>{formatPrice(starter.price)}</span>
-                <span className={styles.pricePeriod}>tanpa kartu kredit</span>
+
+              <ul className={styles.offerList}>
+                {[...COMMON_TIER_FEATURES, ...starter.features].map((feature) => (
+                  <li key={feature}>
+                    <Check size={14} strokeWidth={2.4} />
+                    {feature}
+                  </li>
+                ))}
+              </ul>
+
+              <div className={styles.offerActions}>
+                <Link href="/dashboard/new?tier=starter" className={styles.offerButton}>
+                  Buat album Starter gratis
+                  <ArrowRight size={16} strokeWidth={1.8} />
+                </Link>
+                <Link href="/harga" className={styles.offerLink}>
+                  Lihat semua paket
+                </Link>
               </div>
             </div>
-
-            <div className={styles.featuresList}>
-              {[...COMMON_TIER_FEATURES, ...starter.features].map((feature) => (
-                <div key={feature} className={styles.featureRow}>
-                  <CheckCircle2 size={18} className={styles.checkIcon} />
-                  <span>{feature}</span>
-                </div>
-              ))}
-            </div>
-
-            <div className={styles.pricingAction}>
-              <Link href="/dashboard/new?tier=starter" className={styles.packageBtn}>
-                <span>Buat album Starter gratis</span>
-                <ArrowUpRight size={18} />
-              </Link>
-              <Link href="/harga" className={styles.seeAllPricing}>
-                Lihat semua paket harga →
-              </Link>
-            </div>
-          </div>
+          </Reveal>
         </div>
       </section>
 
-      {/* FAQ Accordion */}
-      <section className={styles.faqSection}>
-        <div className={styles.container}>
-          <div className={styles.sectionHeader}>
-            <p className={styles.sectionEyebrow}>FAQ</p>
-            <h2 className={styles.sectionTitle}>Pertanyaan yang Sering Diajukan</h2>
+      {/* ===== Pertanyaan ===== */}
+      <section className={styles.section}>
+        <div className={styles.inner}>
+          <div className={styles.sectionHead}>
+            <Reveal>
+              <p className="kicker">Pertanyaan</p>
+            </Reveal>
+            <h2 className={styles.sectionTitle}>
+              <SplitText by="word" delay={60}>
+                Hal yang Sering Ditanyakan
+              </SplitText>
+            </h2>
           </div>
 
-          <div className={styles.faqList}>
+          <ul className={styles.faq}>
             {props.faqs.map((faq, i) => {
-              const isOpen = openFaq === i;
+              const expanded = openFaq === i;
               return (
-                <div key={i} className={styles.faqItem}>
-                  <button
-                    type="button"
-                    className={styles.faqQuestion}
-                    onClick={() => setOpenFaq(isOpen ? null : i)}
-                    aria-expanded={isOpen}
-                  >
-                    <span>{faq.q}</span>
-                    <ChevronDown
-                      size={20}
-                      className={`${styles.faqArrow} ${isOpen ? styles.faqArrowOpen : ""}`}
-                    />
-                  </button>
-                  {isOpen && <p className={styles.faqAnswer}>{faq.a}</p>}
-                </div>
+                <Reveal
+                  as="li"
+                  key={faq.q}
+                  delay={i * 60}
+                  className={`${styles.faqItem} ${expanded ? styles.faqItemOpen : ""}`}
+                >
+                  <h3 className={styles.faqHead}>
+                    <button
+                      type="button"
+                      className={styles.faqTrigger}
+                      aria-expanded={expanded}
+                      aria-controls={`${props.slug}-faq-${i}`}
+                      onClick={() => setOpenFaq(expanded ? null : i)}
+                    >
+                      <span>{faq.q}</span>
+                      <Plus size={18} strokeWidth={1.5} className={styles.faqIcon} aria-hidden="true" />
+                    </button>
+                  </h3>
+                  <div id={`${props.slug}-faq-${i}`} className={styles.faqAnswer}>
+                    <div className={styles.faqAnswerInner}>
+                      <p>{faq.a}</p>
+                    </div>
+                  </div>
+                </Reveal>
               );
             })}
-          </div>
+          </ul>
         </div>
       </section>
 
-      <Footer />
+      <SiteFooter />
     </main>
   );
 }

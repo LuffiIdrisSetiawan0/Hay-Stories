@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import { SCENES } from "@/lib/scenes";
 import EventPageTemplate from "@/components/events/EventPageTemplate";
 
 export const metadata: Metadata = {
@@ -12,10 +13,10 @@ export default function AcaraKantorPage() {
   return (
     <EventPageTemplate
       slug="acara-kantor"
-      badge="Acara Kantor & Gathering 🏢"
-      title="Team Gathering, Outing, dan Perayaan Tahunan Perusahaan"
+      badge="Acara Kantor & Gathering"
+      title="Gathering, Outing, dan Perayaan Tahunan Perusahaan"
       subtitle="Cairkan suasana antar divisi lewat kamera yang dapat dipakai semua orang. Rekan satu tim ikut mengabadikan tawa di meja, permainan, dan momen kebersamaan yang biasanya terlewat."
-      heroImage="/img/scenes/04-potret-v2.webp"
+      heroScene={SCENES.acaraKantor}
       benefits={[
         {
           title: "Pererat Bonding Karyawan",
@@ -61,9 +62,9 @@ export default function AcaraKantorPage() {
         { name: "Golden Hour 400", desc: "Warm flattering tone untuk perayaan malam", tag: "Awarding Night" },
       ]}
       sampleGallery={[
-        { img: "/img/scenes/04-potret-v2.webp", caption: "Keseruan tim di acara perusahaan" },
-        { img: "/img/scenes/02-meja-dekorasi-v2.webp", caption: "Kehangatan meja perayaan tahunan" },
-        { img: "/img/scenes/06-konfeti-v2.webp", caption: "Selebrasi dan tawa bersama" },
+        { scene: SCENES.acaraKantor, caption: "Keseruan tim di acara perusahaan" },
+        { scene: SCENES.pestaMalam, caption: "Perayaan tahunan yang berlanjut sampai malam" },
+        { scene: SCENES.mejaDekorasi, caption: "Selebrasi dan tawa bersama" },
       ]}
       faqs={[
         {

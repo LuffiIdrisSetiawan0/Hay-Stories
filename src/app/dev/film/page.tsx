@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation'
-import FilmShowcase from '@/components/landing/FilmShowcase'
+import FilmRolls from '@/components/home/FilmRolls'
 import FilmLab from './FilmLab'
 
 export const metadata = {
@@ -14,8 +14,8 @@ export const metadata = {
  * dan untuk memverifikasi shader benar-benar bekerja di browser sungguhan —
  * bukan hanya lolos type-check.
  *
- * Di bawahnya dirender <FilmShowcase> yang sesungguhnya, supaya band gelap
- * landing bisa diperiksa terpisah dari hero setinggi viewport.
+ * Di bawahnya dirender <FilmRolls> yang sesungguhnya, supaya deret roll di
+ * halaman utama bisa diperiksa terpisah dari hero setinggi viewport.
  */
 export default function FilmLabPage() {
   if (process.env.NODE_ENV === 'production') notFound()
@@ -23,7 +23,7 @@ export default function FilmLabPage() {
   return (
     <>
       <FilmLab />
-      <FilmShowcase />
+      <FilmRolls />
     </>
   )
 }

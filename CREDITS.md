@@ -104,3 +104,42 @@ Setiap perubahan pada file LUT aktif atau parameter grading wajib disertai
 kenaikan `PROCESSING_RECIPE_VERSION` di route guest-shot. Versi dan snapshot
 parameter itu disimpan per foto supaya hasil lama tidak diam-diam dianggap
 dibuat dengan recipe baru.
+
+## Foto
+
+Seluruh foto contoh di `public/img/` berasal dari Unsplash dan memakai lisensi
+Unsplash gratis (`images.unsplash.com`), yang mengizinkan pemakaian komersial
+tanpa kewajiban atribusi. Foto Unsplash+ berbayar
+(`plus.unsplash.com/premium_photo-*`) tidak dipakai dan tidak boleh ditambahkan
+lewat script ini — lisensinya berbeda.
+
+Tabel ini tetap dibuat karena satu alasan: **nama berkas bukan bukti isi.**
+Versi sebelumnya memakai penomoran `01-pelaminan` sampai `06-konfeti`, dan
+penomoran itu menyembunyikan dua kesalahan selama berbulan-bulan —
+`02-meja-dekorasi` sebenarnya berisi atlet melempar bubuk kapur, dan
+`06-konfeti` ternyata berkas yang sama persis dengan latar hero. Sejak itu nama
+berkasnya menggambarkan isi, dan setiap berkas dibuka dulu sebelum dipasang.
+
+Semua master 2400x1600 (3:2), dibuat ulang oleh
+`scripts/download-and-process-scenes.mjs`. Rasio 3:2 dipilih supaya satu berkas
+bisa melayani kotak 16:9 di landing page maupun 4:5 potret di halaman acara
+tanpa diperbesar. Pemetaan berkas ke pemakaian, teks alt, dan titik fokus
+pemangkasan ada di `src/lib/scenes.ts`.
+
+| Berkas | ID sumber Unsplash | Isi sebenarnya |
+|---|---|---|
+| `img/hero/pasangan-bukit.webp` | `photo-1532712938310-34cb3982ef74` | pengantin berjalan di bukit saat matahari terbenam, potongan lanskap 2400x1120 |
+| `img/scenes/tamu-memotret.webp` | `photo-1518757535402-49f315ea55f6` | tangan tamu memotret rombongan pengiring pengantin dengan ponsel |
+| `img/scenes/pernikahan-buket.webp` | `photo-1504993945773-3f38e1b6a626` | pengantin melempar buket ke arah para tamu di halaman, siang hari |
+| `img/scenes/ulang-tahun-taman.webp` | `photo-1758275557513-241a2a229936` | sekelompok teman bertopi pesta mengelilingi kue ulang tahun di taman |
+| `img/scenes/acara-kantor.webp` | `photo-1565125175292-f3177f64c794` | rekan kerja bersulang sambil tertawa di ruang santai kantor |
+| `img/scenes/pesta-malam.webp` | `photo-1516450360452-9312f5e86fc7` | kerumunan mengangkat tangan di bawah lampu panggung dan laser |
+| `img/scenes/meja-dekorasi.webp` | `photo-1763553113332-800519753e40` | meja resepsi berhias rangkaian bunga di ruangan bercahaya hangat |
+
+Berkas yang dibuang pada pembaruan ini: keenam varian `.jpg` (~6 MB, tidak
+pernah dirujuk kode mana pun), salinan `${name}.webp` yang ditulis dua kali oleh
+script lama, dan seluruh `public/img/theme/` — ketiga berkas di sana isinya
+tidak sesuai nama dan tidak pernah dirender.
+
+Sebelum memasang foto dari folder ini, buka dulu berkasnya. Jangan mengandalkan
+namanya.

@@ -2,6 +2,20 @@
    Baris bergeser tanpa ujung
    =========================================================================== */
 
+/* Didefinisikan di sini, bukan di globals.css. CSS Module memberi awalan pada
+   nama keyframe yang disebut di berkas ini; keyframe global tidak ikut diberi
+   awalan, jadi keduanya tidak pernah bertemu dan animasinya diam. */
+
+@keyframes marquee-left {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(-50%, 0, 0); }
+}
+
+@keyframes marquee-right {
+  from { transform: translate3d(-50%, 0, 0); }
+  to { transform: translate3d(0, 0, 0); }
+}
+
 .viewport {
   width: 100%;
   overflow: hidden;
@@ -25,7 +39,7 @@
 
 .group {
   display: flex;
-  align-items: center;
+  align-items: stretch;
   flex-shrink: 0;
 }
 

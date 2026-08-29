@@ -1,0 +1,148 @@
+/* ===========================================================================
+   Deret contoh roll film
+   =========================================================================== */
+
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.rail {
+  display: grid;
+  grid-template-columns: repeat(var(--roll-columns, 6), minmax(0, 1fr));
+  gap: 0.4rem;
+}
+
+.swatch {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-width: 0;
+  text-align: center;
+  transition: transform 0.45s var(--ease-ref);
+}
+
+.swatch:hover,
+.swatchOn {
+  transform: translateY(-4px);
+}
+
+.media {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  border-radius: 0.7rem;
+  background: var(--surface-raised);
+  box-shadow: var(--shadow-soft);
+  transition: box-shadow 0.45s var(--ease-ref), outline-color 0.3s ease;
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+}
+
+.swatchOn .media {
+  outline-color: var(--accent);
+  box-shadow: var(--shadow-card);
+}
+
+.canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* Kanvas kosong sampai WebGL selesai; diberi warna dasar supaya tidak
+     terbaca sebagai lubang putih. */
+  background: var(--canvas-warm);
+}
+
+.fallback {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(160deg, var(--surface-raised) 0%, var(--canvas-warm) 100%);
+}
+
+.name {
+  font-size: 0.625rem;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--ink-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: color 0.3s ease;
+}
+
+.swatchOn .name {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.readout {
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  color: var(--ink-muted);
+}
+
+.readout strong {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+/* ===== Mode ringkas =====
+
+   Dipakai di dalam kartu rel fitur, yang lebarnya cuma sekitar 20rem. Di sana
+   nama roll tinggal lima huruf sebelum terpotong dan baris keterangan memakan
+   separuh tinggi kartu, jadi keduanya disingkirkan dari mata. Judul kartunya
+   yang sudah menyebutkan bahwa ini enam nuansa warna. */
+
+.compact .readout {
+  display: none;
+}
+
+/* Petaknya dibuat tinggi dan tipis, bukan sekadar dikecilkan. Enam bingkai
+   sempit berjajar rapat terbaca sebagai potongan seluloid — bentuk yang justru
+   menjelaskan kata "roll" di judul kartunya, dan yang membuat deret setinggi
+   80px ini tidak terlihat seperti sisa ruang yang belum terisi. */
+.compact .media {
+  aspect-ratio: 1 / 2;
+  border-radius: 0.4rem;
+}
+
+/* Disembunyikan dari mata, bukan dari pembaca layar: nama inilah satu-satunya
+   nama yang dimiliki tombolnya. */
+.compact .name {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Enam petak terlalu tipis di layar sempit, jadi deretnya jadi dua baris.
+   Kecuali dalam mode ringkas: kartunya tidak cukup tinggi untuk dua baris, dan
+   petak tanpa nama masih terbaca meski tipis. */
+@media (max-width: 560px) {
+  .rail {
+    --roll-columns: 3;
+    gap: 0.5rem;
+  }
+
+  .compact .rail {
+    --roll-columns: 6;
+    gap: 0.3rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .swatch,
+  .media,
+  .name {
+    transition-duration: 1ms;
+  }
+}

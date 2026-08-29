@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import { SCENES } from "@/lib/scenes";
 import EventPageTemplate from "@/components/events/EventPageTemplate";
 
 export const metadata: Metadata = {
@@ -12,10 +13,10 @@ export default function PestaPage() {
   return (
     <EventPageTemplate
       slug="pesta"
-      badge="Pesta, Music Event & Nightout 🪩"
-      title="Tangkap Energi Malam Tanpa Jaim & Tanpa Filter Palsu"
+      badge="Pesta & Nightout"
+      title="Energi Malam Itu, Terekam Apa Adanya"
       subtitle="Musik kencang, lampu warna-warni, dan tawa lepas bersama teman. Abadikan atmosfer pesta malam dengan nuansa film yang disiapkan untuk pencahayaan indoor."
-      heroImage="/img/scenes/05-lantai-dansa-v2.webp"
+      heroScene={SCENES.pestaMalam}
       benefits={[
         {
           title: "Look Resepsi 800",
@@ -51,7 +52,7 @@ export default function PestaPage() {
         },
         {
           step: "03",
-          title: "Semua Tamu Motret",
+          title: "Semua Tamu Ikut Memotret",
           desc: "Tamu scan dan jepret vibes pesta secara real-time sepanjang malam.",
         },
       ]}
@@ -61,9 +62,9 @@ export default function PestaPage() {
         { name: "Golden Hour 400", desc: "Warna hangat untuk rooftop menjelang malam", tag: "Rooftop Sunset" },
       ]}
       sampleGallery={[
-        { img: "/img/scenes/05-lantai-dansa-v2.webp", caption: "Dansa malam dengan nuansa Resepsi 800" },
-        { img: "/img/scenes/03-kue-v2.webp", caption: "Keseruan kumpul dan selebrasi bersama" },
-        { img: "/img/scenes/02-meja-dekorasi-v2.webp", caption: "Suasana hangat bersama kawan" },
+        { scene: SCENES.pestaMalam, caption: "Dansa malam dengan nuansa Resepsi 800" },
+        { scene: SCENES.ulangTahunTaman, caption: "Keseruan kumpul dan selebrasi bersama" },
+        { scene: SCENES.tamuMemotret, caption: "Suasana hangat bersama kawan" },
       ]}
       faqs={[
         {

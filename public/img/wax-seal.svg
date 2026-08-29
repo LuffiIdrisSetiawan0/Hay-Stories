@@ -1,0 +1,102 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" width="160" height="160" fill="none">
+  <defs>
+    <!-- Outer wax radial gradient -->
+    <radialGradient id="wax-base" cx="45%" cy="40%" r="55%" fx="38%" fy="32%">
+      <stop offset="0%" stop-color="#a62c35" />
+      <stop offset="50%" stop-color="#801b22" />
+      <stop offset="85%" stop-color="#5c0f15" />
+      <stop offset="100%" stop-color="#3d070b" />
+    </radialGradient>
+    
+    <!-- Inner stamp area gradient -->
+    <radialGradient id="wax-inner" cx="48%" cy="45%" r="50%">
+      <stop offset="0%" stop-color="#91222a" />
+      <stop offset="70%" stop-color="#69141a" />
+      <stop offset="100%" stop-color="#4a0b10" />
+    </radialGradient>
+    
+    <!-- Gold/warm highlight gradient for rim -->
+    <linearGradient id="wax-rim" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#c94953" stop-opacity="0.9" />
+      <stop offset="50%" stop-color="#7a181e" stop-opacity="0.3" />
+      <stop offset="100%" stop-color="#3b0509" stop-opacity="0.9" />
+    </linearGradient>
+
+    <!-- Emboss filter for tactile stamp feeling -->
+    <filter id="wax-shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#120204" flood-opacity="0.65" />
+      <feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-color="#000000" flood-opacity="0.4" />
+    </filter>
+
+    <linearGradient id="engrave" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#4d090e" stop-opacity="0.9" />
+      <stop offset="100%" stop-color="#ad3740" stop-opacity="0.5" />
+    </linearGradient>
+  </defs>
+
+  <g filter="url(#wax-shadow)">
+    <!-- Organic molten wax outer edge with natural ripples -->
+    <path d="M80 8 
+             C98 7, 114 14, 126 24 
+             C139 35, 149 50, 152 68 
+             C155 86, 148 105, 137 121 
+             C126 137, 108 149, 88 152 
+             C68 155, 48 150, 33 138 
+             C18 126, 8 108, 7 88 
+             C6 68, 14 50, 27 36 
+             C40 22, 59 9, 80 8 Z" 
+          fill="url(#wax-base)" />
+          
+    <!-- Secondary wax ripple for natural melted seal rim -->
+    <path d="M82 14 
+             C98 13, 112 19, 122 28 
+             C133 38, 141 51, 144 67 
+             C147 83, 141 100, 131 114 
+             C121 128, 105 139, 87 141 
+             C69 143, 51 139, 37 128 
+             C23 117, 14 102, 13 84 
+             C12 66, 19 50, 31 38 
+             C43 26, 61 15, 82 14 Z" 
+          fill="none" 
+          stroke="url(#wax-rim)" 
+          stroke-width="3" 
+          stroke-linecap="round" 
+          opacity="0.85" />
+
+    <!-- Inner pressed circle (The matrix impression) -->
+    <circle cx="80" cy="80" r="48" fill="url(#wax-inner)" />
+    <circle cx="80" cy="80" r="48" fill="none" stroke="#48090d" stroke-width="2.5" />
+    <circle cx="80" cy="80" r="43" fill="none" stroke="#ad333d" stroke-width="1.2" opacity="0.6" stroke-dasharray="2 2" />
+
+    <!-- Center Monogram / Camera Motif -->
+    <!-- Vintage Camera Icon -->
+    <g transform="translate(48, 52) scale(0.8)">
+      <!-- Camera Body Outer -->
+      <rect x="6" y="16" width="68" height="46" rx="6" fill="none" stroke="url(#engrave)" stroke-width="3.5" />
+      <!-- Camera Top Ridge -->
+      <path d="M24 16 L28 8 L52 8 L56 16 Z" fill="none" stroke="url(#engrave)" stroke-width="3" />
+      <!-- Flash -->
+      <rect x="54" y="20" width="12" height="8" rx="2" fill="none" stroke="url(#engrave)" stroke-width="2.5" />
+      <!-- Lens Rings -->
+      <circle cx="40" cy="38" r="16" fill="none" stroke="url(#engrave)" stroke-width="3.5" />
+      <circle cx="40" cy="38" r="8" fill="none" stroke="url(#engrave)" stroke-width="2.5" />
+      <circle cx="40" cy="38" r="3" fill="#ad3740" opacity="0.7" />
+    </g>
+
+    <!-- Engraved Arc Text: HAY STORIES -->
+    <path id="text-path-top" d="M 44 62 A 40 40 0 0 1 116 62" fill="none" />
+    <text font-family="'Playfair Display', Georgia, serif" font-size="8.5" font-weight="700" letter-spacing="0.18em" fill="#e8989f" opacity="0.85">
+      <textPath href="#text-path-top" startOffset="50%" text-anchor="middle">
+        HAY.STORIES
+      </textPath>
+    </text>
+
+    <!-- Engraved Arc Text: EST. 2026 -->
+    <path id="text-path-bottom" d="M 118 98 A 40 40 0 0 1 42 98" fill="none" />
+    <text font-family="'Playfair Display', Georgia, serif" font-size="7.5" font-weight="600" letter-spacing="0.2em" fill="#e8989f" opacity="0.75">
+      <textPath href="#text-path-bottom" startOffset="50%" text-anchor="middle">
+        DISPOSABLE FILM
+      </textPath>
+    </text>
+  </g>
+</svg>

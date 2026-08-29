@@ -11,8 +11,8 @@ import {
   ShieldCheck,
   Smartphone,
 } from "lucide-react";
-import Navbar from "@/components/ui/Navbar";
-import Footer from "@/components/landing/Footer";
+import SiteHeader from "@/components/home/SiteHeader";
+import SiteFooter from "@/components/home/SiteFooter";
 import styles from "./Guestbook.module.css";
 
 const WAVEFORM = [
@@ -92,7 +92,7 @@ export const metadata: Metadata = {
 export default function GuestbookPage() {
   return (
     <main className={styles.page}>
-      <Navbar />
+      <SiteHeader />
 
       <section className={styles.hero} aria-labelledby="guestbook-title">
         <div className={styles.heroGlow} aria-hidden="true" />
@@ -355,7 +355,7 @@ export default function GuestbookPage() {
         </div>
       </section>
 
-      <Footer />
+      <SiteFooter />
     </main>
   );
 }

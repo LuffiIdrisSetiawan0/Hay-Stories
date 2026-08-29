@@ -1,0 +1,274 @@
+/* ===========================================================================
+   Kepala halaman
+
+   Tanpa wadah apa pun: logo berdiri langsung di pojok kiri, tautan menu dan
+   tombol berkumpul di kanan. Latar baru muncul setelah halaman digulir —
+   selebar layar, bukan pil mengambang — supaya tautannya tetap terbaca ketika
+   yang lewat di belakangnya bukan lagi langit hero.
+   =========================================================================== */
+
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 90;
+  transition: background-color 0.4s var(--ease-ref), box-shadow 0.4s var(--ease-ref);
+}
+
+.headerSolid {
+  background: rgba(251, 248, 243, 0.86);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 1px 0 var(--line);
+}
+
+.bar {
+  width: 100%;
+  max-width: var(--max-width);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+  height: var(--nav-height);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+
+/* ===== Wordmark ===== */
+
+.wordmark {
+  display: inline-flex;
+  align-items: center;
+  font-size: 1.0625rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+.wordmark span + span {
+  margin-left: 0.28em;
+}
+
+.dot {
+  display: inline-block;
+  width: 0.3em;
+  height: 0.3em;
+  margin-left: 0.12em;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+/* ===== Kelompok kanan ===== */
+
+.right {
+  display: flex;
+  align-items: center;
+  gap: clamp(0.5rem, 1.5vw, 1.75rem);
+}
+
+.nav {
+  display: none;
+  align-items: center;
+  /* Jarak antar tautan datang dari gap, bukan padding: garis bawah yang muncul
+     saat disorot harus selebar teksnya, bukan selebar kotak singgungnya. */
+  gap: clamp(1.25rem, 2.2vw, 2rem);
+}
+
+@media (min-width: 940px) {
+  .nav {
+    display: flex;
+  }
+}
+
+.navLink {
+  position: relative;
+  padding-block: 0.4rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+  transition: color 0.25s ease;
+}
+
+/* Garis bawah tumbuh dari kiri. Latar pil dilepas: di atas foto hero, kotak
+   abu-abu yang muncul saat disorot terlihat seperti tambalan. */
+.navLink::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1.5px;
+  border-radius: 2px;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.4s var(--ease-ref);
+}
+
+.navLink:hover {
+  color: var(--ink);
+}
+
+.navLink:hover::after {
+  transform: scaleX(1);
+}
+
+.cta {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.7rem 1.35rem;
+  border-radius: var(--radius-pill);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  white-space: nowrap;
+  color: var(--on-accent);
+  background: var(--ink);
+  box-shadow: 0 8px 20px rgba(27, 26, 24, 0.18);
+  transition: background-color 0.3s ease, transform 0.3s var(--ease-ref),
+    box-shadow 0.3s ease;
+}
+
+.cta:hover {
+  transform: translateY(-1px);
+  background: var(--accent-strong);
+  box-shadow: 0 12px 26px rgba(154, 63, 28, 0.28);
+}
+
+/* ===== Tombol menu ===== */
+
+/* Hanya muncul di lebar tempat tautan menu disembunyikan. Di layar lebar,
+   seluruh isinya sudah terlihat sehingga tombol ini tidak menambah apa pun. */
+.burger {
+  display: grid;
+  position: relative;
+  width: 2.6rem;
+  height: 2.6rem;
+  place-content: center;
+  gap: 0.32rem;
+  border-radius: 50%;
+  transition: background-color 0.3s ease;
+}
+
+.burger:hover {
+  background: var(--color-bg-hover);
+}
+
+.burger span {
+  display: block;
+  width: 1.15rem;
+  height: 2px;
+  background: var(--ink);
+  border-radius: 2px;
+  transition: transform 0.4s var(--ease-ref);
+}
+
+.burgerOpen span:first-child {
+  transform: translateY(0.41rem) rotate(45deg);
+}
+
+.burgerOpen span:last-child {
+  transform: translateY(-0.41rem) rotate(-45deg);
+}
+
+/* Wajib ditempatkan sesudah aturan `.burger` di atas: kekhususannya sama, jadi
+   yang menang adalah yang ditulis belakangan. */
+@media (min-width: 940px) {
+  .burger {
+    display: none;
+  }
+}
+
+/* ===== Panel menu ===== */
+
+.panel {
+  position: fixed;
+  inset: 0;
+  z-index: 85;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2rem;
+  padding: calc(var(--nav-height) + 2rem) var(--gutter) 3rem;
+  background: var(--canvas);
+  opacity: 0;
+  visibility: hidden;
+  clip-path: inset(0 0 100% 0);
+  transition: clip-path 0.55s var(--ease-ref), opacity 0.3s ease, visibility 0s linear 0.55s;
+}
+
+.panelOpen {
+  opacity: 1;
+  visibility: visible;
+  clip-path: inset(0 0 0 0);
+  transition: clip-path 0.55s var(--ease-ref), opacity 0.3s ease, visibility 0s;
+}
+
+.panelNav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  max-width: var(--max-width);
+  width: 100%;
+  margin-inline: auto;
+}
+
+.panelLink {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  padding-block: 0.5rem;
+  font-size: clamp(1.75rem, 6.5vw, 2.9rem);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1.05;
+  color: var(--ink);
+  opacity: 0;
+  transform: translateY(22px);
+  transition: opacity 0.5s var(--ease-ref), transform 0.55s var(--ease-ref), color 0.25s ease;
+}
+
+.panelOpen .panelLink {
+  opacity: 1;
+  transform: none;
+}
+
+.panelLink:hover {
+  color: var(--accent-ink);
+}
+
+.panelIndex {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  color: var(--accent-ink);
+}
+
+.panelNote {
+  max-width: var(--max-width);
+  width: 100%;
+  margin-inline: auto;
+  font-size: 0.9375rem;
+  color: var(--ink-muted);
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity 0.5s var(--ease-ref), transform 0.55s var(--ease-ref);
+}
+
+.panelOpen .panelNote {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .header,
+  .navLink,
+  .burger span,
+  .panel,
+  .panelLink,
+  .panelNote,
+  .cta {
+    transition-duration: 1ms;
+  }
+}

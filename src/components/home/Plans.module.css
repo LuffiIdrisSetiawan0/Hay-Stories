@@ -1,0 +1,227 @@
+/* ===========================================================================
+   Daftar paket
+   =========================================================================== */
+
+.section {
+  position: relative;
+  padding-block: var(--section-py);
+  background-color: var(--canvas);
+}
+
+.inner {
+  width: 100%;
+  max-width: var(--max-width);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+/* ===== Kepala ===== */
+
+.head {
+  max-width: 44rem;
+  margin-inline: auto;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.title {
+  margin-top: 1.15rem;
+  font-size: var(--display-md);
+  line-height: 1.02;
+  letter-spacing: -0.04em;
+  text-wrap: balance;
+}
+
+.lede {
+  margin-top: 1.1rem;
+  max-width: 44ch;
+  font-size: clamp(0.9375rem, 0.9rem + 0.25vw, 1.0625rem);
+  line-height: 1.7;
+  color: var(--ink-soft);
+}
+
+.included {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1.85rem;
+}
+
+.included li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.5rem 0.95rem;
+  border-radius: var(--radius-pill);
+  background: var(--surface-raised);
+  box-shadow: var(--shadow-soft);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+.included svg {
+  flex: none;
+  color: var(--accent-ink);
+}
+
+/* ===== Kartu ===== */
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15.5rem, 1fr));
+  gap: clamp(0.85rem, 1.6vw, 1.15rem);
+  margin-top: clamp(2.5rem, 5vw, 4rem);
+  align-items: stretch;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  padding: clamp(1.5rem, 2.4vw, 2rem);
+  border-radius: var(--radius-card);
+  background: var(--surface-raised);
+  box-shadow: var(--shadow-soft);
+  transition: transform 0.45s var(--ease-ref), box-shadow 0.45s var(--ease-ref);
+}
+
+.card:hover {
+  transform: translateY(-6px);
+  box-shadow: var(--shadow-card);
+}
+
+/* Kartu yang disorot memakai rona peach, bukan blok tinta gelap: halaman ini
+   harus tetap terang dari ujung ke ujung. */
+.cardFeatured {
+  position: relative;
+  background: var(--tint-peach);
+  box-shadow: var(--shadow-card);
+}
+
+.tag {
+  position: absolute;
+  top: -0.75rem;
+  left: clamp(1.5rem, 2.4vw, 2rem);
+  padding: 0.35rem 0.8rem;
+  border-radius: var(--radius-pill);
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--on-accent);
+  background: var(--accent-strong);
+  box-shadow: var(--shadow-soft);
+}
+
+.name {
+  font-size: 1.3rem;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  color: var(--ink);
+}
+
+.tagline {
+  margin-top: 0.2rem;
+  font-size: 0.875rem;
+  color: var(--ink-muted);
+}
+
+.price {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  margin-top: 1.35rem;
+}
+
+.priceValue {
+  font-size: clamp(1.6rem, 1.2rem + 1.4vw, 2.1rem);
+  font-weight: 800;
+  letter-spacing: -0.045em;
+  line-height: 1;
+  color: var(--ink);
+}
+
+.priceUnit {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--ink-muted);
+}
+
+.capacity {
+  margin-top: 0.6rem;
+  padding-bottom: 1.15rem;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.8125rem;
+  color: var(--ink-muted);
+}
+
+.cardFeatured .capacity {
+  border-bottom-color: rgba(27, 26, 24, 0.14);
+}
+
+.features {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  margin-top: 1.15rem;
+  margin-bottom: 1.75rem;
+  flex: 1;
+}
+
+.features li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: var(--ink-soft);
+}
+
+.features svg {
+  flex: none;
+  margin-top: 0.22rem;
+  color: var(--accent-ink);
+}
+
+/* ===== Tombol ===== */
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: auto;
+  padding: 0.85rem 1.35rem;
+  border-radius: var(--radius-pill);
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--on-accent);
+  background: var(--ink);
+  border: 1px solid var(--ink);
+  transition: background-color 0.3s ease, border-color 0.3s ease, gap 0.3s var(--ease-ref);
+}
+
+.button:hover {
+  gap: 0.8rem;
+  background: var(--accent-strong);
+  border-color: var(--accent-strong);
+}
+
+.buttonClosed,
+.buttonClosed:hover {
+  gap: 0.5rem;
+  color: var(--ink-muted);
+  background: transparent;
+  border: 1px dashed var(--line-strong);
+  cursor: not-allowed;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card,
+  .button {
+    transition-duration: 1ms;
+  }
+}

@@ -1,43 +1,107 @@
 /* ================================================
-   HAY Stories — Global Design System (Y-Vision Typography Standard)
+   HAY Stories — Sistem Desain
+
+   Terang, hangat, dan membulat. Kanvas krem nyaris putih, judul sans tebal,
+   dan kartu-kartu besar berona lembut yang masing-masing memuat satu potongan
+   produk. Warna dipakai sebagai rona kartu, bukan sebagai blok penuh.
    ================================================ */
 
-/* === CSS Custom Properties (Design Tokens) === */
 :root {
-  /* Colors */
-  --color-bg-primary: #fdfbf7; /* Off-white / Cream */
-  --color-bg-secondary: #f4f0e6;
-  --color-bg-elevated: #ffffff;
-  --color-bg-card: #ffffff;
-  --color-bg-hover: rgba(0, 0, 0, 0.03);
+  /* --- Permukaan --- */
+  --canvas: #fbf8f3;
+  --canvas-warm: #f4efe6;
+  --surface: #fdfbf8;
+  --surface-raised: #ffffff;
+  --ink-deep: #17150f;
 
-  --color-text-primary: #1a1a1a;
-  --color-text-secondary: rgba(26, 26, 26, 0.76);
-  --color-text-muted: rgba(26, 26, 26, 0.64);
-  --color-text-faint: rgba(26, 26, 26, 0.6);
+  /* --- Tinta ---
+     Tangga ini diukur terhadap kanvas: soft 8,9:1, muted 6,2:1, faint 4,9:1.
+     Di atas kartu berona, `faint` turun ke sekitar 4,3:1 — jadi di dalam kartu
+     pakai `muted` ke bawah, jangan `faint`. */
+  --ink: #1b1a18;
+  --ink-soft: #4a4640;
+  --ink-muted: #625d55;
+  --ink-faint: #726c63;
 
-  /* Bronze tuned as readable ink on light surfaces (6.83:1 on bg-primary). */
-  --color-accent: #765127;
-  --color-accent-hover: #5f3f1d;
-  --color-on-accent: #ffffff;
-  --color-accent-glow: rgba(118, 81, 39, 0.22);
-  --color-accent-soft: rgba(118, 81, 39, 0.11);
-  --color-focus-ring: #765127;
-  --color-halation: #c99b64;
+  /* --- Rona kartu --- */
+  --tint-peach: #fbe6d8;
+  --tint-peach-deep: #eab896;
+  --tint-sage: #e4ebdf;
+  --tint-sage-deep: #a9bfa1;
+  --tint-butter: #fbeecb;
+  --tint-butter-deep: #e6c983;
+  --tint-blush: #f8e2e4;
+  --tint-blush-deep: #e2adb2;
+  --tint-sky: #e2eaf1;
+  --tint-sky-deep: #a8c0d4;
 
-  --color-border: rgba(0, 0, 0, 0.14);
-  --color-border-hover: rgba(0, 0, 0, 0.28);
+  /* --- Aksen ---
+     Tiga nilai, karena satu warna tidak bisa memikul tiga tugas sekaligus:
+     `accent` untuk isian hias dan ikon, `accent-ink` untuk aksen yang dipakai
+     sebagai teks, `accent-strong` untuk tombol berisi teks putih. */
+  --accent: #d1613a;
+  --accent-ink: #a8451f;
+  --accent-strong: #9a3f1c;
+  --accent-soft: rgba(209, 97, 58, 0.12);
+  --on-accent: #fffdfa;
 
-  --color-success: #059669;
-  --color-error: #dc2626;
-  --color-warning: #d97706;
+  /* --- Garis --- */
+  --line: rgba(27, 26, 24, 0.1);
+  --line-strong: rgba(27, 26, 24, 0.2);
 
-  /* Typography — Exact Y-Vision Modern Sans Standard */
-  --font-serif: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", sans-serif;
-  --font-sans: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", sans-serif;
-  --font-mono: 'Share Tech Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  /* Alias lama yang masih dibaca dasbor, kamera, dan alur tamu. Namanya
+     dipertahankan supaya tidak ada yang perlu disentuh di sana. */
+  --color-bg-primary: var(--canvas);
+  --color-bg-secondary: var(--canvas-warm);
+  --color-bg-elevated: var(--surface-raised);
+  --color-bg-card: var(--surface);
+  --color-bg-hover: rgba(27, 26, 24, 0.05);
+  --color-text-primary: var(--ink);
+  --color-text-secondary: var(--ink-soft);
+  --color-text-muted: var(--ink-muted);
+  --color-text-faint: var(--ink-faint);
+  --color-accent: var(--accent-ink);
+  --color-accent-hover: var(--accent-strong);
+  --color-on-accent: var(--on-accent);
+  --color-accent-glow: rgba(209, 97, 58, 0.24);
+  --color-accent-soft: var(--accent-soft);
+  --color-focus-ring: var(--accent-strong);
+  --color-halation: #d98f63;
+  --color-border: var(--line);
+  --color-border-hover: var(--line-strong);
+  --color-success: #2f7a52;
+  --color-error: #b3261e;
+  --color-warning: #a9640f;
 
-  /* Spacing */
+  /* --- Huruf --- */
+  --font-display: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --font-sans: var(--font-display);
+  --font-hand: 'Caveat', cursive;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  /* Alias untuk berkas lama yang belum ikut dirombak. */
+  --font-serif: var(--font-display);
+  --font-script: var(--font-hand);
+  --font-cursive: var(--font-hand);
+
+  /* --- Skala tipografi --- */
+  --display-xl: clamp(2.6rem, 1.1rem + 5.6vw, 5.25rem);
+  --display-lg: clamp(2.3rem, 1.25rem + 4.4vw, 4.25rem);
+  --display-md: clamp(1.9rem, 1.25rem + 2.8vw, 3.1rem);
+  --display-sm: clamp(1.5rem, 1.15rem + 1.6vw, 2.2rem);
+
+  --text-display-1: var(--display-xl);
+  --text-display-2: var(--display-lg);
+  --text-display-3: var(--display-md);
+  --text-display-4: var(--display-sm);
+  --text-display-5: clamp(1.35rem, 1.15rem + 0.95vw, 1.9rem);
+  --text-display-6: clamp(1.15rem, 1.05rem + 0.55vw, 1.5rem);
+  --text-title-1: clamp(1.375rem, 1.2rem + 0.8vw, 1.875rem);
+  --text-title-2: clamp(1.1875rem, 1.09rem + 0.44vw, 1.5rem);
+  --text-title-3: clamp(1.0625rem, 1rem + 0.28vw, 1.25rem);
+  --text-title-4: clamp(0.9375rem, 0.9rem + 0.18vw, 1.0625rem);
+  --text-title-5: clamp(0.8125rem, 0.79rem + 0.11vw, 0.875rem);
+
+  /* --- Ruang --- */
   --space-xs: 0.25rem;
   --space-sm: 0.5rem;
   --space-md: 1rem;
@@ -47,21 +111,36 @@
   --space-3xl: 4rem;
   --space-4xl: 6rem;
 
-  /* Radius */
-  --radius-sm: 0.5rem;
-  --radius-md: 0.75rem;
-  --radius-lg: 1rem;
-  --radius-xl: 1.25rem;
-  --radius-2xl: 1.5rem;
-  --radius-full: 9999px;
+  /* --- Bentuk --- */
+  --radius-card: 1.75rem;
+  --radius-media: 1.25rem;
+  --radius-chip: 0.875rem;
+  --radius-pill: 999px;
 
-  /* Shadows */
-  --shadow-sm: 0 1px 2px rgba(60, 46, 28, 0.05), 0 1px 3px rgba(60, 46, 28, 0.04);
-  --shadow-md: 0 8px 24px rgba(60, 46, 28, 0.08);
-  --shadow-lg: 0 24px 60px rgba(60, 46, 28, 0.12);
+  /* Sudut lembar. Jauh lebih besar daripada sudut kartu, dan memang harus:
+     inilah satu-satunya bentuk yang memberi tahu mata bahwa satu bidang sedang
+     naik menutupi bidang lain. Dipakai di tiap seksi yang berperan sebagai
+     lembar, dan di tepi mengintip yang muncul di kaki panggung berpaku. */
+  --radius-panel: clamp(2rem, 5.5vw, 5rem);
+
+  --radius-sm: 0.5rem;
+  --radius-md: 0.875rem;
+  --radius-lg: 1.25rem;
+  --radius-xl: 1.75rem;
+  --radius-2xl: 2.25rem;
+  --radius-full: var(--radius-pill);
+
+  /* --- Bayangan: besar, lembut, dan berwarna hangat --- */
+  --shadow-soft: 0 2px 6px rgba(72, 52, 32, 0.05);
+  --shadow-card: 0 18px 44px rgba(72, 52, 32, 0.09);
+  --shadow-lift: 0 30px 64px rgba(72, 52, 32, 0.14);
+
+  --shadow-sm: var(--shadow-soft);
+  --shadow-md: var(--shadow-card);
+  --shadow-lg: var(--shadow-lift);
   --shadow-glow: 0 0 40px var(--color-accent-glow);
 
-  /* Transitions */
+  /* --- Gerak --- */
   --transition-fast: 150ms ease;
   --transition-base: 250ms ease;
   --transition-slow: 400ms ease;
@@ -69,58 +148,57 @@
   --ease-ref: cubic-bezier(0.22, 1, 0.36, 1);
   --stagger-step: 45ms;
 
-  /* Fluid Typography scale */
-  --text-display-1: clamp(3.25rem, 1.2rem + 9.1vw, 9rem);
-  --text-display-2: clamp(2.75rem, 1.35rem + 6.2vw, 6.75rem);
-  --text-display-3: clamp(2.25rem, 1.3rem + 4.2vw, 5rem);
-  --text-display-4: clamp(2rem, 1.35rem + 2.9vw, 4rem);
-  --text-display-5: clamp(1.75rem, 1.3rem + 2vw, 3.1rem);
-  --text-display-6: clamp(1.5rem, 1.2rem + 1.35vw, 2.4rem);
-
-  --text-title-1: clamp(1.375rem, 1.2rem + 0.8vw, 1.875rem);
-  --text-title-2: clamp(1.1875rem, 1.09rem + 0.44vw, 1.5rem);
-  --text-title-3: clamp(1.0625rem, 1rem + 0.28vw, 1.25rem);
-  --text-title-4: clamp(0.9375rem, 0.9rem + 0.18vw, 1.0625rem);
-  --text-title-5: clamp(0.8125rem, 0.79rem + 0.11vw, 0.875rem);
-
-  /* Layout */
-  --max-width: 72rem;
-  --nav-height: 4rem;
-  --section-py: clamp(4.5rem, 10vw, 9rem);
+  /* --- Tata letak --- */
+  --max-width: 78rem;
+  --gutter: clamp(1.25rem, 4vw, 3.5rem);
+  --nav-height: 4.75rem;
+  --section-py: clamp(4.5rem, 9vw, 8.5rem);
 }
 
+/* Permukaan gelap. Halaman utama tidak lagi memakainya; yang masih
+   membutuhkannya adalah seksi privasi di halaman buku tamu suara. */
 .surface-dark {
-  --color-bg-primary: #0c0b09;
-  --color-bg-secondary: #14120f;
-  --color-bg-elevated: #1a1714;
-  --color-bg-card: #16130f;
-  --color-bg-hover: rgba(255, 255, 255, 0.06);
+  --canvas: var(--ink-deep);
+  --canvas-warm: #201d17;
+  --surface: #232019;
+  --surface-raised: #2a2620;
+  --ink: #f9f6f0;
+  --ink-soft: rgba(249, 246, 240, 0.82);
+  --ink-muted: rgba(249, 246, 240, 0.68);
+  --ink-faint: rgba(249, 246, 240, 0.56);
+  --accent: #ec8253;
+  --accent-ink: #f0916a;
+  --accent-strong: #ec8253;
+  --on-accent: #17150f;
+  --line: rgba(249, 246, 240, 0.14);
+  --line-strong: rgba(249, 246, 240, 0.3);
 
-  --color-text-primary: #f5f2ec;
-  --color-text-secondary: rgba(245, 242, 236, 0.8);
-  --color-text-muted: rgba(245, 242, 236, 0.66);
-  --color-text-faint: rgba(245, 242, 236, 0.52);
+  --color-bg-primary: var(--canvas);
+  --color-bg-secondary: var(--canvas-warm);
+  --color-bg-elevated: var(--surface-raised);
+  --color-bg-card: var(--surface);
+  --color-bg-hover: rgba(249, 246, 240, 0.07);
+  --color-text-primary: var(--ink);
+  --color-text-secondary: var(--ink-soft);
+  --color-text-muted: var(--ink-muted);
+  --color-text-faint: var(--ink-faint);
+  --color-accent: var(--accent-ink);
+  --color-accent-hover: var(--accent);
+  --color-on-accent: var(--on-accent);
+  --color-border: var(--line);
+  --color-border-hover: var(--line-strong);
+  --color-focus-ring: var(--accent-ink);
 
-  /* Warm gold remains readable against the dark surface (10.27:1). */
-  --color-accent: #ddb57a;
-  --color-accent-hover: #efca93;
-  --color-on-accent: #17120c;
-  --color-accent-glow: rgba(221, 181, 122, 0.25);
-  --color-accent-soft: rgba(221, 181, 122, 0.13);
-  --color-focus-ring: #efca93;
+  --shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --shadow-card: 0 18px 44px rgba(0, 0, 0, 0.5);
+  --shadow-lift: 0 30px 64px rgba(0, 0, 0, 0.6);
 
-  --color-border: rgba(255, 255, 255, 0.16);
-  --color-border-hover: rgba(255, 255, 255, 0.3);
-
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
-  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.5);
-  --shadow-lg: 0 24px 60px rgba(0, 0, 0, 0.6);
-
-  background-color: var(--color-bg-primary);
-  color: var(--color-text-primary);
+  background-color: var(--canvas);
+  color: var(--ink);
 }
 
-/* === Reset & Base === */
+/* === Dasar === */
+
 *,
 *::before,
 *::after {
@@ -131,12 +209,10 @@
 
 html {
   scroll-behavior: smooth;
+  scroll-padding-top: calc(var(--nav-height) + 2rem);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
-  font-family: var(--font-sans);
-  font-feature-settings: "cv05" 1, "cv08" 1, "cv11" 1, "ss01" 1, "ss02" 1, "ss03" 1;
-  scroll-padding-top: calc(var(--nav-height) + 1.5rem);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -146,28 +222,37 @@ html {
 }
 
 body {
-  font-family: var(--font-sans);
-  font-feature-settings: "cv05" 1, "cv08" 1, "cv11" 1, "ss01" 1, "ss02" 1, "ss03" 1;
-  background-color: var(--color-bg-primary);
-  color: var(--color-text-primary);
   min-height: 100vh;
-  overflow-x: hidden;
-  line-height: 1.6;
+  /* `clip`, bukan `hidden`. Keduanya sama-sama memotong luapan mendatar, tetapi
+     `hidden` menjadikan body wadah gulir — dan itu merusak `position: sticky`
+     pada keturunannya, termasuk efek tirai di hero. */
+  overflow-x: clip;
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.65;
+  background-color: var(--canvas);
+  color: var(--ink);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  text-rendering: optimizeLegibility;
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-sans);
-  font-feature-settings: "cv05" 1, "cv08" 1, "cv11" 1;
+  font-family: var(--font-display);
+  font-weight: 800;
+  line-height: 1.05;
   letter-spacing: -0.035em;
-  text-rendering: optimizeLegibility;
+  color: var(--ink);
 }
 
-::selection {
-  background: var(--color-accent);
-  color: var(--color-on-accent);
+h3, h4, h5, h6 {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+}
+
+p {
+  text-wrap: pretty;
 }
 
 a {
@@ -188,18 +273,49 @@ button:disabled,
   cursor: not-allowed;
 }
 
-/* Shared controls used by dashboard, guest flow, and dialogs. */
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+ul, ol {
+  list-style: none;
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+:where(a, button, input, select, textarea, summary, [tabindex]:not([tabindex="-1"])):focus-visible {
+  outline: 2px solid var(--color-focus-ring) !important;
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* === Tata letak === */
+
+.container {
+  width: 100%;
+  max-width: var(--max-width);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+/* === Tombol bersama (dasbor, alur tamu, dialog) === */
+
 .btn {
-  min-height: 2.75rem;
+  min-height: 2.875rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  padding: 0.65rem 1.05rem;
+  padding: 0.75rem 1.4rem;
   border: 1px solid transparent;
-  border-radius: var(--radius-full);
-  font-size: 0.875rem;
-  font-weight: 650;
+  border-radius: var(--radius-pill);
+  font-size: 0.9rem;
+  font-weight: 600;
   line-height: 1;
   text-decoration: none;
   touch-action: manipulation;
@@ -222,13 +338,6 @@ button:disabled,
   transform: translateY(0);
 }
 
-/* A visible keyboard focus guardrail, including form controls whose modules
-   currently remove their default outline. */
-:where(a, button, input, select, textarea, summary, [tabindex]:not([tabindex="-1"])):focus-visible {
-  outline: 2px solid var(--color-focus-ring) !important;
-  outline-offset: 3px;
-}
-
 .btn:disabled,
 .btn[aria-disabled="true"] {
   opacity: 0.48;
@@ -236,29 +345,29 @@ button:disabled,
 
 .btn-primary,
 .btn-accent {
-  color: var(--color-on-accent);
-  background: var(--color-accent);
-  border-color: var(--color-accent);
-  box-shadow: 0 8px 22px rgba(126, 91, 48, 0.18);
+  color: var(--on-accent);
+  background: var(--ink);
+  border-color: var(--ink);
+  box-shadow: 0 10px 24px rgba(27, 26, 24, 0.18);
 }
 
 .btn-primary:hover:not(:disabled):not([aria-disabled="true"]),
 .btn-accent:hover:not(:disabled):not([aria-disabled="true"]) {
-  background: var(--color-accent-hover);
-  border-color: var(--color-accent-hover);
-  box-shadow: 0 10px 28px rgba(126, 91, 48, 0.24);
+  background: var(--accent-strong);
+  border-color: var(--accent-strong);
+  box-shadow: 0 14px 30px rgba(154, 63, 28, 0.28);
 }
 
 .btn-secondary {
-  color: var(--color-text-primary);
-  background: var(--color-bg-elevated);
-  border-color: var(--color-border);
-  box-shadow: var(--shadow-sm);
+  color: var(--ink);
+  background: var(--surface-raised);
+  border-color: var(--line-strong);
+  box-shadow: var(--shadow-soft);
 }
 
 .btn-secondary:hover:not(:disabled):not([aria-disabled="true"]) {
-  border-color: var(--color-border-hover);
-  background: var(--color-bg-hover);
+  border-color: var(--ink);
+  background: var(--surface);
 }
 
 @keyframes global-spin {
@@ -271,50 +380,20 @@ button:disabled,
   animation: global-spin 0.8s linear infinite;
 }
 
-img {
-  max-width: 100%;
-  height: auto;
-  display: block;
-}
-
-ul, ol {
-  list-style: none;
-}
-
-/* Container */
-.container {
-  width: 100%;
-  max-width: var(--max-width);
-  margin-inline: auto;
-  padding-inline: 1.5rem;
-}
-
-@media (min-width: 640px) {
-  .container {
-    padding-inline: 2rem;
-  }
-}
-
-/* Halation text effect */
-.text-halation {
-  color: var(--color-halation);
-  text-shadow: 0 0 16px var(--color-accent-glow);
-}
-
 /* ================================================
-   Reveal — animasi masuk saat scroll
+   Animasi masuk saat digulir
 
    Kelas ini sengaja global: Reveal dan SplitText berbagi keadaan gerak yang
-   sama, sementara fallback <noscript> di layout harus dapat menargetkannya.
+   sama, dan fallback <noscript> di layout harus dapat menargetkannya.
    ================================================ */
 
 .reveal {
   opacity: 0;
   transition:
-    opacity 0.9s var(--ease-ref),
-    transform 0.9s var(--ease-ref),
-    filter 0.9s var(--ease-ref),
-    clip-path 0.9s var(--ease-ref);
+    opacity 0.85s var(--ease-ref),
+    transform 0.85s var(--ease-ref),
+    filter 0.85s var(--ease-ref),
+    clip-path 0.85s var(--ease-ref);
   transition-delay: calc(var(--i, 0) * var(--stagger-step));
   will-change: opacity, transform;
 }
@@ -322,12 +401,12 @@ ul, ol {
 .reveal-up { transform: translateY(28px); }
 .reveal-left { transform: translateX(-28px); }
 .reveal-right { transform: translateX(28px); }
-.reveal-scale { transform: scale(0.96); }
+.reveal-scale { transform: scale(0.95); }
 .reveal-none { transform: none; }
 
 .reveal-blur {
-  transform: translateY(0.45em);
-  filter: blur(8px);
+  transform: translateY(0.35em);
+  filter: blur(6px);
 }
 
 .reveal-clip {
@@ -343,9 +422,9 @@ ul, ol {
 }
 
 .reveal-throw {
-  transform: translateY(150px) scale(1.12) rotate(-10deg);
+  transform: translateY(80px) scale(1.05) rotate(-5deg);
   transform-origin: bottom center;
-  transition-duration: 1.05s;
+  transition-duration: 1s;
 }
 
 .reveal-visible {
@@ -360,15 +439,15 @@ ul, ol {
   transform: scaleX(1);
 }
 
-@keyframes marquee-left {
-  from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
-}
+/* Keyframe marquee sengaja TIDAK ditaruh di sini.
 
-@keyframes marquee-right {
-  from { transform: translateX(-50%); }
-  to { transform: translateX(0); }
-}
+   CSS Module mengganti nama keyframe yang disebut di dalamnya menjadi nama
+   berawalan — `marquee-left` jadi `Marquee-module__bcm51q__marquee-left` —
+   tetapi keyframe global tetap bernama apa adanya. Keduanya lantas tidak pernah
+   bertemu, dan animasinya diam tanpa satu pun pesan galat.
+
+   Karena itu tiap modul yang memerlukannya mendefinisikan keyframe-nya sendiri.
+   Duplikasi tiga baris jauh lebih murah daripada animasi yang diam-diam mati.
 
 /* Jangan pernah menyembunyikan konten ketika pengguna mengurangi gerakan. */
 @media (prefers-reduced-motion: reduce) {
@@ -386,3 +465,51 @@ ul, ol {
     transform: scaleX(1);
   }
 }
+
+/* ================================================
+   Potongan bersama antar-seksi
+   ================================================ */
+
+/* Label kecil di atas judul. */
+.kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.85rem;
+  border-radius: var(--radius-pill);
+  background: var(--accent-soft);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent-ink);
+}
+
+/* Dasar kartu berona: rona, sudut membulat, dan angkat saat disorot.
+   Rona diatur per kartu lewat --tint dan --tint-deep. */
+.card-tint {
+  position: relative;
+  border-radius: var(--radius-card);
+  background: var(--tint, var(--surface-raised));
+  box-shadow: var(--shadow-card);
+  transition: box-shadow 0.5s var(--ease-ref);
+}
+
+.card-tint:hover {
+  box-shadow: var(--shadow-lift);
+}
+
+/* Keterangan tulisan tangan di tepi foto. */
+.hand {
+  font-family: var(--font-hand);
+  font-size: 1.2rem;
+  line-height: 1.2;
+  color: var(--ink-muted);
+}
+
+/* Alias lama supaya berkas yang belum dirombak tetap terbaca wajar. */
+.font-editorial { font-family: var(--font-display); }
+.font-script,
+.font-cursive { font-family: var(--font-hand); }
+
+.text-halation { color: var(--color-halation); }

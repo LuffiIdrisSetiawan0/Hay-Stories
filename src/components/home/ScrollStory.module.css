@@ -1,0 +1,562 @@
+/* ===========================================================================
+   Panggung langkah — dek kartu 3D yang bertumpuk sambil halaman dipaku
+   =========================================================================== */
+
+.section {
+  /* Ukuran kartu diukur dari referensi di dua lebar layar, dan rasionya memang
+     berubah — bukan sekadar mengecil.
+
+       layar 1440x900 → kartu 720x440  (melebar, 50% lebar layar)
+       layar  390x780 → kartu 320x360  (nyaris persegi, 82% lebar layar)
+
+     Satu `clamp` tidak bisa memikul keduanya: yang menyempit hanya lebarnya,
+     sementara tingginya nyaris tidak berubah. Memaksakan satu rumus menghasilkan
+     kartu setinggi 468px di ponsel — dan kartu setinggi itu memakan hampir dua
+     pertiga layar, sehingga tumpukannya kehilangan ruang napas di sekelilingnya.
+     Karena itu ukurannya ditulis dua kali, bukan diinterpolasi. */
+  --card-w: min(45rem, 80vw);
+  --card-h: min(27.5rem, 56svh);
+  --pad: clamp(1.5rem, 2.6vw, 2.25rem);
+
+  position: relative;
+  border-radius: var(--radius-panel) var(--radius-panel) 0 0;
+  /* Warna dasar yang sama dengan bagian tengah gradiennya. Hanya terlihat
+     sepersekian detik di tepi sudut membulat sebelum panggungnya terpaku. */
+  background-color: #f7e8da;
+  box-shadow: 0 -26px 60px rgba(72, 52, 32, 0.16);
+  /* `clip`, bukan `hidden`. Keduanya memotong hal yang sama, tetapi `hidden`
+     menjadikan seksi ini wadah gulir — dan panggung di dalamnya lantas menempel
+     pada wadah yang tidak pernah bergulir, jadi pakunya mati. */
+  overflow: clip;
+}
+
+.stage {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+/* ===== Latar =====
+
+   Gradien jala hangat, bukan foto. Referensi memakai jala biru-ungu-merah muda
+   di sini; padanan hangatnya krem ke persik ke blush. Empat noda radial yang
+   saling tumpang tindih di atas satu gradien lurus — itulah yang membuat
+   bidangnya terbaca sebagai cahaya, bukan sebagai bidang warna rata. */
+
+.mesh {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background:
+    radial-gradient(58% 48% at 12% 18%, #fffaf3 0%, rgba(255, 250, 243, 0) 62%),
+    radial-gradient(52% 55% at 88% 22%, #f7dfcb 0%, rgba(247, 223, 203, 0) 66%),
+    radial-gradient(64% 58% at 78% 92%, #f6dde2 0%, rgba(246, 221, 226, 0) 70%),
+    radial-gradient(58% 52% at 16% 88%, #faedcf 0%, rgba(250, 237, 207, 0) 66%),
+    linear-gradient(140deg, #fdf9f3 0%, #f7e8da 48%, #f4e0e5 100%);
+}
+
+/* ===== Ketukan pertama: judul sendirian =====
+
+   Muncul penuh di awal lalu pergi sebelum kartu pertama datang. Keduanya tidak
+   pernah berada di layar bersamaan — itu yang membedakan susunan ini dari
+   percobaan sebelumnya, tempat judul raksasa dan kartu saling menimpa sampai
+   keterangan langkahnya tidak bisa dibaca sama sekali. */
+
+.intro {
+  --fade: clamp(0, calc((0.17 - var(--p, 0)) * 9), 1);
+
+  position: absolute;
+  top: 50%;
+  left: var(--gutter);
+  right: var(--gutter);
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(0.9rem, 2vw, 1.4rem);
+  text-align: center;
+  opacity: var(--fade);
+  transform: translateY(calc(-50% + (1 - var(--fade)) * -3rem))
+    scale(calc(0.94 + 0.06 * var(--fade)));
+  /* Tidak ada yang bisa diklik di sini, dan begitu judulnya pudar lapisannya
+     tidak boleh menghalangi apa pun di belakangnya. */
+  pointer-events: none;
+}
+
+.headline {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* Dibatasi dua arah: lebar layar yang menentukan sebagian besar waktu, tinggi
+     layar yang menentukan di laptop pendek. */
+  font-size: min(clamp(2.4rem, 8.4vw, 5.75rem), 13svh);
+  line-height: 0.97;
+  letter-spacing: -0.045em;
+}
+
+.line {
+  display: block;
+}
+
+/* ===== Dek =====
+
+   Kartunya bertumpuk di titik yang sama, jadi semuanya menempati sel grid yang
+   sama. Tidak ada `perspective` di sini — dan itu disengaja. Kemiringannya
+   terlihat seperti ruang tiga dimensi, tetapi pengukuran matriks referensi
+   menunjukkan putaran dua dimensi murni tanpa satu pun `perspective` di seluruh
+   rantai induknya. Menambahkan perspektif justru membuat kartunya terbaca
+   sebagai papan yang rebah, bukan sebagai kartu yang tergeletak miring. */
+
+.deck {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+}
+
+.card {
+  /* Satu angka dari JavaScript: 0 ketika kartu masih di bawah panggung, 1
+     ketika sudah mendarat. Berpangkal 1 supaya tanpa JavaScript seluruh kartu
+     tampil mendarat, bukan tak satu pun terlihat.
+
+     Jarak tempuhnya 88svh — cukup untuk menaruh kartu sepenuhnya di bawah tepi
+     panggung, karena tepi panggung itulah yang menyembunyikannya sebelum
+     giliran datang. */
+  grid-area: 1 / 1;
+  z-index: var(--n);
+  width: var(--card-w);
+  height: var(--card-h);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: var(--pad);
+  border-radius: clamp(1.5rem, 2.4vw, 2.25rem);
+  overflow: hidden;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.45),
+    0 40px 90px rgba(72, 52, 32, 0.24),
+    0 6px 18px rgba(72, 52, 32, 0.1);
+  /* Jarak tempuh dan sudut putar terkunci satu sama lain, persis seperti di
+     referensi: keduanya bergerak linear dan selesai bersamaan. */
+  transform: translate3d(0, calc(var(--dy) + (1 - var(--arrive, 1)) * 88svh), 0)
+    rotate(calc(var(--rest) + (1 - var(--arrive, 1)) * 29deg));
+  transform-origin: 50% 50%;
+  will-change: transform;
+}
+
+/* Rona kartu. Gradien, bukan warna rata: bidang selebar 46rem yang berwarna
+   rata terbaca datar, dan justru kartunyalah yang harus terasa punya
+   permukaan. */
+
+.peach {
+  background: linear-gradient(135deg, #fbe6d8 0%, #f0c4a3 52%, #e3a97f 100%);
+}
+
+.butter {
+  background: linear-gradient(135deg, #fbeecb 0%, #efd694 52%, #e2c169 100%);
+}
+
+.sage {
+  background: linear-gradient(135deg, #e4ebdf 0%, #b9cdb1 52%, #9db594 100%);
+}
+
+.blush {
+  background: linear-gradient(135deg, #f8e2e4 0%, #ecbcc0 52%, #dfa0a7 100%);
+}
+
+/* ===== Isi kartu ===== */
+
+/* `flex: none` di ketiga bagian teks ini wajib. Kartunya kolom flex, dan tanpa
+   ini keterangannya ikut menyusut ketika isinya melebihi tinggi kartu — bukan
+   melimpah keluar, melainkan terpotong diam-diam di tengah baris ketiga. Yang
+   boleh melimpah cuma panel produk di kakinya, karena memang tepi kartu yang
+   memotongnya dengan sengaja. */
+.badge {
+  flex: none;
+  padding: 0.4rem 0.9rem;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.62);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+.cardTitle {
+  flex: none;
+  margin-top: 0.85rem;
+  font-size: clamp(1.45rem, 2.6vw, 2.3rem);
+  line-height: 1.05;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+
+.cardText {
+  flex: none;
+  margin-top: 0.5rem;
+  max-width: 34rem;
+  font-size: clamp(0.875rem, 1vw, 1.0625rem);
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+
+/* ===== Panel produk =====
+
+   Menembus kaki kartu, tepat seperti di referensi. Panel yang berdiri utuh di
+   dalam kartu terbaca sebagai gambar yang ditempel; panel yang terpotong tepi
+   kartu terbaca sebagai layar yang memang lebih besar daripada bingkainya. */
+
+.panel {
+  position: relative;
+  align-self: stretch;
+  margin-top: auto;
+  margin-right: calc(var(--pad) * -0.45);
+  margin-bottom: calc(var(--pad) * -1 - 2.5rem);
+  padding: 1rem 1.15rem 1.35rem;
+  border-radius: 1.35rem 1.35rem 0 0;
+  background: var(--surface-raised);
+  box-shadow: 0 -10px 34px rgba(72, 52, 32, 0.14);
+  /* Isinya boleh lebih tinggi daripada bagian yang terlihat — bagian bawahnya
+     memang dipotong tepi kartu. */
+  overflow: hidden;
+}
+
+/* Rata kiri, bukan direntang ke dua ujung. Panel ini selebar 40rem dan selalu
+   dimiringkan; label di ujung kiri dan angka di ujung kanan lantas duduk pada
+   ketinggian yang berbeda dan barisnya terbaca patah, bukan sebagai satu
+   baris. */
+.panelTitle {
+  display: flex;
+  align-items: baseline;
+  gap: 0.55rem;
+  margin-bottom: 0.8rem;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+
+.panelTitle b {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--ink-muted);
+}
+
+.panelTitle b::before {
+  content: "· ";
+}
+
+/* ===== Panel 1: tamu bergabung ===== */
+
+.guests {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  max-width: 22rem;
+}
+
+.guest {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.4rem 0.7rem 0.4rem 0.4rem;
+  border-radius: var(--radius-pill);
+  background: var(--canvas);
+}
+
+.guestAvatar {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 50%;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--on-accent);
+  background: var(--accent-strong);
+}
+
+.guestName {
+  flex: 1;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.guestTime {
+  font-size: 0.75rem;
+  color: var(--ink-muted);
+}
+
+.qr {
+  position: absolute;
+  top: 3.1rem;
+  right: 1.15rem;
+  display: grid;
+  justify-items: center;
+  gap: 0.5rem;
+  padding: 0.9rem 1.1rem;
+  border-radius: 1rem;
+  background: var(--canvas);
+  color: var(--ink);
+}
+
+.qr i {
+  font-style: normal;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--ink-muted);
+}
+
+/* ===== Panel 3: kamera ===== */
+
+.viewfinder {
+  position: relative;
+  /* Dipendekkan supaya baris tombol di bawahnya tetap utuh. Panel ini memang
+     menembus kaki kartu, tetapi yang boleh terpotong hanya ruang kosongnya —
+     tombol rana yang terpotong separuh terbaca sebagai salah, bukan sebagai
+     pemotongan yang disengaja. */
+  height: clamp(6rem, 15svh, 8.5rem);
+  border-radius: 1rem;
+  overflow: hidden;
+  background: #24211a;
+}
+
+.photo {
+  object-fit: cover;
+}
+
+/* Dua kotak dengan bentuk berlawanan memakai kelas foto yang sama, jadi titik
+   fokusnya dipilih oleh induknya: viewfinder adalah strip yang sangat melebar
+   (~5:1) sehingga membuang atas-bawah, sementara petak galeri bujur sangkar
+   dan membuang kiri-kanan. */
+.viewfinder .photo {
+  object-position: var(--focus-wide, center);
+}
+
+.left {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.6rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: var(--radius-pill);
+  background: rgba(23, 21, 15, 0.62);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: #f9f6f0;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 0.85rem;
+}
+
+.saved {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.85rem;
+  border-radius: var(--radius-pill);
+  background: var(--canvas);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+.shutter {
+  flex: none;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  background: var(--ink);
+  box-shadow: 0 0 0 3px var(--canvas), 0 0 0 4px var(--line-strong);
+}
+
+/* ===== Panel 4: galeri ===== */
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 0.45rem;
+}
+
+.cell {
+  position: relative;
+  display: block;
+  aspect-ratio: 1;
+  border-radius: 0.7rem;
+  overflow: hidden;
+  background: var(--canvas);
+}
+
+.cell .photo {
+  object-position: var(--focus-tall, center);
+}
+
+.more {
+  display: grid;
+  place-items: center;
+  font-size: 0.9375rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--ink-soft);
+  background: var(--canvas);
+}
+
+/* ===== Tepi lembar berikutnya ===== */
+
+.peek {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 6;
+  height: clamp(1.5rem, 3.4vw, 2.5rem);
+  border-radius: var(--radius-panel) var(--radius-panel) 0 0;
+  background: var(--surface);
+  box-shadow: 0 -6px 26px rgba(72, 52, 32, 0.12);
+}
+
+/* Jarak gulir yang menentukan berapa lama pakunya bertahan: satu layar untuk
+   judul, lalu satu layar untuk tiap kartu. */
+.spacer {
+  height: 100svh;
+}
+
+/* ===========================================================================
+   Layar sempit
+
+   Kartunya diperkecil dan dipendekkan ke ukuran yang diukur dari referensi, lalu
+   isinya ikut dirapikan: beberapa peraga yang lapang di kartu selebar 45rem
+   menjadi berdesakan di kartu selebar 20rem, dan yang dipangkas selalu
+   peraganya — bukan judul atau keterangannya.
+   =========================================================================== */
+
+@media (max-width: 900px) {
+  .section {
+    --card-w: min(20rem, 84vw);
+    --card-h: min(22.5rem, 48svh);
+  }
+
+  .cardTitle {
+    margin-top: 0.6rem;
+  }
+
+  .cardText {
+    margin-top: 0.35rem;
+    font-size: 0.8125rem;
+    line-height: 1.45;
+    /* Kartu memendek 80px sementara keterangannya tidak, jadi batasnya di sini
+       yang menjaga panel produk tetap kebagian tempat. */
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .panel {
+    margin-bottom: calc(var(--pad) * -1 - 1.5rem);
+    padding: 0.8rem 0.9rem 1rem;
+    border-radius: 1rem 1rem 0 0;
+  }
+
+  .panelTitle {
+    margin-bottom: 0.6rem;
+    font-size: 0.8125rem;
+  }
+
+  /* Keping QR duduk di kanan panel; di kartu selebar 20rem ia menindih daftar
+     tamunya. Daftarnya yang dipertahankan — itu yang menceritakan langkahnya. */
+  .qr {
+    display: none;
+  }
+
+  .guests {
+    max-width: none;
+    gap: 0.4rem;
+  }
+
+  .guest {
+    padding: 0.3rem 0.6rem 0.3rem 0.3rem;
+  }
+
+  .guestName {
+    font-size: 0.8125rem;
+  }
+
+  .viewfinder {
+    height: clamp(5rem, 11svh, 6.5rem);
+  }
+
+  .controls {
+    margin-top: 0.6rem;
+  }
+
+  .shutter {
+    width: 2rem;
+    height: 2rem;
+  }
+
+  /* Enam petak di kartu selebar 20rem tinggal 40px — terlalu kecil untuk
+     terbaca sebagai foto. Tiga petak yang barisnya berlanjut ke bawah tepi kartu
+     justru lebih jujur soal isi galerinya. */
+  .grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.35rem;
+  }
+}
+
+/* ===========================================================================
+   Ketika gerakan dikurangi
+
+   Pakunya dilepas dan deknya dirapikan jadi tumpukan tegak biasa: judul di
+   atas, empat kartu berurutan di bawahnya tanpa satu pun putaran. Isinya utuh,
+   hanya jalan masuknya yang berbeda.
+   =========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .stage {
+    position: static;
+    height: auto;
+    overflow: visible;
+    padding-block: var(--section-py);
+  }
+
+  .intro {
+    position: static;
+    opacity: 1;
+    transform: none;
+    margin-bottom: clamp(2rem, 5vw, 3.5rem);
+  }
+
+  .deck {
+    position: static;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: clamp(1.25rem, 3vw, 2rem);
+    padding-inline: var(--gutter);
+  }
+
+  .card {
+    height: auto;
+    min-height: var(--card-h);
+    opacity: 1;
+    transform: none;
+    will-change: auto;
+  }
+
+  .peek,
+  .spacer {
+    display: none;
+  }
+}

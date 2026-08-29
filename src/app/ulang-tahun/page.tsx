@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import { SCENES } from "@/lib/scenes";
 import EventPageTemplate from "@/components/events/EventPageTemplate";
 
 export const metadata: Metadata = {
@@ -12,10 +13,10 @@ export default function UlangTahunPage() {
   return (
     <EventPageTemplate
       slug="ulang-tahun"
-      badge="Pesta Ulang Tahun & Sweet 17 🎂"
-      title="Tiup Lilin Sampai Tawa Terakhir Bersama Circle-mu"
+      badge="Ulang Tahun & Sweet Seventeen"
+      title="Dari Tiup Lilin Sampai Tawa Terakhir Malam Itu"
       subtitle="Ulang tahun datang setahun sekali. Simpan pelukan teman terdekat, tawa saat tiup lilin, dan ekspresi paling spontan dari kamera di tangan mereka."
-      heroImage="/img/scenes/03-kue-v2.webp"
+      heroScene={SCENES.ulangTahunTaman}
       benefits={[
         {
           title: "Bingkai Cetak Retro",
@@ -61,9 +62,9 @@ export default function UlangTahunPage() {
         { name: "Everyday 160", desc: "Netral hangat untuk pilihan aman indoor maupun outdoor", tag: "Outdoor Picnic" },
       ]}
       sampleGallery={[
-        { img: "/img/scenes/03-kue-v2.webp", caption: "Tiup lilin bersama sahabat" },
-        { img: "/img/scenes/05-lantai-dansa-v2.webp", caption: "Keseruan pesta malam dan candid tawa" },
-        { img: "/img/scenes/02-meja-dekorasi-v2.webp", caption: "Suasana santai bersama teman-teman" },
+        { scene: SCENES.ulangTahunTaman, caption: "Tiup lilin bersama sahabat" },
+        { scene: SCENES.pestaMalam, caption: "Keseruan pesta malam dan candid tawa" },
+        { scene: SCENES.tamuMemotret, caption: "Suasana santai bersama teman-teman" },
       ]}
       faqs={[
         {

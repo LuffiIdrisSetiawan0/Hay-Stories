@@ -22,6 +22,11 @@ const nextConfig: NextConfig = {
     return [{ source: "/:path*", headers: securityHeaders }];
   },
   images: {
+    // Next 16 mengunci daftar ini ke [75] kalau tidak diisi, dan menolak nilai
+    // lain dengan 400. 88 dipakai hanya untuk foto berukuran besar — panggung
+    // jenis acara, panel foto, dan hero halaman acara; petak kecil tetap 75,
+    // di sana bedanya tidak terlihat dan cuma menambah berat.
+    qualities: [75, 88],
     remotePatterns: supabaseHostname
       ? [
           {

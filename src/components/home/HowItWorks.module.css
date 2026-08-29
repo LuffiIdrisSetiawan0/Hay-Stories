@@ -1,0 +1,159 @@
+/* ===========================================================================
+   Tiga langkah penyiapan
+   =========================================================================== */
+
+.section {
+  position: relative;
+  padding-block: var(--section-py);
+  background-color: var(--canvas-warm);
+}
+
+.inner {
+  width: 100%;
+  max-width: var(--max-width);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+.head {
+  max-width: 42rem;
+  margin-inline: auto;
+  margin-bottom: clamp(2.25rem, 5vw, 3.5rem);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.title {
+  margin-top: 1.15rem;
+  font-size: var(--display-md);
+  line-height: 1.02;
+  letter-spacing: -0.04em;
+  text-wrap: balance;
+}
+
+.lede {
+  margin-top: 1.1rem;
+  max-width: 44ch;
+  font-size: clamp(0.9375rem, 0.9rem + 0.25vw, 1.0625rem);
+  line-height: 1.7;
+  color: var(--ink-soft);
+}
+
+/* ===== Kartu langkah ===== */
+
+.list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: clamp(0.85rem, 1.8vw, 1.25rem);
+  align-items: start;
+}
+
+.slot {
+  display: block;
+  min-width: 0;
+}
+
+/* Kartu kedua dan ketiga dinaikkan bertingkat, jadi barisnya tidak terbaca
+   sebagai tiga kotak sama rata. */
+@media (min-width: 900px) {
+  .slot:nth-child(2) {
+    margin-top: 2rem;
+  }
+
+  .slot:nth-child(3) {
+    margin-top: 4rem;
+  }
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: clamp(1.5rem, 2.6vw, 2.15rem);
+  border-radius: var(--radius-card);
+  background: var(--tint, var(--surface-raised));
+  box-shadow: var(--shadow-soft);
+  transition: transform 0.5s var(--ease-ref), box-shadow 0.5s var(--ease-ref);
+}
+
+.card:hover {
+  transform: translateY(-6px);
+  box-shadow: var(--shadow-card);
+}
+
+.number {
+  display: grid;
+  place-items: center;
+  width: 3.25rem;
+  height: 3.25rem;
+  margin-bottom: 1.35rem;
+  border-radius: 50%;
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: var(--shadow-soft);
+}
+
+.cardTitle {
+  font-size: clamp(1.2rem, 1.05rem + 0.6vw, 1.5rem);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  color: var(--ink);
+  text-wrap: balance;
+}
+
+.cardText {
+  margin-top: 0.65rem;
+  font-size: 0.9375rem;
+  line-height: 1.7;
+  color: var(--ink-soft);
+}
+
+/* ===== Kaki ===== */
+
+.footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.85rem 1.5rem;
+  margin-top: clamp(2.5rem, 5vw, 4rem);
+  text-align: center;
+}
+
+.cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 1rem 1.85rem;
+  border-radius: var(--radius-pill);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--on-accent);
+  background: var(--ink);
+  box-shadow: 0 14px 30px rgba(27, 26, 24, 0.18);
+  transition: background-color 0.3s ease, gap 0.35s var(--ease-ref),
+    transform 0.35s var(--ease-ref);
+}
+
+.cta:hover {
+  gap: 0.95rem;
+  transform: translateY(-2px);
+  background: var(--accent-strong);
+}
+
+.footNote {
+  font-size: 0.875rem;
+  color: var(--ink-muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card,
+  .cta {
+    transition-duration: 1ms;
+  }
+}
